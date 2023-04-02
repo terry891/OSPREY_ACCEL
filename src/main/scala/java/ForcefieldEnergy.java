@@ -534,10 +534,28 @@ public class ForcefieldEnergy implements Serializable {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 //	This section calculates the energy of the given system
-//////////////////////////////////////////////////////////////////////////////////////////////////	
-	//Evaluate this energy for the sets of interacting atoms
-	//use the coordinates in res1 and res2
-	//Depending on the flags, different types of energies are included/excluded
+
+
+
+	final double solvCutoff = 9.0;
+	private static final long serialVersionUID = 944833567342112297L;
+	boolean isInternal;
+	Residue res1, res2;
+	CoordsAndCharges coordsAndCharges;
+	ForcefieldParams params;
+	public static final boolean debug = false;
+	final double constCoulomb = 332.0;
+	int numberNonBonded = 0;
+	int numberHalfNonBonded = 0;
+	int numberSolvated = 0;
+	double nonBondedTerms[];
+	double halfNonBondedTerms[];
+	double solvationTerms[];
+	double D2R = 0.01745329251994329576;
+	double R2D = 57.29577951308232090712;
+	double internalSolvEnergy = 0;
+	
+	
 	public double calculateTotalEnergy() {
 		
 		int atomix4, atomjx4, atomi, atomj;
@@ -569,22 +587,27 @@ public class ForcefieldEnergy implements Serializable {
 		double esEnergy = 0;
 		double vdwEnergy = 0;
 		
-		// OPTIMIZING: apparently copying these values/references to the stack
-		//             gives a small but noticeable performance speedup
+//global
 		int numberHalfNonBonded = this.numberHalfNonBonded;
-		double[] halfNonBondedTerms = this.halfNonBondedTerms;
 		int numberNonBonded = this.numberNonBonded;
+		int numberSolvated = this.numberSolvated;
+
+		double[] halfNonBondedTerms = this.halfNonBondedTerms;
 		double[] nonBondedTerms = this.nonBondedTerms;
 		double[] data = this.coordsAndCharges.data;
+		double[] solvationTerms = this.solvationTerms;
+
 		int res1Start = this.coordsAndCharges.res1Start;
 		int res2Start = this.coordsAndCharges.res2Start;
+
 		boolean useHydrogenEs = params.hElect;
 		boolean useHydrogenVdw = params.hVDW;
 		boolean distDepDielect = params.distDepDielect;
 		boolean isInternal = this.isInternal;
 		double solvCutoff2 = this.solvCutoff*this.solvCutoff;
-		int numberSolvated = this.numberSolvated;
-		double[] solvationTerms = this.solvationTerms;
+		
+
+
 		
 		// shortcuts
 		boolean useHydrogenNeither = !useHydrogenEs && !useHydrogenVdw;
@@ -789,271 +812,3 @@ public class ForcefieldEnergy implements Serializable {
 		
 		return energy;
 	}
-
-	//probably want to handle gradient at some point...below is from Amber96ext
-	//but we'll probably want to be returning the gradient from a particular term
-	//which will be converted to derivatives with respect to minimization degrees of freedom
-	/*
-	//Computes the gradient of the different energy terms;
-	//The computed gradient is in the molecule's gradient member variable
-	//The parameter curIndex specifies the row in the partial arrays
-	//		(the corresponding flexible residue);
-	//If (curIndex==-1), then the full gradient is computed
-	public void calculateGradient(int curIndex){
-		
-		// clear the gradient		
-		m.gradient = new double[m.numberOfAtoms * 3];
-		for(int i=0; i<m.numberOfAtoms*3;i ++){
-			m.gradient[i]=0;
-		}
-		
-		calculateEVGradient(curIndex); //compute electrostatic and vdW energies
-		
-		if (doSolvationE) //compute solvation energies
-			calculateSolvationGradient(curIndex);
-	}
-	
-	// This code computes the gradient of the electrostatic and vdw energy terms
-	// The computed gradient is in the molecule's gradient member variable
-	private void calculateEVGradient(int curIndex){
-		
-		int ix4;
-		double coulombFactor;
-		int atomi, atomj, atomix3, atomjx3;
-		double Aij, Bij, rij6, rij7, rij8, rij14;
-		double chargei, chargej, coulombTerm;
-		double rijx, rijy, rijz, rij2, rij, rij3;
-		double term1, term2, term3;
-		double forceix, forceiy, forceiz, forcejx, forcejy, forcejz;
-		
-		int numHalfNBterms = 0; int numNBterms = 0;
-		double halfNBterms[] = null; double nbTerms[] = null;
-		
-		if (curIndex==-1){ //full gradient is computed
-			numHalfNBterms = numHalfNonBondedTerms;
-			halfNBterms = halfNonBondedTerms;
-			numNBterms = numberNonBonded;
-			nbTerms = nonBondedTerms;
-		}
-		else { //partial gradient is computed, based on flexible residue curIndex
-			numHalfNBterms = numPartHalfNonBonded[curIndex];
-			halfNBterms = partHalfNonBonded[curIndex];
-			numNBterms = numPartNonBonded[curIndex];
-			nbTerms = partNonBonded[curIndex];
-		}
-
-		// Note: Bmult = vdwMultiplier^6 and Amult = vdwMultiplier^12
-		double Bmult; double Amult;
-		Bmult = vdwMultiplier * vdwMultiplier;
-		Bmult = Bmult*Bmult*Bmult;
-		Amult = Bmult*Bmult;
-		
-		// compute gradient for 1/2 non-bonded terms
-		ix4 = -4;
-		//coulombFactor = (constCoulomb/2.0) / (dielectric);
-		//KER: Made change to 1.2
-		switch(EnvironmentVars.forcefld){
-			case AMBER: 
-				coulombFactor = (constCoulomb/1.2) / dielectric;
-				break;
-			case CHARMM19:
-			case CHARMM19NEUTRAL:
-				coulombFactor = (constCoulomb*0.4) / dielectric;
-				break;
-			default:
-				throw new Error("FORCEFIELD NOT RECOGNIZED!!!");
-		}
-		double tmpCoulFact;
-		for (int i=0; i<numHalfNBterms; i++){
-			ix4 += 4;
-			atomi = (int)halfNBterms[ix4];
-			atomj = (int)halfNBterms[ix4 + 1];
-			Aij = halfNBterms[ix4 + 2]*Amult;
-			Bij = halfNBterms[ix4 + 3]*Bmult;
-			chargei = m.atom[atomi].charge;
-			chargej = m.atom[atomj].charge;
-			atomix3 = atomi * 3;
-			atomjx3 = atomj * 3;
-			rijx = m.actualCoordinates[atomix3] - 
-				m.actualCoordinates[atomjx3];
-			rijy = m.actualCoordinates[atomix3 + 1] - 
-				m.actualCoordinates[atomjx3 + 1];
-			rijz = m.actualCoordinates[atomix3 + 2] - 
-				m.actualCoordinates[atomjx3 + 2];
-			rij2 = rijx * rijx + rijy * rijy + rijz * rijz;
-			if (rij2 < 1.0e-2)
-				rij2 = 1.0e-2;	
-			rij = Math.sqrt(rij2);
-			rij3 = rij2 * rij;
-			rij6 = rij3 * rij3;
-			rij7 = rij6 * rij;
-			rij8 = rij7 * rij;
-			rij14 = rij7 * rij7;
-			
-			tmpCoulFact = coulombFactor;
-			if (distDepDielect) //distance-dependent dielectric
-				tmpCoulFact = (tmpCoulFact * 2) / rij;
-			
-			coulombTerm = (chargei * chargej * tmpCoulFact) / rij3;
-			term1 = 12 * Aij / rij14;
-			term2 = 6 * Bij / rij8;
-			term3 = term1 - term2 + coulombTerm;
-			forceix = term3 * rijx;
-			forceiy = term3 * rijy;
-			forceiz = term3 * rijz;
-			forcejx = -forceix;
-			forcejy = -forceiy;
-			forcejz = -forceiz;
-			m.gradient[atomix3] -= forceix;
-			m.gradient[atomix3 + 1] -= forceiy;
-			m.gradient[atomix3 + 2] -= forceiz;
-			m.gradient[atomjx3] -= forcejx;
-			m.gradient[atomjx3 + 1] -= forcejy;
-			m.gradient[atomjx3 + 2] -= forcejz;
-		}
-
-		// Full non bonded terms
-		ix4 = -4;
-		coulombFactor = constCoulomb / (dielectric);
-		for(int i=0; i<numNBterms; i++){
-			ix4 += 4;
-			atomi = (int)nbTerms[ix4];
-			atomj = (int)nbTerms[ix4 + 1];
-			Aij = nbTerms[ix4 + 2]*Amult;
-			Bij = nbTerms[ix4 + 3]*Bmult;
-			chargei = m.atom[atomi].charge;
-			chargej = m.atom[atomj].charge;
-			atomix3 = atomi * 3;
-			atomjx3 = atomj * 3;
-			rijx = m.actualCoordinates[atomix3] - 
-				m.actualCoordinates[atomjx3];
-			rijy = m.actualCoordinates[atomix3 + 1] - 
-				m.actualCoordinates[atomjx3 + 1];
-			rijz = m.actualCoordinates[atomix3 + 2] - 
-				m.actualCoordinates[atomjx3 + 2];
-			rij2 = rijx * rijx + rijy * rijy + rijz * rijz;
-			if (rij2 < 1.0e-2)
-				rij2 = 1.0e-2;	
-			rij = Math.sqrt(rij2);
-			rij3 = rij2 * rij;
-			rij6 = rij3 * rij3;
-			rij7 = rij6 * rij;
-			rij8 = rij7 * rij;
-			rij14 = rij7 * rij7;
-			
-			tmpCoulFact = coulombFactor;
-			if (distDepDielect) //distance-dependent dielectric
-				tmpCoulFact = (tmpCoulFact * 2) / rij;
-			
-			coulombTerm = (chargei * chargej * coulombFactor) / rij3;
-			term1 = 12 * Aij / rij14;
-			term2 = 6 * Bij / rij8;
-			term3 = term1 - term2 + coulombTerm;
-			forceix = term3 * rijx;
-			forceiy = term3 * rijy;
-			forceiz = term3 * rijz;
-			forcejx = -forceix;
-			forcejy = -forceiy;
-			forcejz = -forceiz;
-			m.gradient[atomix3] -= forceix;
-			m.gradient[atomix3 + 1] -= forceiy;
-			m.gradient[atomix3 + 2] -= forceiz;
-			m.gradient[atomjx3] -= forcejx;
-			m.gradient[atomjx3 + 1] -= forcejy;
-			m.gradient[atomjx3 + 2] -= forcejz;
-		}  
-	}
-	
-	//Computes the gradient for the solvation energy term;
-	//The computed gradient is in the molecules gradient member variable
-	private void calculateSolvationGradient(int curIndex) {
-		
-		double forceix, forceiy, forceiz;
-		int atomix3, atomjx3, atomi, atomj;
-		double rij, rij2, rij3;
-		double rijx, rijy, rijz;
-		double tempTerm_i;
-		int indMult = 0;
-		
-		int numSolvTerms = 0;
-		double solvTerms[] = null;
-		
-		if (curIndex==-1){ //full energy is computed
-			numSolvTerms = numSolvationTerms;
-			solvTerms = solvationTerms;
-			indMult = 6;
-		}
-		else { //partial energy is computed, based on flexible residue curIndex
-			numSolvTerms = numPartSolv[curIndex];
-			solvTerms = partSolv[curIndex];
-			indMult = 7;
-		}
-		
-		for ( int i = 0; i < numSolvTerms; i++ ){
-
-			atomi = (int)solvTerms[ i*indMult ];
-			atomix3 = atomi * 3;
-			
-			double dGi_free = solvTerms[i*indMult+2]; //dGi(free)
-			double V_i = solvTerms[i*indMult+3]; //Vi
-			double lambda_i = solvTerms[i*indMult+4]; //lambdai
-			double vdWr_i = solvTerms[i*indMult+5]; //vdWri
-			
-			int startInd = i;
-			if (curIndex!=-1)
-				startInd = (int)solvTerms[i*indMult+6];
-			
-			forceix = 0.0;forceiy = 0.0; forceiz = 0.0;
-			for (int j=0; j<numSolvationTerms; j++){ //the pairwise solvation energies
-				
-				if (j!=startInd){
-				
-					atomj = (int)solvTerms[j*6];
-					atomjx3 = atomj*3;
-					
-					//atoms 1 or 2 bonds apart are excluded from each other's calculation of solvation free energy
-					if (!solvExcludePairs[startInd][j]) {
-						
-						rijx = m.actualCoordinates[ atomix3 ] - m.actualCoordinates[ atomjx3 ];
-						rijy = m.actualCoordinates[ atomix3 + 1 ] - m.actualCoordinates[ atomjx3 + 1 ];
-						rijz = m.actualCoordinates[ atomix3 + 2 ] - m.actualCoordinates[ atomjx3 + 2 ];
-						rij2 = rijx * rijx + rijy * rijy + rijz * rijz;
-						rij = Math.sqrt( rij2 ); //distance between the two atoms
-						rij3 = rij2 * rij;
-						
-						if (rij < solvCutoff){
-							
-							double dGj_free = solvationTerms[j*6+2]; //dGj(free)
-							double V_j = solvationTerms[j*6+3]; //Vj
-							double lambda_j = solvationTerms[j*6+4]; //lambdaj
-							double vdWr_j = solvationTerms[j*6+5]; //vdWrj
-						
-							double coeff = 1/(Math.PI*Math.sqrt(Math.PI));
-							
-							double Xij = (rij-vdWr_i)/lambda_i;
-							double Xji = (rij-vdWr_j)/lambda_j;
-							
-							double Vj_coeff = Xij/lambda_i + 1/rij;
-							double Vi_coeff = Xji/lambda_j + 1/rij;
-							
-							tempTerm_i = ( (coeff * dGi_free * Math.exp(-Xij*Xij) * Vj_coeff * V_j) / (lambda_i * rij3)
-										+ (coeff * dGj_free * Math.exp(-Xji*Xji) * Vi_coeff * V_i) / (lambda_j * rij3) ) ;
-							
-							forceix += tempTerm_i * rijx;
-							forceiy += tempTerm_i * rijy;
-							forceiz += tempTerm_i * rijz;
-						}
-					}
-				}
-			}		
-			
-			m.gradient[ atomix3 ] += solvScale*forceix;
-			m.gradient[ atomix3 + 1 ] += solvScale*forceiy;
-			m.gradient[ atomix3 + 2 ] += solvScale*forceiz;
-		}
-	}
-//////////////////////////////////////////////////////////////////////////////////////////////////
-	*/
-
-
-}
