@@ -1,0 +1,11 @@
+This is a merge with the master branch not hosted on GitHub - a lot of the changes are irrelevant to the AWS F1 or
+simulation backends. That said, there are some significant changes for the simulation backend.
+
+1. You can simulate memory transactions more authentically by building cmake build with -DTARGET=sim -DUSE_DRAMSIM=1
+   Previously this build system existed but wasn't fully realistic and also had a rare race condition that was triggered
+   under high memory contention. Now works. There may be significant performance decline though. Lots of locking.
+
+2. Flush trace file on kill signals. If there are some fringe signals that I've left out, you can add them to the signal
+   handler as I did on src/verilator.cc:895,896.
+
+3. Use -DVERBOSE=1 to turn on more debug messages. Suggested for simulation builds.

@@ -1,0 +1,6 @@
+- Resolved error on some platforms where interleaved memory transactions resulted in undefined behavior
+- Removed finish_early/stop from writer/reader interfaces. Added in_progress flag to reader which should be more intuitive
+- Remove support for emitting transactions in one burst. This was causing some ordering issues.
+    Have to use other method for prefetching now.
+- Examples now reflect above changes
+- Resolve issue where cores were misaddressed when using many systems
