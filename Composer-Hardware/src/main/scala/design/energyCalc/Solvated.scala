@@ -22,7 +22,7 @@ class Solvated() extends Module {
     val start = Input(Bool())
     val done = Output(Bool())
   })
-  def doubleToIEEE(in: Double): UInt = { fpnewWrapper.FPNewUtil.floatToUInt(in, FPFloatFormat.Fp64) }
+  def doubleToIEEE(in: Double): UInt = { fpnewWrapper.FPNewUtil.floatToUInt(in, FPFloatFormat.Fp32) }
 
   val done_skip = RegInit(false.B)
   val done_solv = RegInit(false.B)
@@ -110,7 +110,7 @@ class Solvated() extends Module {
 
   // if (rij2 >= solvCutoff2) -> done
   val doSolveEnergy = Wire(Bool())
-  val fpuComp = Module(new FPUNew(FPFloatFormat.Fp32, lanes = 1, stages = 1, supportedOps = Seq(FPNewOpClass.CONV), tagWidth = 1))
+  val fpuComp = Module(new FPUNew(FPFloatFormat.Fp32, lanes = 1, stages = 1, supportedOps = Seq(FPNewOpClass.NONCOMP), tagWidth = 1))
   fpuComp.io.req.valid := true.B
   fpuComp.io.req.bits := DontCare
   fpuComp.io.resp.ready := true.B
@@ -119,7 +119,7 @@ class Solvated() extends Module {
   fpuComp.io.req.bits.op := FPOperation.CMP    //Is this right for CONV ?
   fpuComp.io.req.bits.operands(0)(0) := rij2
   fpuComp.io.req.bits.operands(1)(0) := io.solvCutoff2
-  fpuComp.io.req.bits.operands(2)(0) := constantChoice
+  fpuComp.io.req.bits.operands(2)(0) := DontCare
   when(fpuComp.io.resp.fire) {
     doSolveEnergy := fpuComp.io.resp.bits.result(0)(0)
   }
@@ -189,6 +189,12 @@ class Solvated() extends Module {
     }
 
     //  solvEnergy -= (alpha_i * Math.exp(-Xij * Xij) + alpha_j * Math.exp(-Xji * Xji)) / rij2
+    // Math.exp(-(Xij) * Xij) approximation = {1-1/2Xij} if 0<x<2, else 0
+    val Xij2 = Wire(doubleToIEEE(0.0))
+
+    val all_sums = Wire(Vec(8, doubleToIEEE(0.0)))
+    fpu2(3).io.req.bits.op := FPOperation.DIV
+    fpu2(3).io.req.bits.operands(0)(0) := rij2
     val partialSum = Wire(doubleToIEEE(0.0))
     fpu1(7).io.req.bits.op := FPOperation.ADD
     fpu1(7).io.req.bits.operands(0)(0) := constantChoice
@@ -198,7 +204,5 @@ class Solvated() extends Module {
       io.out_solvE := fpu1(7).io.resp.bits.result(0)
       done_solv := true.B
     }
-
-
   }
 }

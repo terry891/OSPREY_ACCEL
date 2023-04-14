@@ -25,7 +25,7 @@ class NonBonded() extends Module {
     val out_esE = Output(UInt(32.W))
     val done = Output(Bool())
   })
-  def doubleToIEEE(in: Double): UInt = { fpnewWrapper.FPNewUtil.floatToUInt(in, FPFloatFormat.Fp64) }
+  def doubleToIEEE(in: Double): UInt = { fpnewWrapper.FPNewUtil.floatToUInt(in, FPFloatFormat.Fp32) }
 
 
   // FPU calculations

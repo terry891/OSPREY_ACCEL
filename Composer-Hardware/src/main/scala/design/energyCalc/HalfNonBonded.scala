@@ -15,7 +15,7 @@ class HalfNonBonded() extends Module {
     val distDepDielect = Input(Bool())
     val coulombFactor = Input(UInt(32.W))   //input
     val halfNonBondedTerms = Input(Vec(5, UInt(32.W)))  //Max 50
-    val data = Input(Vec(116, SInt(32.W)))               //Max 116
+    val data = Input(Vec(116, UInt(32.W)))               //Max 116
     val res1Start = Input(UInt(32.W))
     val res2Start = Input(UInt(32.W))
 
@@ -27,7 +27,7 @@ class HalfNonBonded() extends Module {
   })
 
   def doubleToIEEE(in: Double): UInt = {
-    fpnewWrapper.FPNewUtil.floatToUInt(in, FPFloatFormat.Fp64)
+    fpnewWrapper.FPNewUtil.floatToUInt(in, FPFloatFormat.Fp32)
   }
 
 
@@ -53,14 +53,14 @@ class HalfNonBonded() extends Module {
     done_skippped := false.B
 
     // Preparation for first loop
-    val Aij = RegInit(doubleToIEEE(0.0))
-    val Bij = RegInit(doubleToIEEE(0.0))
-    val chargei = RegInit(doubleToIEEE(0.0))
-    val chargej = RegInit(doubleToIEEE(0.0))
-    val rij = RegInit(doubleToIEEE(0.0))
-    val rijx = RegInit(doubleToIEEE(0.0))
-    val rijy = RegInit(doubleToIEEE(0.0))
-    val rijz = RegInit(doubleToIEEE(0.0))
+    val Aij = RegInit(0.U(32.W))
+    val Bij = RegInit(0.U(32.W))
+    val chargei = RegInit(0.U(32.W))
+    val chargej = RegInit(0.U(32.W))
+    val rij = RegInit(0.U(32.W))
+    val rijx = RegInit(0.U(32.W))
+    val rijy = RegInit(0.U(32.W))
+    val rijz = RegInit(0.U(32.W))
     val isHeavy = RegInit(false.B)
 
     isHeavy := !(io.halfNonBondedTerms(2) === 1.U(32.W))  // !isHydrogen
@@ -100,11 +100,34 @@ class HalfNonBonded() extends Module {
       fpu2(i).io.req.bits.roundingMode := FPRoundingMode.RNE
     }
 
-    // rij2 := rijx * rijx + rijy * rijy + rijz * rijz
-    val rij2 = RegInit(doubleToIEEE(0.0))
     val rijx2 = Wire(doubleToIEEE(0.0))
     val rijy2 = Wire(doubleToIEEE(0.0))
     val rijz2 = Wire(doubleToIEEE(0.0))
+    val fpu0 = Module(new FPUNew(FPFloatFormat.Fp32, lanes = 3, stages = 1, supportedOps = Seq(FPNewOpClass.ADDMUL), tagWidth = 1))
+    fpu0.io.req.valid := true.B
+    fpu0.io.req.bits := DontCare
+    fpu0.io.resp.ready := true.B
+    fpu0.io.req.bits.opModifier := 0.U
+    fpu0.io.req.bits.roundingMode := FPRoundingMode.RNE
+    fpu0.io.req.bits.op := FPOperation.MUL
+    fpu0.io.req.bits.operands(0)(0) := rijx
+    fpu0.io.req.bits.operands(1)(0) := rijx
+    fpu0.io.req.bits.operands(2)(0) := DontCare
+    fpu0.io.req.bits.operands(0)(1) := rijy
+    fpu0.io.req.bits.operands(1)(1) := rijy
+    fpu0.io.req.bits.operands(2)(1) := DontCare
+    fpu0.io.req.bits.operands(0)(2) := rijz
+    fpu0.io.req.bits.operands(1)(2) := rijz
+    fpu0.io.req.bits.operands(2)(2) := DontCare
+    when(fpu0.io.resp.fire) {
+      rijx2 := fpu0.io.resp.bits.result(0)
+      rijy2 := fpu0.io.resp.bits.result(1)
+      rijz2 := fpu0.io.resp.bits.result(2)
+    }
+
+
+    // rij2 := rijx * rijx + rijy * rijy + rijz * rijz
+    val rij2 = RegInit(doubleToIEEE(0.0))
     val sum1 = Wire(doubleToIEEE(0.0))
     fpu1(0).io.req.bits.op := FPOperation.MUL
     fpu1(0).io.req.bits.operands(0)(0) := rijx
@@ -147,8 +170,8 @@ class HalfNonBonded() extends Module {
       // rij = Math.sqrt(rij2);
       fpu2(0).io.req.bits.operands(0)(0) := rij2
       fpu2(0).io.req.bits.op := FPOperation.SQRT
-      fpu2(0).io.req.bits.operands(1)(0) := 0.U   //No reg needed?
-      fpu2(0).io.req.bits.operands(2)(0) := 0.U
+      fpu2(0).io.req.bits.operands(1)(0) := DontCare
+      fpu2(0).io.req.bits.operands(2)(0) := DontCare
       when(fpu2(0).io.resp.fire) {
         rij := fpu2(0).io.resp.bits.result(0)
       }
@@ -159,7 +182,7 @@ class HalfNonBonded() extends Module {
         fpu2(1).io.req.bits.operands(0)(0) := io.coulombFactor
         fpu2(1).io.req.bits.op := FPOperation.DIV
         fpu2(1).io.req.bits.operands(1)(0) := rij
-        fpu2(1).io.req.bits.operands(2)(0) := 0.U
+        fpu2(1).io.req.bits.operands(2)(0) := DontCare
         when(fpu2(1).io.resp.fire) {
           tmpCoulombFact := fpu2(1).io.resp.bits.result(0)
         }
@@ -186,12 +209,12 @@ class HalfNonBonded() extends Module {
       fpu2(2).io.req.bits.operands(0)(0) := chargeijTemp
       fpu2(2).io.req.bits.op := FPOperation.DIV
       fpu2(2).io.req.bits.operands(1)(0) := rij
-      fpu2(2).io.req.bits.operands(2)(0) := 0.U
+      fpu2(2).io.req.bits.operands(2)(0) := DontCare
       when(fpu2(2).io.resp.fire) {
         energyAdd := fpu2(2).io.resp.bits.result(0)
       }
       fpu1(7).io.req.bits.op := FPOperation.ADD
-      fpu1(7).io.req.bits.operands(0)(0) := 0.U
+      fpu1(7).io.req.bits.operands(0)(0) := DontCare
       fpu1(7).io.req.bits.operands(1)(0) := energyAdd
       fpu1(7).io.req.bits.operands(2)(0) := io.in_esE
       when(fpu1(7).io.resp.fire) {

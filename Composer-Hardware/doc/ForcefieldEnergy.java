@@ -684,9 +684,7 @@ public class ForcefieldEnergy implements Serializable {
 		coulombFactor = constCoulomb / (params.dielectric);
 
 		// OPTIMIZATION: non-bonded terms usually far outnumber the other terms
-		ix5 = -5;
-		for (int i = 0; i < numberNonBonded; i++) {
-			ix5 += 5;
+		for (int ix5 = 0; ix5 < numberNonBonded * 5; ix5 += 5) {
 
 			isHydrogen = nonBondedTerms[ix5 + 2] == 1;
 			if (isHydrogen && useHydrogenNeither) {

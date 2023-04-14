@@ -8,15 +8,7 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/composer" />
-            <option value="$PROJECT_DIR$/fpnew-wrapper" />
             <option value="$PROJECT_DIR$/project" />
-            <option value="$PROJECT_DIR$/rocket-chip" />
-            <option value="$PROJECT_DIR$/rocket-chip/api-config-chipsalliance/build-rules/sbt" />
-            <option value="$PROJECT_DIR$/rocket-chip/api-config-chipsalliance/design/craft" />
-            <option value="$PROJECT_DIR$/rocket-chip/docs-target" />
-            <option value="$PROJECT_DIR$/rocket-chip/hardfloat" />
-            <option value="$PROJECT_DIR$/rocket-chip/macros" />
           </set>
         </option>
         <option name="sbtVersion" value="1.3.13" />

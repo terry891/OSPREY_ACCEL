@@ -3,9 +3,7 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$/../.." vcs="Git" />
     <mapping directory="$PROJECT_DIR$/.." vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/rocket-chip" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/rocket-chip/api-config-chipsalliance" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/rocket-chip/hardfloat" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/rocket-chip/torture" vcs="Git" />
   </component>
 </project>
