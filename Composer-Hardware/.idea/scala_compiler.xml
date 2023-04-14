@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ScalaCompilerConfiguration">
     <option name="incrementalityType" value="SBT" />
-    <profile name="sbt 1" modules="composer-hardware_5060" />
+    <profile name="sbt 1" modules="composer-hardware_5060,fpnew_wrapper" />
     <profile name="sbt 2" modules="Composer,composer_tools">
       <plugins>
         <plugin path="$USER_HOME$/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/edu/berkeley/cs/chisel3-plugin_2.13.10/3.5.5/chisel3-plugin_2.13.10-3.5.5.jar" />

@@ -1,9 +1,0 @@
-[submodule "src/main/scala/prose/src/main/scala/prose"]
-	path = src/main/scala/prose/src/main/scala/prose
-	url = https://github.com/jiegec/fpnew-wrapper.git
-[submodule "src/main/scala/prose/fpnew"]
-	path = src/main/scala/prose/fpnew
-	url = https://github.com/jiegec/fpnew-wrapper.git
-[submodule "src/main/scala/prose/fpnew_wrapper"]
-	path = src/main/scala/prose/fpnew_wrapper
-	url = https://github.com/jiegec/fpnew-wrapper.git

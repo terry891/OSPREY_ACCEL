@@ -10,7 +10,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="fpnewWrapper" exported="" />
+    <orderEntry type="module" module-name="fpnew_wrapper" exported="" />
     <orderEntry type="module" module-name="hardfloat" exported="" />
     <orderEntry type="library" name="sbt: com.chuusai:shapeless_2.13:2.3.3:jar" level="project" />
     <orderEntry type="library" name="sbt: com.fasterxml.jackson.core:jackson-annotations:2.9.0:jar" level="project" />
@@ -21,8 +21,8 @@
     <orderEntry type="library" name="sbt: com.github.scopt:scopt_2.13:3.7.1:jar" level="project" />
     <orderEntry type="library" name="sbt: com.github.wendykierp:JTransforms:3.1:jar" level="project" />
     <orderEntry type="library" name="sbt: com.google.protobuf:protobuf-java:3.18.2:jar" level="project" />
-    <orderEntry type="library" name="sbt: com.lihaoyi:geny_2.13:1.0.0:jar" level="project" />
-    <orderEntry type="library" name="sbt: com.lihaoyi:os-lib_2.13:0.9.0:jar" level="project" />
+    <orderEntry type="library" name="sbt: com.lihaoyi:geny_2.13:0.7.0:jar" level="project" />
+    <orderEntry type="library" name="sbt: com.lihaoyi:os-lib_2.13:0.8.0:jar" level="project" />
     <orderEntry type="library" name="sbt: com.thoughtworks.paranamer:paranamer:2.8:jar" level="project" />
     <orderEntry type="library" name="sbt: edu.berkeley.cs:chisel-iotesters_2.13:2.5.5:jar" level="project" />
     <orderEntry type="library" name="sbt: edu.berkeley.cs:chisel3-core_2.13:3.5.5:jar" level="project" />

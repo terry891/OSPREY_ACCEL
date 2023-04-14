@@ -20,9 +20,13 @@ lazy val composer = (project in file("composer")).enablePlugins(BuildInfoPlugin)
 
 lazy val root = (project in file(".")).settings(
   name := "Composer",
+  resolvers += (
+    "reposilite-repository-releases" at "http://oak.cs.duke.edu:8080/releases").withAllowInsecureProtocol(true)
+  ,
   libraryDependencies ++= Seq(
     "edu.berkeley.cs" %% "chisel3" % chiselVersion,
     "org.json4s" %% "json4s-jackson" % "3.6.6",
+    "edu.duke.cs.apex" %% "fpnew-wrapper" % "0.1.2"
   ),
   addCompilerPlugin("edu.berkeley.cs" % "chisel3-plugin" % chiselVersion cross CrossVersion.full),
   serverConnectionType := ConnectionType.Tcp

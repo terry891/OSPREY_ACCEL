@@ -8,124 +8,83 @@ import fpnewWrapper._
 import chipsalliance.rocketchip.config.{Config, Parameters}
 
 
-class EnergyCal() extends Module {
+class HalfNonBonded() extends Module {
   val io = IO(new Bundle {
-    val numberHalfNonBonded = Input(UInt(64.W))
-    val numberNonBonded = Input(UInt(64.W))
-    val numberSolvated = Input(UInt(64.W))
     val useHydrogenEs = Input(Bool())
-    val isInternal = Input(Bool())
     val useHydrogenVdw = Input(Bool())
-    val internalSolvEnergy = Input(UInt(32.W))
     val distDepDielect = Input(Bool())
-    val toDoSalve = Input(Bool())
-    val forceFieldSelect = Input(UInt(64.W))
+    val coulombFactor = Input(UInt(32.W))   //input
     val halfNonBondedTerms = Input(Vec(5, UInt(32.W)))  //Max 50
-    val nonBondedTerms = Input(Vec(5, UInt(32.W)))    //Max 2090
-    val solvationTerms = Input(Vec(5, UInt(32.W)))     //Max 288
-    val data = Input(Vec(5, SInt(32.W)))               //Max 116
+    val data = Input(Vec(116, SInt(32.W)))               //Max 116
     val res1Start = Input(UInt(32.W))
     val res2Start = Input(UInt(32.W))
-    val solvCutoff2 = Input(UInt(32.W))
-    val solvScale = Input(UInt(32.W))
 
-
-    val output = Output(UInt(64.W))
-    var done = Output(Bool())
+    val in_vdwE = Input(UInt(32.W))
+    val in_esE = Input(UInt(32.W))
+    val out_vdwE = Output(UInt(32.W))
+    val out_esE = Output(UInt(32.W))
+    val done = Output(Bool())
   })
-  
+
   def doubleToIEEE(in: Double): UInt = {
     fpnewWrapper.FPNewUtil.floatToUInt(in, FPFloatFormat.Fp64)
   }
 
 
-  val coulombFactor = RegInit(doubleToIEEE(332.0636))
-
-  // First loop Columb Factor Scaling
-  when(io.forceFieldSelect === 0.U) {
-    coulombFactor := doubleToIEEE((332.0 / 1.2) / 78.3) //AMBER
-  }.elsewhen(io.forceFieldSelect === 1.U || io.forceFieldSelect === 2.U) {
-    coulombFactor := doubleToIEEE((332.0 * 0.4) / 78.3) //CHARMM19 or CHARMM19NEUTRAL
-  }.otherwise {
-    throw new Exception("Force Field not supported")
-  }
-
-  // Second loop
-  //  coulombFactor = constCoulomb / (params.dielectric);
+  // Configure Done
+  val done_esE = Wire(Bool())
+  val done_vdwE = Wire(Bool())
+  val done_skippped = Wire(Bool())
+  io.done := done_skippped || (done_esE && done_vdwE)
 
 
-  val solvEnergy = Reg(0.U(32.W))
-  solvEnergy := Mux(io.isInternal, io.internalSolvEnergy, 0.U(32.W))
-
-  // Not doing third loop
-  when (io.solvationForcefield != SolvationForcefield.EEF1) {
-    io.output := HNB_esE + NB_esE + HNB_vdwE + NB_vdwE //add all four energies
-  }
-
-
-
-
-
-
-
-  // Scaling
-  when (io.forceFieldSelect === 0.U) {
-    coulombFactor := doubleToIEEE((332.0 / 1.2) / 78.3)  //AMBER
-  } .elsewhen (io.forceFieldSelect === 1.U || io.forceFieldSelect === 2.U) {
-    coulombFactor := doubleToIEEE((332.0 * 0.4) / 78.3)  //CHARMM19 or CHARMM19NEUTRAL
-  } .otherwise {
-    throw new Exception("Force Field not supported")
-  }
-
-
-  // Preparation for first loop
-  val atomix4 = RegInit(0.U(32.W))
-  val atomjx4 = RegInit(0.U(32.W))
-  val atomi = RegInit(0.U(32.W))
-  val atomj = RegInit(0.U(32.W))
-  val Aij = RegInit(doubleToIEEE(0.0))
-  val Bij = RegInit(doubleToIEEE(0.0))
-  val chargei = RegInit(doubleToIEEE(0.0))
-  val chargej = RegInit(doubleToIEEE(0.0))
-  val rij = RegInit(doubleToIEEE(0.0))
-  val rijx = RegInit(doubleToIEEE(0.0))
-  val rijy = RegInit(doubleToIEEE(0.0))
-  val rijz = RegInit(doubleToIEEE(0.0))
-  val useHydrogenNeither = RegInit(false.B)
-  val isHydrogen = RegInit(false.B)
-  val isHeavy = RegInit(false.B)
-
-  useHydrogenNeither := !io.useHydrogenEs && !io.useHydrogenVdw
+  //  val useHydrogenNeither = RegInit(false.B)
+  //  val isHydrogen = RegInit(false.B)
+  // useHydrogenNeither := !io.useHydrogenEs && !io.useHydrogenVdw
+  //  isHydrogen := io.halfNonBondedTerms(2) === 1.U(32.W)
 
   // First Loop - Do numberHalfNonBonded iterations
-  isHydrogen := io.halfNonBondedTerms(2) === 1.U(32.W)
-  when  ( isHydrogen && useHydrogenNeither) {
-    io.done := true.B
-  } .otherwise {
-    isHeavy := !isHydrogen
+  when ( (io.halfNonBondedTerms(2) === 1.U(32.W)) && (!io.useHydrogenEs && !io.useHydrogenVdw) ) {
+    // if (useHydrogenNeither && isHydrogen) {continue; }
+    done_skippped := true.B
+    done_esE := false.B
+    done_vdwE := false.B
+  }.otherwise {
+    done_skippped := false.B
+
+    // Preparation for first loop
+    val Aij = RegInit(doubleToIEEE(0.0))
+    val Bij = RegInit(doubleToIEEE(0.0))
+    val chargei = RegInit(doubleToIEEE(0.0))
+    val chargej = RegInit(doubleToIEEE(0.0))
+    val rij = RegInit(doubleToIEEE(0.0))
+    val rijx = RegInit(doubleToIEEE(0.0))
+    val rijy = RegInit(doubleToIEEE(0.0))
+    val rijz = RegInit(doubleToIEEE(0.0))
+    val isHeavy = RegInit(false.B)
+
+    isHeavy := !(io.halfNonBondedTerms(2) === 1.U(32.W))  // !isHydrogen
 
     // read table parts
-    atomi := io.halfNonBondedTerms(0)
-    atomj := io.halfNonBondedTerms(1)
+    val index1 = io.res1Start + io.halfNonBondedTerms(0) * 4.U(32.W) //included atomix and atomix4
+    val index2 = io.res2Start + io.halfNonBondedTerms(1) * 4.U(32.W) //included atomjx and atomjx4
     Aij := io.halfNonBondedTerms(3)
     Bij := io.halfNonBondedTerms(4)
 
     // read coords
-    atomix4 := atomi * 4.U(32.W)
-    atomjx4 := atomj * 4.U(32.W)
-    val index1 = io.res1Start + atomix4
-    val index2 = io.res2Start + atomjx4
     rijx := io.data(index1) - io.data(index2)
     rijy := io.data(index1 + 1.U) - io.data(index2 + 1.U)
     rijz := io.data(index1 + 2.U) - io.data(index2 + 2.U)
     chargei := io.data(index1 + 3.U)
     chargej := io.data(index2 + 3.U)
 
-    // rij2 := rijx * rijx + rijy * rijy + rijz * rijz
-    val rij2 = RegInit(doubleToIEEE(0.0))
+
+    // FPU calculations
     val constantChoice = Reg(0.U(32.W))
-    val numFPU1 = 15
-    val fpu1 = Seq.fill(numFPU1)(Module(new FPUNew(FPFloatFormat.Fp32, lanes = numLanes, stages = numStages, supportedOps = Seq(FPNewOpClass.ADDMUL), tagWidth = 1)))
+    val numFPU1 = 13
+    val numFPU2 = 5
+    val fpu1 = Seq.fill(numFPU1)(Module(new FPUNew(FPFloatFormat.Fp32, lanes = 1, stages = 1, supportedOps = Seq(FPNewOpClass.ADDMUL), tagWidth = 1)))
+    val fpu2 = Seq.fill(numFPU2)(Module(new FPUNew(FPFloatFormat.Fp32, lanes = 1, stages = 1, supportedOps = Seq(FPNewOpClass.DIVSQRT), tagWidth = 1)))
     for (i <- 0 until numFPU1) {
       fpu1(i).io.req.valid := true.B
       fpu1(i).io.req.bits := DontCare
@@ -133,6 +92,16 @@ class EnergyCal() extends Module {
       fpu1(i).io.req.bits.opModifier := 0.U
       fpu1(i).io.req.bits.roundingMode := FPRoundingMode.RNE
     }
+    for (i <- 0 until numFPU2) {
+      fpu2(i).io.req.valid := true.B
+      fpu2(i).io.req.bits := DontCare
+      fpu2(i).io.resp.ready := true.B
+      fpu2(i).io.req.bits.opModifier := 0.U
+      fpu2(i).io.req.bits.roundingMode := FPRoundingMode.RNE
+    }
+
+    // rij2 := rijx * rijx + rijy * rijy + rijz * rijz
+    val rij2 = RegInit(doubleToIEEE(0.0))
     val rijx2 = Wire(doubleToIEEE(0.0))
     val rijy2 = Wire(doubleToIEEE(0.0))
     val rijz2 = Wire(doubleToIEEE(0.0))
@@ -173,17 +142,8 @@ class EnergyCal() extends Module {
       rij2 := fpu1(4).io.resp.bits.result(0)
     }
 
-    val numFPU2 = 5
-    val fpu2 = Seq.fill(numFPU2)(Module(new FPUNew(FPFloatFormat.Fp32, lanes = numLanes, stages = numStages, supportedOps = Seq(FPNewOpClass.DIVSQRT), tagWidth = 1)))
 
     when(isHeavy || io.useHydrogenEs) {
-      for (i <- 0 until numFPU2) {
-        fpu2(i).io.req.valid := true.B
-        fpu2(i).io.req.bits := DontCare
-        fpu2(i).io.resp.ready := true.B
-        fpu2(i).io.req.bits.opModifier := 0.U
-        fpu2(i).io.req.bits.roundingMode := FPRoundingMode.RNE
-      }
       // rij = Math.sqrt(rij2);
       fpu2(0).io.req.bits.operands(0)(0) := rij2
       fpu2(0).io.req.bits.op := FPOperation.SQRT
@@ -193,23 +153,23 @@ class EnergyCal() extends Module {
         rij := fpu2(0).io.resp.bits.result(0)
       }
 
-      // tmpCoulFact /= rij
-      val tmpCoulFact = Wire(doubleToIEEE(0.0))
+      // tmpCoulombFact /= rij
+      val tmpCoulombFact = Wire(doubleToIEEE(0.0))
       when(io.distDepDielect) {
-        fpu2(1).io.req.bits.operands(0)(0) := coulombFactor
+        fpu2(1).io.req.bits.operands(0)(0) := io.coulombFactor
         fpu2(1).io.req.bits.op := FPOperation.DIV
         fpu2(1).io.req.bits.operands(1)(0) := rij
         fpu2(1).io.req.bits.operands(2)(0) := 0.U
         when(fpu2(1).io.resp.fire) {
-          tmpCoulFact := fpu2(1).io.resp.bits.result(0)
+          tmpCoulombFact := fpu2(1).io.resp.bits.result(0)
         }
       }
 
       // esEnergy := esEnergy + (chargei * chargej * tmpCoulFact) / rij
       val chargeij = Wire(doubleToIEEE(0.0))
       fpu1(5).io.req.bits.op := FPOperation.MUL
-      fpu1(5).io.req.bits.operands(0)(0) := sum1
-      fpu1(5).io.req.bits.operands(1)(0) := rijz2
+      fpu1(5).io.req.bits.operands(0)(0) := chargei
+      fpu1(5).io.req.bits.operands(1)(0) := chargej
       fpu1(5).io.req.bits.operands(2)(0) := constantChoice
       when(fpu1(5).io.resp.fire) {
         chargeij := fpu1(5).io.resp.bits.result(0)
@@ -217,7 +177,7 @@ class EnergyCal() extends Module {
       val chargeijTemp = Wire(doubleToIEEE(0.0))
       fpu1(6).io.req.bits.op := FPOperation.MUL
       fpu1(6).io.req.bits.operands(0)(0) := chargeij
-      fpu1(6).io.req.bits.operands(1)(0) := tmpCoulFact
+      fpu1(6).io.req.bits.operands(1)(0) := tmpCoulombFact
       fpu1(6).io.req.bits.operands(2)(0) := constantChoice
       when(fpu1(6).io.resp.fire) {
         chargeijTemp := fpu1(6).io.resp.bits.result(0)
@@ -233,9 +193,10 @@ class EnergyCal() extends Module {
       fpu1(7).io.req.bits.op := FPOperation.ADD
       fpu1(7).io.req.bits.operands(0)(0) := 0.U
       fpu1(7).io.req.bits.operands(1)(0) := energyAdd
-      fpu1(7).io.req.bits.operands(2)(0) := esEnergy
+      fpu1(7).io.req.bits.operands(2)(0) := io.in_esE
       when(fpu1(7).io.resp.fire) {
-        esEnergy := fpu1(7).io.resp.bits.result(0)
+        io.out_esE := fpu1(7).io.resp.bits.result(0)
+        done_esE := true.B
       }
     }
 
@@ -296,113 +257,11 @@ class EnergyCal() extends Module {
       fpu1(12).io.req.bits.op := FPOperation.ADD
       fpu1(12).io.req.bits.operands(0)(0) := 0.U
       fpu1(12).io.req.bits.operands(1)(0) := partialSum
-      fpu1(12).io.req.bits.operands(2)(0) := vdwEnergy
+      fpu1(12).io.req.bits.operands(2)(0) := io.in_vdwE
       when(fpu1(12).io.resp.fire) {
-        vdwEnergy := fpu1(12).io.resp.bits.result(0)
+        io.out_vdwE := fpu1(12).io.resp.bits.result(0)
+        done_vdwE := true.B
       }
     }
-  }
-
-
-
-
-
-  // Preparation for second loop
-  coulombFactor := doubleToIEEE( 332.0636 / 78.3)
-
-  // Second Loop
-  isHydrogen := io.nonBondedTerms(2) === 1.S(32.W)
-  when(isHydrogen && useHydrogenNeither) {
-    io.done = true.B // continue
-  } .otherwise {
-    isHeavy = !isHydrogen
-
-    // read table parts
-    atomi = io.nonBondedTerms(0)
-    atomj = io.nonBondedTerms(1)
-    Aij = io.nonBondedTerms(3)
-    Bij = io.nonBondedTerms(4)
-
-    // read coords
-    atomix4 = atomi * 4.S(32.W)
-    atomjx4 = atomj * 4.S(32.W)
-    rijx = data(res1Start + atomix4) - data(res2Start + atomjx4)
-    rijy = data(res1Start + atomix4 + 1) - data(res2Start + atomjx4 + 1)
-    rijz = data(res1Start + atomix4 + 2) - data(res2Start + atomjx4 + 2)
-    chargei = data(res1Start + atomix4 + 3)
-    chargej = data(res2Start + atomjx4 + 3)
-
-    rij2 = rijx * rijx + rijy * rijy + rijz * rijz
-    when(isHeavy || useHydrogenEs) {
-      rij = sqrt(rij2)
-      val tmpCoulFact = RegInit(Dbl(0.0))
-      when(distDepDielect) {
-        tmpCoulFact := coulombFactor / rij
-      }
-
-      esEnergy = esEnergy + (chargei * chargej * tmpCoulFact) / rij
-    }
-    when(isHeavy || useHydrogenVdw) {
-      rij6 = rij2 * rij2 * rij2
-      rij12 = rij6 * rij6
-      vdwEnergy = vdwEnergy + Aij / rij12 - Bij / rij6
-    }
-  }
-
-
-  // Preparation for Salv
-  when(io.toDoSalve === 1.U) {
-    io.done := 1.U
-    io.output := esEnergy + vdwEnergy
-  }
-  val solvEnergy = RegInit(Dbl(0.0)) //ignoring internal now
-  val lambda_i = RegInit(Dbl(0.0))
-  val lambda_j = RegInit(Dbl(0.0))
-  val vdWr_i = RegInit(Dbl(0.0))
-  val vdWr_j = RegInit(Dbl(0.0))
-  val alpha_i = RegInit(Dbl(0.0))
-  val alpha_j = RegInit(Dbl(0.0))
-  val Xij = RegInit(Dbl(0.0))
-  val Xji = RegInit(Dbl(0.0))
-
-
-  // Third Loop
-  val ix8 = RegInit(-8.S(32.W))
-  for (i <- numberSolvated) {
-    ix8 := ix8 + 8.S(32.W)
-
-    atomi = solvatedTerms(ix8 + 0)
-    atomj = solvatedTerms(ix8 + 4)
-
-    // compute distance
-    atomix4 = atomi * 4.S(32.W)
-    atomjx4 = atomj * 4.S(32.W)
-    rijx = data(res1Start + atomix4) - data(res2Start + atomjx4)
-    rijy = data(res1Start + atomix4 + 1) - data(res2Start + atomjx4 + 1)
-    rijz = data(res1Start + atomix4 + 2) - data(res2Start + atomjx4 + 2)
-    rij2 = rijx * rijx + rijy * rijy + rijz * rijz
-
-    when(rij2 < solvCutoff2) {
-      lambda_i = solvatedTerms(ix8 + 1)
-      vdWr_i = solvatedTerms(ix8 + 2)
-      alpha_i = solvatedTerms(ix8 + 3)
-
-      lambda_j = solvatedTerms(ix8 + 5)
-      vdWr_j = solvatedTerms(ix8 + 6)
-      alpha_j = solvatedTerms(ix8 + 7)
-
-      rij = sqrt(rij2)
-      Xij = (rij - vdWr_i) / lambda_i
-      Xji = (rij - vdWr_j) / lambda_j
-
-      // How to do exponential?
-      solvEnergy = solvEnergy - (alpha_i * exp(-Xij * Xij) + alpha_j * exp(-Xji * Xji)) / rij2
-
-    }
-
-    // solvEnergy = solvEnergy * solvScale   // ignoring scaling for now
-    io.done := 1.U
-    io.output := esEnergy + vdwEnergy + solvEnergy
-
   }
 }

@@ -34,6 +34,7 @@
     <orderEntry type="library" name="sbt: edu.berkeley.cs:firrtl-interpreter_2.13:1.5.5:jar" level="project" />
     <orderEntry type="library" name="sbt: edu.berkeley.cs:firrtl_2.13:1.5.5:jar" level="project" />
     <orderEntry type="library" name="sbt: edu.berkeley.cs:treadle_2.13:1.5.5:jar" level="project" />
+    <orderEntry type="library" name="sbt: edu.duke.cs.apex:fpnew-wrapper_2.13:0.1.2:jar" level="project" />
     <orderEntry type="library" name="sbt: io.github.alexarchambault:data-class_2.13:0.2.5:jar" level="project" />
     <orderEntry type="library" name="sbt: joda-time:joda-time:2.10.1:jar" level="project" />
     <orderEntry type="library" name="sbt: junit:junit:4.13:jar" level="project" />
