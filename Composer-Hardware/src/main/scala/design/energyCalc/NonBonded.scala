@@ -7,7 +7,7 @@ import composer._
 import fpnewWrapper._
 
 
-class HalfNonBonded() extends Module {
+class NonBonded() extends Module {
   val io = IO(new Bundle {
     val useHydrogenEs = Input(Bool())
     val useHydrogenVdw = Input(Bool())

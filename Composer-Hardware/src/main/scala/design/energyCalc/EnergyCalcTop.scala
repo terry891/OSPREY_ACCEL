@@ -173,9 +173,16 @@ class EnergyCalcTop(composerConstructor: ComposerConstructor)(implicit p: Parame
 
     // TIANSHU DO CALCULATIONS HERE
     // INPUT PARAMETERS
+
+    val HNB = Module(new HalfNonBonded)
+    val NB = Module(new NonBonded)
+    val SOL = Module(new Solvated)
     // - halfNonBonded_a,b,c,d,e | nonBonded_a,b,c,d,e | solvated_a,b,c,d,e,f,g,h
     // - hardcoded constant values (refer to lines 24-42) - this is broken so plz fix
     // - data_access (type CScratchpadAccessBundle) for accessing "data" array Scratchpad
+
+
+
 
     // WHEN CALCULATIONS ARE DONE, SET THIS LINE
     // SET THE "SUM" REGISTER TO ANY OUTPUT AND IT WILL SHOW IN THE TESTBENCH PRINT
