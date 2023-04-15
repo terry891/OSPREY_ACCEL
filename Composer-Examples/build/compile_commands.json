@@ -1,0 +1,14 @@
+[
+{
+  "directory": "/Users/aryatschand/Documents/GitHub/OSPREY_ACCEL/Composer-Examples/build",
+  "command": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  -I/Users/aryatschand/Documents/GitHub/OSPREY_ACCEL/Composer-Hardware/vsim/generated-src -isystem /usr/local/include/composer -std=gnu++17 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.7 -o CMakeFiles/sha3test.dir/src/sha3/sha3_test.cc.o -c /Users/aryatschand/Documents/GitHub/OSPREY_ACCEL/Composer-Examples/src/sha3/sha3_test.cc",
+  "file": "/Users/aryatschand/Documents/GitHub/OSPREY_ACCEL/Composer-Examples/src/sha3/sha3_test.cc",
+  "output": "CMakeFiles/sha3test.dir/src/sha3/sha3_test.cc.o"
+},
+{
+  "directory": "/Users/aryatschand/Documents/GitHub/OSPREY_ACCEL/Composer-Examples/build",
+  "command": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  -I/Users/aryatschand/Documents/GitHub/OSPREY_ACCEL/Composer-Hardware/vsim/generated-src -isystem /usr/local/include/composer -std=gnu++17 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.7 -o CMakeFiles/energycalctb.dir/src/sha3/energycalc_tb.cc.o -c /Users/aryatschand/Documents/GitHub/OSPREY_ACCEL/Composer-Examples/src/sha3/energycalc_tb.cc",
+  "file": "/Users/aryatschand/Documents/GitHub/OSPREY_ACCEL/Composer-Examples/src/sha3/energycalc_tb.cc",
+  "output": "CMakeFiles/energycalctb.dir/src/sha3/energycalc_tb.cc.o"
+}
+]

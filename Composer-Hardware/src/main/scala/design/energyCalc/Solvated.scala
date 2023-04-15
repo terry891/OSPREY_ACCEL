@@ -6,7 +6,7 @@ import chisel3.util._
 import chisel3.experimental._
 import composer._
 import fpnewWrapper._
-import chipsalliance.rocketchip.config.{Config, Parameters}
+import org.chipsalliance.cde.config._
 
 
 class Solvated() extends Module {

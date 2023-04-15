@@ -27,7 +27,7 @@ lazy val root = (project in file(".")).settings(
     "edu.berkeley.cs" %% "chisel3" % chiselVersion,
     "org.json4s" %% "json4s-jackson" % "3.6.6",
     "edu.duke.cs.apex" %% "fpnew-wrapper" % "0.1.2",
-    "edu.duke.cs.apex" %% "composer-hardware" % "0.1.21"
+    "edu.duke.cs.apex" %% "composer-hardware" % "0.1.22"
   ),
   addCompilerPlugin("edu.berkeley.cs" % "chisel3-plugin" % chiselVersion cross CrossVersion.full),
   serverConnectionType := ConnectionType.Tcp
