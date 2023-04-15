@@ -1,6 +1,6 @@
 package design.fpu
 
-import chipsalliance.rocketchip.config.{Config, Parameters}
+import org.chipsalliance.cde.config._
 import chisel3._
 import chisel3.experimental.ChiselEnum
 import chisel3.util._

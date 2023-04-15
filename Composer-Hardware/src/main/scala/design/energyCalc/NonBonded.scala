@@ -1,6 +1,6 @@
 package design.energyCalc
 
-import chisel3.{Mux, _}
+import chisel3._
 import chisel3.util._
 import chisel3.experimental._
 import composer._

@@ -25,7 +25,9 @@ endif ()
 
 if ("${SUITE}" STREQUAL "SHA3")
     add_executable(sha3test src/sha3/sha3_test.cc)
+    add_executable(energycalctb src/sha3/energycalc_tb.cc)
     target_link_libraries(sha3test PUBLIC APEX::composer)
+    target_link_libraries(energycalctb PUBLIC APEX::composer)
 endif ()
 
 if ("${SUITE}" STREQUAL "UNIT")

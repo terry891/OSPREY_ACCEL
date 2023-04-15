@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Composer-Hardware/rocket-chip" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Composer-Hardware/rocket-chip/api-config-chipsalliance" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Composer-Hardware/rocket-chip/hardfloat" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Composer-Hardware/rocket-chip/torture" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Composer-Runtime/DRAMsim3" vcs="Git" />
+  </component>
+</project>
