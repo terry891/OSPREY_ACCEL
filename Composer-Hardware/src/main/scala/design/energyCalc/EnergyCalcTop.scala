@@ -18,7 +18,11 @@ class EnergyCalcTop(composerConstructor: ComposerConstructor)(implicit p: Parame
   CppGeneration.exportChiselEnum(EnergyCalcCommands)
 
   def doubleToIEEE(in: Double): UInt = {
-    fpnewWrapper.FPNewUtil.floatToUInt(in, FPFloatFormat.Fp32)
+    val floatBits = java.lang.Float.floatToIntBits(d.toFloat)
+    val sign = floatBits >> 31
+    val exponent = (floatBits >> 23) & 0xff
+    val significand = floatBits & 0x7fffff
+    Cat(sign.U(1.W), exponent.U(8.W), significand.U(23.W))
   }
 
   // @TIANSHU - FIX THIS THE IEEE CONVERSION ISNT WORKING
