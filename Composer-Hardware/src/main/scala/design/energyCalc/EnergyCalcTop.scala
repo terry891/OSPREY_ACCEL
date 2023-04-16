@@ -38,9 +38,13 @@ class EnergyCalcTop(composerConstructor: ComposerConstructor)(implicit p: Parame
   val solvScale : UInt = doubleToIEEE(0.5)
   val internalSolvEnergy : UInt= doubleToIEEE(0.0)
 
-  val esEnergy : UInt = doubleToIEEE(0.0003810783273974494)
-  val vdwEnergy : UInt = doubleToIEEE(-0.0008450722111057217)
-  val solvEnergy : UInt = doubleToIEEE(0.0)
+  val esEnergy = RegInit(0.U(32.W))
+  val vdwEnergy = RegInit(0.U(32.W))
+  val solvEnergy = RegInit(0.U(32.W))
+  esEnergy := doubleToIEEE(0.0003810783273974494)
+  vdwEnergy := doubleToIEEE(-0.0008450722111057217)
+  solvEnergy := doubleToIEEE(0.0)
+
 
   val (_, myWriters) = getWriterModules(
     name = "WriteChannel",
@@ -87,6 +91,12 @@ class EnergyCalcTop(composerConstructor: ComposerConstructor)(implicit p: Parame
   io.resp.valid := false.B
   io.resp.bits.data := 0.U
   io.resp.bits.rd := 0.U
+
+  //FPU modules
+  val HNB = Module(new HalfNonBonded(data_access))
+  val NB = Module(new NonBonded(data_access))
+  val SOL = Module(new Solvated(data_access))
+  val calStart = RegInit(false.B)
 
   // Get FPGA main memory addresses of 4 input arrays
   when (state === s_idle) {
@@ -165,29 +175,91 @@ class EnergyCalcTop(composerConstructor: ComposerConstructor)(implicit p: Parame
       printf(cf"solvated $resp%b\n")
 
       state := s_calculate
+      calStart := true.B
     }
 
   }
   .elsewhen (state === s_calculate) {
     printf(cf"calculate\n")
 
-    // TIANSHU DO CALCULATIONS HERE
-    // INPUT PARAMETERS
+    val iteration = RegInit(0.U(32.W))
+    val cal_state = RegInit(7.U(32.W))
+    val start_now = RegInit(true.B)
+    when (state === s_calculate && start_now) {
+      iteration := 0.U
+      cal_state := 0.U
+      start_now := false.B
+    }
 
-    val HNB = Module(new HalfNonBonded)
-    val NB = Module(new NonBonded)
-    val SOL = Module(new Solvated)
+    when (iteration <= 1000.U) {
+      printf(cf"iteration number: $iteration%b\n")
+      cal_state := Mux(state === s_calculate, 0.U, cal_state)
+
+      when (cal_state === 0.U) {
+        HNB.io.start := true.B
+        cal_state := 1.U
+      }.elsewhen(cal_state === 1.U) {
+        HNB.io.start := false.B
+        HNB.io.useHydrogenEs := useHydrogenEs
+        HNB.io.useHydrogenVdw := useHydrogenVdw
+        HNB.io.distDepDielect := distDepDielect
+        HNB.io.coulombFactor := doubleToIEEE(233.0)
+        HNB.io.halfNonBondedTerms := Seq(halfNonBonded_a, halfNonBonded_b, halfNonBonded_c, halfNonBonded_d, halfNonBonded_e)
+        HNB.io.res1Start := res1start
+        HNB.io.res2Start := res2start
+        HNB.io.in_esE := esEnergy
+        HNB.io.in_vdwE := vdwEnergy
+        esEnergy := Mux(HNB.io.done, HNB.io.out_esE, esEnergy)
+        vdwEnergy := Mux(HNB.io.done, HNB.io.out_vdwE, vdwEnergy)
+        cal_state := Mux(HNB.io.done, 2.U, cal_state)
+        printf(cf"halfnonbonded loop done, esEnergy $esEnergy%b\n")
+      }.elsewhen(cal_state === 2.U) {
+        NB.io.start := true.B
+        cal_state := 3.U
+      }.elsewhen(cal_state === 3.U) {
+        NB.io.start := false.B
+        NB.io.useHydrogenEs := useHydrogenEs
+        NB.io.useHydrogenVdw := useHydrogenVdw
+        NB.io.distDepDielect := distDepDielect
+        NB.io.coulombFactor := doubleToIEEE(233.0)
+        NB.io.nonBondedTerms := Seq(nonBonded_a, nonBonded_b, nonBonded_c, nonBonded_d, nonBonded_e)
+        NB.io.res1Start := res1start
+        NB.io.res2Start := res2start
+        NB.io.in_esE := esEnergy
+        NB.io.in_vdwE := vdwEnergy
+        esEnergy := Mux(NB.io.done, NB.io.out_esE, esEnergy)
+        vdwEnergy := Mux(NB.io.done, NB.io.out_vdwE, vdwEnergy)
+        cal_state := Mux(NB.io.done, 4.U, cal_state)
+        printf(cf"nonbonded loop done, esEnergy $esEnergy%b\n")
+      }.elsewhen(cal_state === 4.U){
+        SOL.io.start := true.B
+        cal_state := 5.U
+      }.elsewhen(cal_state === 5.U){
+        SOL.io.solvCutoff2 := solvCutoff
+        SOL.io.res1Start := res1start
+        SOL.io.res2Start := res2start
+        SOL.io.in_solvE := solvEnergy
+        SOL.io.solvationTerms := Seq(solvated_a, solvated_b, solvated_c, solvated_d, solvated_e, solvated_f, solvated_g, solvated_h)
+        solvEnergy := Mux(SOL.io.done, SOL.io.out_solvE, solvEnergy)
+        cal_state := Mux(SOL.io.done, 6.U, cal_state)
+      }.elsewhen(cal_state === 6.U){
+        sum := esEnergy
+        iteration := iteration + 1.U
+        printf(cf"all completed, iteration plus one\n")
+      }.otherwise{
+        printf(cf"Not more calculation\n")
+      }
+    }.elsewhen(iteration > 1000.U){
+      state := s_store
+    }
+
     // - halfNonBonded_a,b,c,d,e | nonBonded_a,b,c,d,e | solvated_a,b,c,d,e,f,g,h
     // - hardcoded constant values (refer to lines 24-42) - this is broken so plz fix
     // - data_access (type CScratchpadAccessBundle) for accessing "data" array Scratchpad
 
-
-
-
     // WHEN CALCULATIONS ARE DONE, SET THIS LINE
     // SET THE "SUM" REGISTER TO ANY OUTPUT AND IT WILL SHOW IN THE TESTBENCH PRINT
-    sum := 1.U
-    state := s_store
+
   }
   .elsewhen (state === s_store) {
     printf(cf"store\n")
