@@ -151,7 +151,7 @@ class withFPU extends Config((site, _, up) => {
 })
 
 class MyFPUConfig extends Config(new withFPU ++ new WithComposer ++ new WithAWSPlatform(1))
-
-object FPUApp extends App {
-  composer.TestDriver.buildConfig(new MyFPUConfig)
-}
+//
+//object FPUApp extends App {
+//  composer.TestDriver.buildConfig(new MyFPUConfig)
+//}

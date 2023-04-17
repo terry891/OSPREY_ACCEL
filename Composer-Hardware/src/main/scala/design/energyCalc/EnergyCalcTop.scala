@@ -18,11 +18,14 @@ class EnergyCalcTop(composerConstructor: ComposerConstructor)(implicit p: Parame
   CppGeneration.exportChiselEnum(EnergyCalcCommands)
 
   def doubleToIEEE(in: Double): UInt = {
-    val floatBits = java.lang.Float.floatToIntBits(d.toFloat)
-    val sign = floatBits >> 31
-    val exponent = (floatBits >> 23) & 0xff
-    val significand = floatBits & 0x7fffff
-    Cat(sign.U(1.W), exponent.U(8.W), significand.U(23.W))
+    val floatBits = java.lang.Float.floatToIntBits(in.toFloat)
+//    printf(Integer.toBinaryString(floatBits))
+//    val sign = floatBits >> 31
+//    val exponent = (floatBits >> 23) & 0xff
+//    val significand = floatBits & 0x7fffff
+//    Cat(sign.U(1.W), exponent.U(8.W), significand.U(23.W))
+//    BigInt(floatBits).U(32.W)
+    0.U(32.W)
   }
 
   // @TIANSHU - FIX THIS THE IEEE CONVERSION ISNT WORKING
@@ -96,11 +99,6 @@ class EnergyCalcTop(composerConstructor: ComposerConstructor)(implicit p: Parame
   io.resp.bits.data := 0.U
   io.resp.bits.rd := 0.U
 
-  //FPU modules
-  val HNB = Module(new HalfNonBonded(data_access))
-  val NB = Module(new NonBonded(data_access))
-  val SOL = Module(new Solvated(data_access))
-  val calStart = RegInit(false.B)
 
   // Get FPGA main memory addresses of 4 input arrays
   when (state === s_idle) {
@@ -179,7 +177,6 @@ class EnergyCalcTop(composerConstructor: ComposerConstructor)(implicit p: Parame
       printf(cf"solvated $resp%b\n")
 
       state := s_calculate
-      calStart := true.B
     }
 
   }
@@ -189,11 +186,46 @@ class EnergyCalcTop(composerConstructor: ComposerConstructor)(implicit p: Parame
     val iteration = RegInit(0.U(32.W))
     val cal_state = RegInit(7.U(32.W))
     val start_now = RegInit(true.B)
+
     when (state === s_calculate && start_now) {
       iteration := 0.U
       cal_state := 0.U
       start_now := false.B
     }
+
+    //FPU modules
+    val HNB = Module(new HalfNonBonded(data_access))
+    val NB = Module(new NonBonded(data_access))
+    val SOL = Module(new Solvated(data_access))
+
+    HNB.io.start := false.B
+    HNB.io.useHydrogenEs := useHydrogenEs
+    HNB.io.useHydrogenVdw := useHydrogenVdw
+    HNB.io.distDepDielect := distDepDielect
+    HNB.io.coulombFactor := doubleToIEEE(233.0)
+    HNB.io.halfNonBondedTerms := Seq(halfNonBonded_a, halfNonBonded_b, halfNonBonded_c, halfNonBonded_d, halfNonBonded_e)
+    HNB.io.res1Start := res1start
+    HNB.io.res2Start := res2start
+    HNB.io.in_esE := esEnergy
+    HNB.io.in_vdwE := vdwEnergy
+
+    NB.io.start := false.B
+    NB.io.useHydrogenEs := useHydrogenEs
+    NB.io.useHydrogenVdw := useHydrogenVdw
+    NB.io.distDepDielect := distDepDielect
+    NB.io.coulombFactor := doubleToIEEE(233.0)
+    NB.io.nonBondedTerms := Seq(nonBonded_a, nonBonded_b, nonBonded_c, nonBonded_d, nonBonded_e)
+    NB.io.res1Start := res1start
+    NB.io.res2Start := res2start
+    NB.io.in_esE := esEnergy
+    NB.io.in_vdwE := vdwEnergy
+
+    SOL.io.start := false.B
+    SOL.io.solvCutoff2 := solvCutoff
+    SOL.io.res1Start := res1start
+    SOL.io.res2Start := res2start
+    SOL.io.in_solvE := solvEnergy
+    SOL.io.solvationTerms := Seq(solvated_a, solvated_b, solvated_c, solvated_d, solvated_e, solvated_f, solvated_g, solvated_h)
 
     when (iteration <= 1000.U) {
       printf(cf"iteration number: $iteration%b\n")
@@ -204,15 +236,6 @@ class EnergyCalcTop(composerConstructor: ComposerConstructor)(implicit p: Parame
         cal_state := 1.U
       }.elsewhen(cal_state === 1.U) {
         HNB.io.start := false.B
-        HNB.io.useHydrogenEs := useHydrogenEs
-        HNB.io.useHydrogenVdw := useHydrogenVdw
-        HNB.io.distDepDielect := distDepDielect
-        HNB.io.coulombFactor := doubleToIEEE(233.0)
-        HNB.io.halfNonBondedTerms := Seq(halfNonBonded_a, halfNonBonded_b, halfNonBonded_c, halfNonBonded_d, halfNonBonded_e)
-        HNB.io.res1Start := res1start
-        HNB.io.res2Start := res2start
-        HNB.io.in_esE := esEnergy
-        HNB.io.in_vdwE := vdwEnergy
         esEnergy := Mux(HNB.io.done, HNB.io.out_esE, esEnergy)
         vdwEnergy := Mux(HNB.io.done, HNB.io.out_vdwE, vdwEnergy)
         cal_state := Mux(HNB.io.done, 2.U, cal_state)
@@ -222,15 +245,6 @@ class EnergyCalcTop(composerConstructor: ComposerConstructor)(implicit p: Parame
         cal_state := 3.U
       }.elsewhen(cal_state === 3.U) {
         NB.io.start := false.B
-        NB.io.useHydrogenEs := useHydrogenEs
-        NB.io.useHydrogenVdw := useHydrogenVdw
-        NB.io.distDepDielect := distDepDielect
-        NB.io.coulombFactor := doubleToIEEE(233.0)
-        NB.io.nonBondedTerms := Seq(nonBonded_a, nonBonded_b, nonBonded_c, nonBonded_d, nonBonded_e)
-        NB.io.res1Start := res1start
-        NB.io.res2Start := res2start
-        NB.io.in_esE := esEnergy
-        NB.io.in_vdwE := vdwEnergy
         esEnergy := Mux(NB.io.done, NB.io.out_esE, esEnergy)
         vdwEnergy := Mux(NB.io.done, NB.io.out_vdwE, vdwEnergy)
         cal_state := Mux(NB.io.done, 4.U, cal_state)
@@ -239,11 +253,7 @@ class EnergyCalcTop(composerConstructor: ComposerConstructor)(implicit p: Parame
         SOL.io.start := true.B
         cal_state := 5.U
       }.elsewhen(cal_state === 5.U){
-        SOL.io.solvCutoff2 := solvCutoff
-        SOL.io.res1Start := res1start
-        SOL.io.res2Start := res2start
-        SOL.io.in_solvE := solvEnergy
-        SOL.io.solvationTerms := Seq(solvated_a, solvated_b, solvated_c, solvated_d, solvated_e, solvated_f, solvated_g, solvated_h)
+        SOL.io.start := false.B
         solvEnergy := Mux(SOL.io.done, SOL.io.out_solvE, solvEnergy)
         cal_state := Mux(SOL.io.done, 6.U, cal_state)
       }.elsewhen(cal_state === 6.U){

@@ -1,29 +1,875 @@
 module CScratchpadPackedSubwordLoader(
+  input        clock,
+  input        reset,
+  output       io_cache_block_in_ready,
+  input        io_cache_block_in_valid,
+  input  [6:0] io_cache_block_in_bits_len,
+  output       io_sp_write_out_valid
+);
+  reg [6:0] lenRemainingFromReq; // @[CScratchpadPackedSubwordLoader.scala 18:32]
+  reg  state; // @[CScratchpadPackedSubwordLoader.scala 21:22]
+  wire  _io_cache_block_in_ready_T = ~state; // @[CScratchpadPackedSubwordLoader.scala 22:36]
+  wire  _T_1 = io_cache_block_in_ready & io_cache_block_in_valid; // @[Decoupled.scala 51:35]
+  wire  _GEN_0 = _T_1 | state; // @[CScratchpadPackedSubwordLoader.scala 34:36 35:15 21:22]
+  wire [6:0] _lenRemainingFromReq_T_1 = lenRemainingFromReq - 7'h10; // @[CScratchpadPackedSubwordLoader.scala 53:54]
+  wire  _GEN_6 = lenRemainingFromReq == 7'h10 ? 1'h0 : state; // @[CScratchpadPackedSubwordLoader.scala 54:60 55:19 21:22]
+  assign io_cache_block_in_ready = ~state; // @[CScratchpadPackedSubwordLoader.scala 22:36]
+  assign io_sp_write_out_valid = _io_cache_block_in_ready_T ? 1'h0 : state; // @[CScratchpadPackedSubwordLoader.scala 32:17 24:25]
+  always @(posedge clock) begin
+    if (_io_cache_block_in_ready_T) begin // @[CScratchpadPackedSubwordLoader.scala 32:17]
+      if (_T_1) begin // @[CScratchpadPackedSubwordLoader.scala 34:36]
+        lenRemainingFromReq <= io_cache_block_in_bits_len; // @[CScratchpadPackedSubwordLoader.scala 38:29]
+      end
+    end else if (state) begin // @[CScratchpadPackedSubwordLoader.scala 32:17]
+      if (io_sp_write_out_valid) begin // @[CScratchpadPackedSubwordLoader.scala 48:34]
+        lenRemainingFromReq <= _lenRemainingFromReq_T_1;
+      end
+    end
+    if (reset) begin // @[CScratchpadPackedSubwordLoader.scala 21:22]
+      state <= 1'h0; // @[CScratchpadPackedSubwordLoader.scala 21:22]
+    end else if (_io_cache_block_in_ready_T) begin // @[CScratchpadPackedSubwordLoader.scala 32:17]
+      state <= _GEN_0;
+    end else if (state) begin // @[CScratchpadPackedSubwordLoader.scala 32:17]
+      if (io_sp_write_out_valid) begin // @[CScratchpadPackedSubwordLoader.scala 48:34]
+        state <= _GEN_6;
+      end
+    end
+  end
+endmodule
+module CScratchpad(
+  input         clock,
+  input         reset,
+  input         auto_mem_out_a_ready,
+  output        auto_mem_out_a_valid,
+  output [2:0]  auto_mem_out_a_bits_size,
+  output [3:0]  auto_mem_out_a_bits_source,
+  output [33:0] auto_mem_out_a_bits_address,
+  output [63:0] auto_mem_out_a_bits_mask,
+  output        auto_mem_out_d_ready,
+  input         auto_mem_out_d_valid,
+  input  [3:0]  auto_mem_out_d_bits_source
+);
+  wire  loader_clock; // @[CScratchpad.scala 94:30]
+  wire  loader_reset; // @[CScratchpad.scala 94:30]
+  wire  loader_io_cache_block_in_ready; // @[CScratchpad.scala 94:30]
+  wire  loader_io_cache_block_in_valid; // @[CScratchpad.scala 94:30]
+  wire [6:0] loader_io_cache_block_in_bits_len; // @[CScratchpad.scala 94:30]
+  wire  loader_io_sp_write_out_valid; // @[CScratchpad.scala 94:30]
+  reg [1:0] mem_tx_state; // @[CScratchpad.scala 102:37]
+  reg  reqIdleBits_0; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_1; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_2; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_3; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_4; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_5; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_6; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_7; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_8; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_9; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_10; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_11; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_12; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_13; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_14; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_15; // @[CScratchpad.scala 110:36]
+  wire  reqAvailable = reqIdleBits_0 | reqIdleBits_1 | reqIdleBits_2 | reqIdleBits_3 | reqIdleBits_4 | reqIdleBits_5 |
+    reqIdleBits_6 | reqIdleBits_7 | reqIdleBits_8 | reqIdleBits_9 | reqIdleBits_10 | reqIdleBits_11 | reqIdleBits_12 |
+    reqIdleBits_13 | reqIdleBits_14 | reqIdleBits_15; // @[CScratchpad.scala 111:51]
+  wire [3:0] _reqChosen_T = reqIdleBits_14 ? 4'he : 4'hf; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_1 = reqIdleBits_13 ? 4'hd : _reqChosen_T; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_2 = reqIdleBits_12 ? 4'hc : _reqChosen_T_1; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_3 = reqIdleBits_11 ? 4'hb : _reqChosen_T_2; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_4 = reqIdleBits_10 ? 4'ha : _reqChosen_T_3; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_5 = reqIdleBits_9 ? 4'h9 : _reqChosen_T_4; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_6 = reqIdleBits_8 ? 4'h8 : _reqChosen_T_5; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_7 = reqIdleBits_7 ? 4'h7 : _reqChosen_T_6; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_8 = reqIdleBits_6 ? 4'h6 : _reqChosen_T_7; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_9 = reqIdleBits_5 ? 4'h5 : _reqChosen_T_8; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_10 = reqIdleBits_4 ? 4'h4 : _reqChosen_T_9; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_11 = reqIdleBits_3 ? 4'h3 : _reqChosen_T_10; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_12 = reqIdleBits_2 ? 4'h2 : _reqChosen_T_11; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_13 = reqIdleBits_1 ? 4'h1 : _reqChosen_T_12; // @[Mux.scala 47:70]
+  wire [3:0] reqChosen = reqIdleBits_0 ? 4'h0 : _reqChosen_T_13; // @[Mux.scala 47:70]
+  reg [15:0] req_cache_0_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_1_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_2_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_3_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_4_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_5_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_6_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_7_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_8_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_9_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_10_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_11_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_12_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_13_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_14_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_15_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [33:0] totalTx_memoryAddress; // @[CScratchpad.scala 124:28]
+  reg [33:0] totalTx_memoryLength; // @[CScratchpad.scala 124:28]
+  wire  isBelowLimit = totalTx_memoryLength <= 34'h40; // @[CScratchpad.scala 149:47]
+  wire [1:0] txEmitLengthLg_hi = totalTx_memoryLength[33:32]; // @[OneHot.scala 30:18]
+  wire  _txEmitLengthLg_T = |txEmitLengthLg_hi; // @[OneHot.scala 32:14]
+  wire [31:0] txEmitLengthLg_lo = totalTx_memoryLength[31:0]; // @[OneHot.scala 31:18]
+  wire [31:0] _GEN_569 = {{30'd0}, txEmitLengthLg_hi}; // @[OneHot.scala 32:28]
+  wire [31:0] _txEmitLengthLg_T_1 = _GEN_569 | txEmitLengthLg_lo; // @[OneHot.scala 32:28]
+  wire [15:0] txEmitLengthLg_hi_1 = _txEmitLengthLg_T_1[31:16]; // @[OneHot.scala 30:18]
+  wire  _txEmitLengthLg_T_2 = |txEmitLengthLg_hi_1; // @[OneHot.scala 32:14]
+  wire [15:0] txEmitLengthLg_lo_1 = _txEmitLengthLg_T_1[15:0]; // @[OneHot.scala 31:18]
+  wire [15:0] _txEmitLengthLg_T_3 = txEmitLengthLg_hi_1 | txEmitLengthLg_lo_1; // @[OneHot.scala 32:28]
+  wire [7:0] txEmitLengthLg_hi_2 = _txEmitLengthLg_T_3[15:8]; // @[OneHot.scala 30:18]
+  wire  _txEmitLengthLg_T_4 = |txEmitLengthLg_hi_2; // @[OneHot.scala 32:14]
+  wire [7:0] txEmitLengthLg_lo_2 = _txEmitLengthLg_T_3[7:0]; // @[OneHot.scala 31:18]
+  wire [7:0] _txEmitLengthLg_T_5 = txEmitLengthLg_hi_2 | txEmitLengthLg_lo_2; // @[OneHot.scala 32:28]
+  wire [3:0] txEmitLengthLg_hi_3 = _txEmitLengthLg_T_5[7:4]; // @[OneHot.scala 30:18]
+  wire  _txEmitLengthLg_T_6 = |txEmitLengthLg_hi_3; // @[OneHot.scala 32:14]
+  wire [3:0] txEmitLengthLg_lo_3 = _txEmitLengthLg_T_5[3:0]; // @[OneHot.scala 31:18]
+  wire [3:0] _txEmitLengthLg_T_7 = txEmitLengthLg_hi_3 | txEmitLengthLg_lo_3; // @[OneHot.scala 32:28]
+  wire [1:0] txEmitLengthLg_hi_4 = _txEmitLengthLg_T_7[3:2]; // @[OneHot.scala 30:18]
+  wire  _txEmitLengthLg_T_8 = |txEmitLengthLg_hi_4; // @[OneHot.scala 32:14]
+  wire [1:0] txEmitLengthLg_lo_4 = _txEmitLengthLg_T_7[1:0]; // @[OneHot.scala 31:18]
+  wire [1:0] _txEmitLengthLg_T_9 = txEmitLengthLg_hi_4 | txEmitLengthLg_lo_4; // @[OneHot.scala 32:28]
+  wire [5:0] _txEmitLengthLg_T_15 = {_txEmitLengthLg_T,_txEmitLengthLg_T_2,_txEmitLengthLg_T_4,_txEmitLengthLg_T_6,
+    _txEmitLengthLg_T_8,_txEmitLengthLg_T_9[1]}; // @[Cat.scala 33:92]
+  wire [5:0] _txEmitLengthLg_T_16 = isBelowLimit ? _txEmitLengthLg_T_15 : 6'h6; // @[CScratchpad.scala 150:28]
+  wire [5:0] _GEN_111 = 2'h1 == mem_tx_state ? _txEmitLengthLg_T_16 : 6'h0; // @[CScratchpad.scala 131:18 138:24 150:22]
+  wire [5:0] _GEN_169 = 2'h0 == mem_tx_state ? 6'h0 : _GEN_111; // @[CScratchpad.scala 131:18 138:24]
+  wire [3:0] txEmitLengthLg = _GEN_169[3:0]; // @[CScratchpad.scala 130:36]
+  wire [5:0] _x1_a_bits_a_mask_sizeOH_T = {{2'd0}, txEmitLengthLg}; // @[Misc.scala 201:34]
+  wire [2:0] x1_a_bits_a_mask_sizeOH_shiftAmount = _x1_a_bits_a_mask_sizeOH_T[2:0]; // @[OneHot.scala 63:49]
+  wire [7:0] _x1_a_bits_a_mask_sizeOH_T_1 = 8'h1 << x1_a_bits_a_mask_sizeOH_shiftAmount; // @[OneHot.scala 64:12]
+  wire [5:0] x1_a_bits_a_mask_sizeOH = _x1_a_bits_a_mask_sizeOH_T_1[5:0] | 6'h1; // @[Misc.scala 201:81]
+  wire  _x1_a_bits_a_mask_T = txEmitLengthLg >= 4'h6; // @[Misc.scala 205:21]
+  wire  x1_a_bits_a_mask_size = x1_a_bits_a_mask_sizeOH[5]; // @[Misc.scala 208:26]
+  wire  x1_a_bits_a_mask_bit = totalTx_memoryAddress[5]; // @[Misc.scala 209:26]
+  wire  x1_a_bits_a_mask_nbit = ~x1_a_bits_a_mask_bit; // @[Misc.scala 210:20]
+  wire  x1_a_bits_a_mask_acc = _x1_a_bits_a_mask_T | x1_a_bits_a_mask_size & x1_a_bits_a_mask_nbit; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_acc_1 = _x1_a_bits_a_mask_T | x1_a_bits_a_mask_size & x1_a_bits_a_mask_bit; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_size_1 = x1_a_bits_a_mask_sizeOH[4]; // @[Misc.scala 208:26]
+  wire  x1_a_bits_a_mask_bit_1 = totalTx_memoryAddress[4]; // @[Misc.scala 209:26]
+  wire  x1_a_bits_a_mask_nbit_1 = ~x1_a_bits_a_mask_bit_1; // @[Misc.scala 210:20]
+  wire  x1_a_bits_a_mask_eq_2 = x1_a_bits_a_mask_nbit & x1_a_bits_a_mask_nbit_1; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_2 = x1_a_bits_a_mask_acc | x1_a_bits_a_mask_size_1 & x1_a_bits_a_mask_eq_2; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_3 = x1_a_bits_a_mask_nbit & x1_a_bits_a_mask_bit_1; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_3 = x1_a_bits_a_mask_acc | x1_a_bits_a_mask_size_1 & x1_a_bits_a_mask_eq_3; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_4 = x1_a_bits_a_mask_bit & x1_a_bits_a_mask_nbit_1; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_4 = x1_a_bits_a_mask_acc_1 | x1_a_bits_a_mask_size_1 & x1_a_bits_a_mask_eq_4; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_5 = x1_a_bits_a_mask_bit & x1_a_bits_a_mask_bit_1; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_5 = x1_a_bits_a_mask_acc_1 | x1_a_bits_a_mask_size_1 & x1_a_bits_a_mask_eq_5; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_size_2 = x1_a_bits_a_mask_sizeOH[3]; // @[Misc.scala 208:26]
+  wire  x1_a_bits_a_mask_bit_2 = totalTx_memoryAddress[3]; // @[Misc.scala 209:26]
+  wire  x1_a_bits_a_mask_nbit_2 = ~x1_a_bits_a_mask_bit_2; // @[Misc.scala 210:20]
+  wire  x1_a_bits_a_mask_eq_6 = x1_a_bits_a_mask_eq_2 & x1_a_bits_a_mask_nbit_2; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_6 = x1_a_bits_a_mask_acc_2 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_6; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_7 = x1_a_bits_a_mask_eq_2 & x1_a_bits_a_mask_bit_2; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_7 = x1_a_bits_a_mask_acc_2 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_7; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_8 = x1_a_bits_a_mask_eq_3 & x1_a_bits_a_mask_nbit_2; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_8 = x1_a_bits_a_mask_acc_3 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_8; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_9 = x1_a_bits_a_mask_eq_3 & x1_a_bits_a_mask_bit_2; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_9 = x1_a_bits_a_mask_acc_3 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_9; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_10 = x1_a_bits_a_mask_eq_4 & x1_a_bits_a_mask_nbit_2; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_10 = x1_a_bits_a_mask_acc_4 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_10; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_11 = x1_a_bits_a_mask_eq_4 & x1_a_bits_a_mask_bit_2; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_11 = x1_a_bits_a_mask_acc_4 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_11; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_12 = x1_a_bits_a_mask_eq_5 & x1_a_bits_a_mask_nbit_2; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_12 = x1_a_bits_a_mask_acc_5 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_12; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_13 = x1_a_bits_a_mask_eq_5 & x1_a_bits_a_mask_bit_2; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_13 = x1_a_bits_a_mask_acc_5 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_13; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_size_3 = x1_a_bits_a_mask_sizeOH[2]; // @[Misc.scala 208:26]
+  wire  x1_a_bits_a_mask_bit_3 = totalTx_memoryAddress[2]; // @[Misc.scala 209:26]
+  wire  x1_a_bits_a_mask_nbit_3 = ~x1_a_bits_a_mask_bit_3; // @[Misc.scala 210:20]
+  wire  x1_a_bits_a_mask_eq_14 = x1_a_bits_a_mask_eq_6 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_14 = x1_a_bits_a_mask_acc_6 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_14; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_15 = x1_a_bits_a_mask_eq_6 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_15 = x1_a_bits_a_mask_acc_6 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_15; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_16 = x1_a_bits_a_mask_eq_7 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_16 = x1_a_bits_a_mask_acc_7 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_16; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_17 = x1_a_bits_a_mask_eq_7 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_17 = x1_a_bits_a_mask_acc_7 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_17; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_18 = x1_a_bits_a_mask_eq_8 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_18 = x1_a_bits_a_mask_acc_8 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_18; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_19 = x1_a_bits_a_mask_eq_8 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_19 = x1_a_bits_a_mask_acc_8 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_19; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_20 = x1_a_bits_a_mask_eq_9 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_20 = x1_a_bits_a_mask_acc_9 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_20; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_21 = x1_a_bits_a_mask_eq_9 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_21 = x1_a_bits_a_mask_acc_9 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_21; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_22 = x1_a_bits_a_mask_eq_10 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_22 = x1_a_bits_a_mask_acc_10 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_22; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_23 = x1_a_bits_a_mask_eq_10 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_23 = x1_a_bits_a_mask_acc_10 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_23; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_24 = x1_a_bits_a_mask_eq_11 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_24 = x1_a_bits_a_mask_acc_11 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_24; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_25 = x1_a_bits_a_mask_eq_11 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_25 = x1_a_bits_a_mask_acc_11 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_25; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_26 = x1_a_bits_a_mask_eq_12 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_26 = x1_a_bits_a_mask_acc_12 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_26; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_27 = x1_a_bits_a_mask_eq_12 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_27 = x1_a_bits_a_mask_acc_12 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_27; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_28 = x1_a_bits_a_mask_eq_13 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_28 = x1_a_bits_a_mask_acc_13 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_28; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_29 = x1_a_bits_a_mask_eq_13 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_29 = x1_a_bits_a_mask_acc_13 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_29; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_size_4 = x1_a_bits_a_mask_sizeOH[1]; // @[Misc.scala 208:26]
+  wire  x1_a_bits_a_mask_bit_4 = totalTx_memoryAddress[1]; // @[Misc.scala 209:26]
+  wire  x1_a_bits_a_mask_nbit_4 = ~x1_a_bits_a_mask_bit_4; // @[Misc.scala 210:20]
+  wire  x1_a_bits_a_mask_eq_30 = x1_a_bits_a_mask_eq_14 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_30 = x1_a_bits_a_mask_acc_14 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_30; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_31 = x1_a_bits_a_mask_eq_14 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_31 = x1_a_bits_a_mask_acc_14 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_31; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_32 = x1_a_bits_a_mask_eq_15 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_32 = x1_a_bits_a_mask_acc_15 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_32; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_33 = x1_a_bits_a_mask_eq_15 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_33 = x1_a_bits_a_mask_acc_15 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_33; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_34 = x1_a_bits_a_mask_eq_16 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_34 = x1_a_bits_a_mask_acc_16 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_34; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_35 = x1_a_bits_a_mask_eq_16 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_35 = x1_a_bits_a_mask_acc_16 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_35; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_36 = x1_a_bits_a_mask_eq_17 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_36 = x1_a_bits_a_mask_acc_17 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_36; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_37 = x1_a_bits_a_mask_eq_17 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_37 = x1_a_bits_a_mask_acc_17 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_37; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_38 = x1_a_bits_a_mask_eq_18 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_38 = x1_a_bits_a_mask_acc_18 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_38; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_39 = x1_a_bits_a_mask_eq_18 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_39 = x1_a_bits_a_mask_acc_18 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_39; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_40 = x1_a_bits_a_mask_eq_19 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_40 = x1_a_bits_a_mask_acc_19 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_40; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_41 = x1_a_bits_a_mask_eq_19 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_41 = x1_a_bits_a_mask_acc_19 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_41; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_42 = x1_a_bits_a_mask_eq_20 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_42 = x1_a_bits_a_mask_acc_20 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_42; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_43 = x1_a_bits_a_mask_eq_20 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_43 = x1_a_bits_a_mask_acc_20 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_43; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_44 = x1_a_bits_a_mask_eq_21 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_44 = x1_a_bits_a_mask_acc_21 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_44; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_45 = x1_a_bits_a_mask_eq_21 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_45 = x1_a_bits_a_mask_acc_21 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_45; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_46 = x1_a_bits_a_mask_eq_22 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_46 = x1_a_bits_a_mask_acc_22 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_46; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_47 = x1_a_bits_a_mask_eq_22 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_47 = x1_a_bits_a_mask_acc_22 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_47; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_48 = x1_a_bits_a_mask_eq_23 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_48 = x1_a_bits_a_mask_acc_23 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_48; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_49 = x1_a_bits_a_mask_eq_23 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_49 = x1_a_bits_a_mask_acc_23 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_49; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_50 = x1_a_bits_a_mask_eq_24 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_50 = x1_a_bits_a_mask_acc_24 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_50; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_51 = x1_a_bits_a_mask_eq_24 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_51 = x1_a_bits_a_mask_acc_24 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_51; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_52 = x1_a_bits_a_mask_eq_25 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_52 = x1_a_bits_a_mask_acc_25 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_52; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_53 = x1_a_bits_a_mask_eq_25 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_53 = x1_a_bits_a_mask_acc_25 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_53; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_54 = x1_a_bits_a_mask_eq_26 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_54 = x1_a_bits_a_mask_acc_26 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_54; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_55 = x1_a_bits_a_mask_eq_26 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_55 = x1_a_bits_a_mask_acc_26 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_55; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_56 = x1_a_bits_a_mask_eq_27 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_56 = x1_a_bits_a_mask_acc_27 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_56; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_57 = x1_a_bits_a_mask_eq_27 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_57 = x1_a_bits_a_mask_acc_27 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_57; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_58 = x1_a_bits_a_mask_eq_28 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_58 = x1_a_bits_a_mask_acc_28 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_58; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_59 = x1_a_bits_a_mask_eq_28 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_59 = x1_a_bits_a_mask_acc_28 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_59; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_60 = x1_a_bits_a_mask_eq_29 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_60 = x1_a_bits_a_mask_acc_29 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_60; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_61 = x1_a_bits_a_mask_eq_29 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_61 = x1_a_bits_a_mask_acc_29 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_61; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_size_5 = x1_a_bits_a_mask_sizeOH[0]; // @[Misc.scala 208:26]
+  wire  x1_a_bits_a_mask_bit_5 = totalTx_memoryAddress[0]; // @[Misc.scala 209:26]
+  wire  x1_a_bits_a_mask_nbit_5 = ~x1_a_bits_a_mask_bit_5; // @[Misc.scala 210:20]
+  wire  x1_a_bits_a_mask_eq_62 = x1_a_bits_a_mask_eq_30 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_62 = x1_a_bits_a_mask_acc_30 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_62; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_63 = x1_a_bits_a_mask_eq_30 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_63 = x1_a_bits_a_mask_acc_30 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_63; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_64 = x1_a_bits_a_mask_eq_31 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_64 = x1_a_bits_a_mask_acc_31 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_64; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_65 = x1_a_bits_a_mask_eq_31 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_65 = x1_a_bits_a_mask_acc_31 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_65; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_66 = x1_a_bits_a_mask_eq_32 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_66 = x1_a_bits_a_mask_acc_32 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_66; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_67 = x1_a_bits_a_mask_eq_32 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_67 = x1_a_bits_a_mask_acc_32 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_67; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_68 = x1_a_bits_a_mask_eq_33 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_68 = x1_a_bits_a_mask_acc_33 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_68; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_69 = x1_a_bits_a_mask_eq_33 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_69 = x1_a_bits_a_mask_acc_33 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_69; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_70 = x1_a_bits_a_mask_eq_34 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_70 = x1_a_bits_a_mask_acc_34 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_70; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_71 = x1_a_bits_a_mask_eq_34 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_71 = x1_a_bits_a_mask_acc_34 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_71; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_72 = x1_a_bits_a_mask_eq_35 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_72 = x1_a_bits_a_mask_acc_35 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_72; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_73 = x1_a_bits_a_mask_eq_35 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_73 = x1_a_bits_a_mask_acc_35 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_73; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_74 = x1_a_bits_a_mask_eq_36 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_74 = x1_a_bits_a_mask_acc_36 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_74; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_75 = x1_a_bits_a_mask_eq_36 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_75 = x1_a_bits_a_mask_acc_36 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_75; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_76 = x1_a_bits_a_mask_eq_37 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_76 = x1_a_bits_a_mask_acc_37 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_76; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_77 = x1_a_bits_a_mask_eq_37 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_77 = x1_a_bits_a_mask_acc_37 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_77; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_78 = x1_a_bits_a_mask_eq_38 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_78 = x1_a_bits_a_mask_acc_38 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_78; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_79 = x1_a_bits_a_mask_eq_38 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_79 = x1_a_bits_a_mask_acc_38 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_79; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_80 = x1_a_bits_a_mask_eq_39 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_80 = x1_a_bits_a_mask_acc_39 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_80; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_81 = x1_a_bits_a_mask_eq_39 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_81 = x1_a_bits_a_mask_acc_39 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_81; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_82 = x1_a_bits_a_mask_eq_40 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_82 = x1_a_bits_a_mask_acc_40 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_82; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_83 = x1_a_bits_a_mask_eq_40 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_83 = x1_a_bits_a_mask_acc_40 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_83; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_84 = x1_a_bits_a_mask_eq_41 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_84 = x1_a_bits_a_mask_acc_41 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_84; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_85 = x1_a_bits_a_mask_eq_41 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_85 = x1_a_bits_a_mask_acc_41 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_85; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_86 = x1_a_bits_a_mask_eq_42 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_86 = x1_a_bits_a_mask_acc_42 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_86; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_87 = x1_a_bits_a_mask_eq_42 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_87 = x1_a_bits_a_mask_acc_42 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_87; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_88 = x1_a_bits_a_mask_eq_43 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_88 = x1_a_bits_a_mask_acc_43 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_88; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_89 = x1_a_bits_a_mask_eq_43 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_89 = x1_a_bits_a_mask_acc_43 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_89; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_90 = x1_a_bits_a_mask_eq_44 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_90 = x1_a_bits_a_mask_acc_44 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_90; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_91 = x1_a_bits_a_mask_eq_44 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_91 = x1_a_bits_a_mask_acc_44 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_91; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_92 = x1_a_bits_a_mask_eq_45 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_92 = x1_a_bits_a_mask_acc_45 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_92; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_93 = x1_a_bits_a_mask_eq_45 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_93 = x1_a_bits_a_mask_acc_45 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_93; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_94 = x1_a_bits_a_mask_eq_46 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_94 = x1_a_bits_a_mask_acc_46 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_94; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_95 = x1_a_bits_a_mask_eq_46 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_95 = x1_a_bits_a_mask_acc_46 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_95; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_96 = x1_a_bits_a_mask_eq_47 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_96 = x1_a_bits_a_mask_acc_47 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_96; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_97 = x1_a_bits_a_mask_eq_47 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_97 = x1_a_bits_a_mask_acc_47 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_97; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_98 = x1_a_bits_a_mask_eq_48 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_98 = x1_a_bits_a_mask_acc_48 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_98; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_99 = x1_a_bits_a_mask_eq_48 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_99 = x1_a_bits_a_mask_acc_48 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_99; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_100 = x1_a_bits_a_mask_eq_49 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_100 = x1_a_bits_a_mask_acc_49 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_100; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_101 = x1_a_bits_a_mask_eq_49 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_101 = x1_a_bits_a_mask_acc_49 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_101; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_102 = x1_a_bits_a_mask_eq_50 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_102 = x1_a_bits_a_mask_acc_50 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_102; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_103 = x1_a_bits_a_mask_eq_50 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_103 = x1_a_bits_a_mask_acc_50 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_103; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_104 = x1_a_bits_a_mask_eq_51 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_104 = x1_a_bits_a_mask_acc_51 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_104; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_105 = x1_a_bits_a_mask_eq_51 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_105 = x1_a_bits_a_mask_acc_51 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_105; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_106 = x1_a_bits_a_mask_eq_52 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_106 = x1_a_bits_a_mask_acc_52 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_106; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_107 = x1_a_bits_a_mask_eq_52 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_107 = x1_a_bits_a_mask_acc_52 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_107; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_108 = x1_a_bits_a_mask_eq_53 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_108 = x1_a_bits_a_mask_acc_53 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_108; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_109 = x1_a_bits_a_mask_eq_53 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_109 = x1_a_bits_a_mask_acc_53 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_109; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_110 = x1_a_bits_a_mask_eq_54 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_110 = x1_a_bits_a_mask_acc_54 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_110; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_111 = x1_a_bits_a_mask_eq_54 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_111 = x1_a_bits_a_mask_acc_54 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_111; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_112 = x1_a_bits_a_mask_eq_55 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_112 = x1_a_bits_a_mask_acc_55 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_112; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_113 = x1_a_bits_a_mask_eq_55 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_113 = x1_a_bits_a_mask_acc_55 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_113; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_114 = x1_a_bits_a_mask_eq_56 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_114 = x1_a_bits_a_mask_acc_56 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_114; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_115 = x1_a_bits_a_mask_eq_56 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_115 = x1_a_bits_a_mask_acc_56 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_115; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_116 = x1_a_bits_a_mask_eq_57 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_116 = x1_a_bits_a_mask_acc_57 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_116; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_117 = x1_a_bits_a_mask_eq_57 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_117 = x1_a_bits_a_mask_acc_57 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_117; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_118 = x1_a_bits_a_mask_eq_58 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_118 = x1_a_bits_a_mask_acc_58 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_118; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_119 = x1_a_bits_a_mask_eq_58 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_119 = x1_a_bits_a_mask_acc_58 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_119; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_120 = x1_a_bits_a_mask_eq_59 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_120 = x1_a_bits_a_mask_acc_59 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_120; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_121 = x1_a_bits_a_mask_eq_59 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_121 = x1_a_bits_a_mask_acc_59 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_121; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_122 = x1_a_bits_a_mask_eq_60 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_122 = x1_a_bits_a_mask_acc_60 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_122; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_123 = x1_a_bits_a_mask_eq_60 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_123 = x1_a_bits_a_mask_acc_60 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_123; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_124 = x1_a_bits_a_mask_eq_61 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_124 = x1_a_bits_a_mask_acc_61 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_124; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_125 = x1_a_bits_a_mask_eq_61 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_125 = x1_a_bits_a_mask_acc_61 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_125; // @[Misc.scala 214:29]
+  wire [7:0] x1_a_bits_a_mask_lo_lo_lo = {x1_a_bits_a_mask_acc_69,x1_a_bits_a_mask_acc_68,x1_a_bits_a_mask_acc_67,
+    x1_a_bits_a_mask_acc_66,x1_a_bits_a_mask_acc_65,x1_a_bits_a_mask_acc_64,x1_a_bits_a_mask_acc_63,
+    x1_a_bits_a_mask_acc_62}; // @[Cat.scala 33:92]
+  wire [15:0] x1_a_bits_a_mask_lo_lo = {x1_a_bits_a_mask_acc_77,x1_a_bits_a_mask_acc_76,x1_a_bits_a_mask_acc_75,
+    x1_a_bits_a_mask_acc_74,x1_a_bits_a_mask_acc_73,x1_a_bits_a_mask_acc_72,x1_a_bits_a_mask_acc_71,
+    x1_a_bits_a_mask_acc_70,x1_a_bits_a_mask_lo_lo_lo}; // @[Cat.scala 33:92]
+  wire [7:0] x1_a_bits_a_mask_lo_hi_lo = {x1_a_bits_a_mask_acc_85,x1_a_bits_a_mask_acc_84,x1_a_bits_a_mask_acc_83,
+    x1_a_bits_a_mask_acc_82,x1_a_bits_a_mask_acc_81,x1_a_bits_a_mask_acc_80,x1_a_bits_a_mask_acc_79,
+    x1_a_bits_a_mask_acc_78}; // @[Cat.scala 33:92]
+  wire [31:0] x1_a_bits_a_mask_lo = {x1_a_bits_a_mask_acc_93,x1_a_bits_a_mask_acc_92,x1_a_bits_a_mask_acc_91,
+    x1_a_bits_a_mask_acc_90,x1_a_bits_a_mask_acc_89,x1_a_bits_a_mask_acc_88,x1_a_bits_a_mask_acc_87,
+    x1_a_bits_a_mask_acc_86,x1_a_bits_a_mask_lo_hi_lo,x1_a_bits_a_mask_lo_lo}; // @[Cat.scala 33:92]
+  wire [7:0] x1_a_bits_a_mask_hi_lo_lo = {x1_a_bits_a_mask_acc_101,x1_a_bits_a_mask_acc_100,x1_a_bits_a_mask_acc_99,
+    x1_a_bits_a_mask_acc_98,x1_a_bits_a_mask_acc_97,x1_a_bits_a_mask_acc_96,x1_a_bits_a_mask_acc_95,
+    x1_a_bits_a_mask_acc_94}; // @[Cat.scala 33:92]
+  wire [15:0] x1_a_bits_a_mask_hi_lo = {x1_a_bits_a_mask_acc_109,x1_a_bits_a_mask_acc_108,x1_a_bits_a_mask_acc_107,
+    x1_a_bits_a_mask_acc_106,x1_a_bits_a_mask_acc_105,x1_a_bits_a_mask_acc_104,x1_a_bits_a_mask_acc_103,
+    x1_a_bits_a_mask_acc_102,x1_a_bits_a_mask_hi_lo_lo}; // @[Cat.scala 33:92]
+  wire [7:0] x1_a_bits_a_mask_hi_hi_lo = {x1_a_bits_a_mask_acc_117,x1_a_bits_a_mask_acc_116,x1_a_bits_a_mask_acc_115,
+    x1_a_bits_a_mask_acc_114,x1_a_bits_a_mask_acc_113,x1_a_bits_a_mask_acc_112,x1_a_bits_a_mask_acc_111,
+    x1_a_bits_a_mask_acc_110}; // @[Cat.scala 33:92]
+  wire [31:0] x1_a_bits_a_mask_hi = {x1_a_bits_a_mask_acc_125,x1_a_bits_a_mask_acc_124,x1_a_bits_a_mask_acc_123,
+    x1_a_bits_a_mask_acc_122,x1_a_bits_a_mask_acc_121,x1_a_bits_a_mask_acc_120,x1_a_bits_a_mask_acc_119,
+    x1_a_bits_a_mask_acc_118,x1_a_bits_a_mask_hi_hi_lo,x1_a_bits_a_mask_hi_lo}; // @[Cat.scala 33:92]
+  wire  _GEN_112 = 2'h1 == mem_tx_state ? reqAvailable : mem_tx_state == 2'h1; // @[CScratchpad.scala 136:19 138:24 151:23]
+  wire  mem_out_a_valid = 2'h0 == mem_tx_state ? mem_tx_state == 2'h1 : _GEN_112; // @[CScratchpad.scala 136:19 138:24]
+  wire  _T_13 = auto_mem_out_a_ready & mem_out_a_valid; // @[Decoupled.scala 51:35]
+  wire  _GEN_8 = 4'h0 == reqChosen ? 1'h0 : reqIdleBits_0; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_9 = 4'h1 == reqChosen ? 1'h0 : reqIdleBits_1; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_10 = 4'h2 == reqChosen ? 1'h0 : reqIdleBits_2; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_11 = 4'h3 == reqChosen ? 1'h0 : reqIdleBits_3; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_12 = 4'h4 == reqChosen ? 1'h0 : reqIdleBits_4; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_13 = 4'h5 == reqChosen ? 1'h0 : reqIdleBits_5; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_14 = 4'h6 == reqChosen ? 1'h0 : reqIdleBits_6; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_15 = 4'h7 == reqChosen ? 1'h0 : reqIdleBits_7; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_16 = 4'h8 == reqChosen ? 1'h0 : reqIdleBits_8; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_17 = 4'h9 == reqChosen ? 1'h0 : reqIdleBits_9; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_18 = 4'ha == reqChosen ? 1'h0 : reqIdleBits_10; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_19 = 4'hb == reqChosen ? 1'h0 : reqIdleBits_11; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_20 = 4'hc == reqChosen ? 1'h0 : reqIdleBits_12; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_21 = 4'hd == reqChosen ? 1'h0 : reqIdleBits_13; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_22 = 4'he == reqChosen ? 1'h0 : reqIdleBits_14; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_23 = 4'hf == reqChosen ? 1'h0 : reqIdleBits_15; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire [33:0] _req_cache_memoryLength_T = isBelowLimit ? totalTx_memoryLength : 34'h40; // @[CScratchpad.scala 155:49]
+  wire [15:0] _GEN_40 = 4'h0 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_0_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_41 = 4'h1 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_1_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_42 = 4'h2 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_2_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_43 = 4'h3 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_3_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_44 = 4'h4 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_4_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_45 = 4'h5 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_5_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_46 = 4'h6 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_6_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_47 = 4'h7 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_7_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_48 = 4'h8 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_8_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_49 = 4'h9 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_9_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_50 = 4'ha == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_10_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_51 = 4'hb == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_11_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_52 = 4'hc == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_12_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_53 = 4'hd == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_13_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_54 = 4'he == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_14_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_55 = 4'hf == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_15_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [33:0] _totalTx_memoryLength_T_1 = totalTx_memoryLength - 34'h40; // @[CScratchpad.scala 156:54]
+  wire [33:0] _totalTx_memoryAddress_T_1 = totalTx_memoryAddress + 34'h40; // @[CScratchpad.scala 158:56]
+  wire [1:0] _GEN_56 = isBelowLimit ? 2'h2 : mem_tx_state; // @[CScratchpad.scala 159:28 160:24 102:37]
+  wire  _GEN_57 = _T_13 ? _GEN_8 : reqIdleBits_0; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_58 = _T_13 ? _GEN_9 : reqIdleBits_1; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_59 = _T_13 ? _GEN_10 : reqIdleBits_2; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_60 = _T_13 ? _GEN_11 : reqIdleBits_3; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_61 = _T_13 ? _GEN_12 : reqIdleBits_4; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_62 = _T_13 ? _GEN_13 : reqIdleBits_5; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_63 = _T_13 ? _GEN_14 : reqIdleBits_6; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_64 = _T_13 ? _GEN_15 : reqIdleBits_7; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_65 = _T_13 ? _GEN_16 : reqIdleBits_8; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_66 = _T_13 ? _GEN_17 : reqIdleBits_9; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_67 = _T_13 ? _GEN_18 : reqIdleBits_10; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_68 = _T_13 ? _GEN_19 : reqIdleBits_11; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_69 = _T_13 ? _GEN_20 : reqIdleBits_12; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_70 = _T_13 ? _GEN_21 : reqIdleBits_13; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_71 = _T_13 ? _GEN_22 : reqIdleBits_14; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_72 = _T_13 ? _GEN_23 : reqIdleBits_15; // @[CScratchpad.scala 152:28 110:36]
+  wire [15:0] _GEN_89 = _T_13 ? _GEN_40 : req_cache_0_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_90 = _T_13 ? _GEN_41 : req_cache_1_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_91 = _T_13 ? _GEN_42 : req_cache_2_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_92 = _T_13 ? _GEN_43 : req_cache_3_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_93 = _T_13 ? _GEN_44 : req_cache_4_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_94 = _T_13 ? _GEN_45 : req_cache_5_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_95 = _T_13 ? _GEN_46 : req_cache_6_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_96 = _T_13 ? _GEN_47 : req_cache_7_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_97 = _T_13 ? _GEN_48 : req_cache_8_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_98 = _T_13 ? _GEN_49 : req_cache_9_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_99 = _T_13 ? _GEN_50 : req_cache_10_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_100 = _T_13 ? _GEN_51 : req_cache_11_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_101 = _T_13 ? _GEN_52 : req_cache_12_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_102 = _T_13 ? _GEN_53 : req_cache_13_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_103 = _T_13 ? _GEN_54 : req_cache_14_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_104 = _T_13 ? _GEN_55 : req_cache_15_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [1:0] _GEN_109 = reqIdleBits_0 & reqIdleBits_1 & reqIdleBits_2 & reqIdleBits_3 & reqIdleBits_4 & reqIdleBits_5 &
+    reqIdleBits_6 & reqIdleBits_7 & reqIdleBits_8 & reqIdleBits_9 & reqIdleBits_10 & reqIdleBits_11 & reqIdleBits_12 &
+    reqIdleBits_13 & reqIdleBits_14 & reqIdleBits_15 ? 2'h0 : mem_tx_state; // @[CScratchpad.scala 166:40 167:22 102:37]
+  wire  _GEN_113 = 2'h1 == mem_tx_state ? _GEN_57 : reqIdleBits_0; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_114 = 2'h1 == mem_tx_state ? _GEN_58 : reqIdleBits_1; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_115 = 2'h1 == mem_tx_state ? _GEN_59 : reqIdleBits_2; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_116 = 2'h1 == mem_tx_state ? _GEN_60 : reqIdleBits_3; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_117 = 2'h1 == mem_tx_state ? _GEN_61 : reqIdleBits_4; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_118 = 2'h1 == mem_tx_state ? _GEN_62 : reqIdleBits_5; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_119 = 2'h1 == mem_tx_state ? _GEN_63 : reqIdleBits_6; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_120 = 2'h1 == mem_tx_state ? _GEN_64 : reqIdleBits_7; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_121 = 2'h1 == mem_tx_state ? _GEN_65 : reqIdleBits_8; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_122 = 2'h1 == mem_tx_state ? _GEN_66 : reqIdleBits_9; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_123 = 2'h1 == mem_tx_state ? _GEN_67 : reqIdleBits_10; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_124 = 2'h1 == mem_tx_state ? _GEN_68 : reqIdleBits_11; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_125 = 2'h1 == mem_tx_state ? _GEN_69 : reqIdleBits_12; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_126 = 2'h1 == mem_tx_state ? _GEN_70 : reqIdleBits_13; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_127 = 2'h1 == mem_tx_state ? _GEN_71 : reqIdleBits_14; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_128 = 2'h1 == mem_tx_state ? _GEN_72 : reqIdleBits_15; // @[CScratchpad.scala 138:24 110:36]
+  wire [15:0] _GEN_145 = 2'h1 == mem_tx_state ? _GEN_89 : req_cache_0_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_146 = 2'h1 == mem_tx_state ? _GEN_90 : req_cache_1_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_147 = 2'h1 == mem_tx_state ? _GEN_91 : req_cache_2_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_148 = 2'h1 == mem_tx_state ? _GEN_92 : req_cache_3_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_149 = 2'h1 == mem_tx_state ? _GEN_93 : req_cache_4_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_150 = 2'h1 == mem_tx_state ? _GEN_94 : req_cache_5_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_151 = 2'h1 == mem_tx_state ? _GEN_95 : req_cache_6_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_152 = 2'h1 == mem_tx_state ? _GEN_96 : req_cache_7_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_153 = 2'h1 == mem_tx_state ? _GEN_97 : req_cache_8_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_154 = 2'h1 == mem_tx_state ? _GEN_98 : req_cache_9_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_155 = 2'h1 == mem_tx_state ? _GEN_99 : req_cache_10_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_156 = 2'h1 == mem_tx_state ? _GEN_100 : req_cache_11_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_157 = 2'h1 == mem_tx_state ? _GEN_101 : req_cache_12_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_158 = 2'h1 == mem_tx_state ? _GEN_102 : req_cache_13_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_159 = 2'h1 == mem_tx_state ? _GEN_103 : req_cache_14_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_160 = 2'h1 == mem_tx_state ? _GEN_104 : req_cache_15_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire  _GEN_171 = 2'h0 == mem_tx_state ? reqIdleBits_0 : _GEN_113; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_172 = 2'h0 == mem_tx_state ? reqIdleBits_1 : _GEN_114; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_173 = 2'h0 == mem_tx_state ? reqIdleBits_2 : _GEN_115; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_174 = 2'h0 == mem_tx_state ? reqIdleBits_3 : _GEN_116; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_175 = 2'h0 == mem_tx_state ? reqIdleBits_4 : _GEN_117; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_176 = 2'h0 == mem_tx_state ? reqIdleBits_5 : _GEN_118; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_177 = 2'h0 == mem_tx_state ? reqIdleBits_6 : _GEN_119; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_178 = 2'h0 == mem_tx_state ? reqIdleBits_7 : _GEN_120; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_179 = 2'h0 == mem_tx_state ? reqIdleBits_8 : _GEN_121; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_180 = 2'h0 == mem_tx_state ? reqIdleBits_9 : _GEN_122; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_181 = 2'h0 == mem_tx_state ? reqIdleBits_10 : _GEN_123; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_182 = 2'h0 == mem_tx_state ? reqIdleBits_11 : _GEN_124; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_183 = 2'h0 == mem_tx_state ? reqIdleBits_12 : _GEN_125; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_184 = 2'h0 == mem_tx_state ? reqIdleBits_13 : _GEN_126; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_185 = 2'h0 == mem_tx_state ? reqIdleBits_14 : _GEN_127; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_186 = 2'h0 == mem_tx_state ? reqIdleBits_15 : _GEN_128; // @[CScratchpad.scala 138:24 110:36]
+  wire [15:0] _GEN_203 = 2'h0 == mem_tx_state ? req_cache_0_memoryLength : _GEN_145; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_204 = 2'h0 == mem_tx_state ? req_cache_1_memoryLength : _GEN_146; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_205 = 2'h0 == mem_tx_state ? req_cache_2_memoryLength : _GEN_147; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_206 = 2'h0 == mem_tx_state ? req_cache_3_memoryLength : _GEN_148; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_207 = 2'h0 == mem_tx_state ? req_cache_4_memoryLength : _GEN_149; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_208 = 2'h0 == mem_tx_state ? req_cache_5_memoryLength : _GEN_150; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_209 = 2'h0 == mem_tx_state ? req_cache_6_memoryLength : _GEN_151; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_210 = 2'h0 == mem_tx_state ? req_cache_7_memoryLength : _GEN_152; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_211 = 2'h0 == mem_tx_state ? req_cache_8_memoryLength : _GEN_153; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_212 = 2'h0 == mem_tx_state ? req_cache_9_memoryLength : _GEN_154; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_213 = 2'h0 == mem_tx_state ? req_cache_10_memoryLength : _GEN_155; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_214 = 2'h0 == mem_tx_state ? req_cache_11_memoryLength : _GEN_156; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_215 = 2'h0 == mem_tx_state ? req_cache_12_memoryLength : _GEN_157; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_216 = 2'h0 == mem_tx_state ? req_cache_13_memoryLength : _GEN_158; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_217 = 2'h0 == mem_tx_state ? req_cache_14_memoryLength : _GEN_159; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_218 = 2'h0 == mem_tx_state ? req_cache_15_memoryLength : _GEN_160; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_220 = 4'h1 == auto_mem_out_d_bits_source ? req_cache_1_memoryLength : req_cache_0_memoryLength; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_221 = 4'h2 == auto_mem_out_d_bits_source ? req_cache_2_memoryLength : _GEN_220; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_222 = 4'h3 == auto_mem_out_d_bits_source ? req_cache_3_memoryLength : _GEN_221; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_223 = 4'h4 == auto_mem_out_d_bits_source ? req_cache_4_memoryLength : _GEN_222; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_224 = 4'h5 == auto_mem_out_d_bits_source ? req_cache_5_memoryLength : _GEN_223; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_225 = 4'h6 == auto_mem_out_d_bits_source ? req_cache_6_memoryLength : _GEN_224; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_226 = 4'h7 == auto_mem_out_d_bits_source ? req_cache_7_memoryLength : _GEN_225; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_227 = 4'h8 == auto_mem_out_d_bits_source ? req_cache_8_memoryLength : _GEN_226; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_228 = 4'h9 == auto_mem_out_d_bits_source ? req_cache_9_memoryLength : _GEN_227; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_229 = 4'ha == auto_mem_out_d_bits_source ? req_cache_10_memoryLength : _GEN_228; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_230 = 4'hb == auto_mem_out_d_bits_source ? req_cache_11_memoryLength : _GEN_229; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_231 = 4'hc == auto_mem_out_d_bits_source ? req_cache_12_memoryLength : _GEN_230; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_232 = 4'hd == auto_mem_out_d_bits_source ? req_cache_13_memoryLength : _GEN_231; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_233 = 4'he == auto_mem_out_d_bits_source ? req_cache_14_memoryLength : _GEN_232; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_234 = 4'hf == auto_mem_out_d_bits_source ? req_cache_15_memoryLength : _GEN_233; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_235 = _GEN_234 >= 16'h40 ? 16'h40 : _GEN_234; // @[CScratchpad.scala 174:55 175:39 177:39]
+  wire  mem_out_d_ready = loader_io_cache_block_in_ready; // @[Nodes.scala 1212:84 CScratchpad.scala 180:19]
+  wire  _T_36 = mem_out_d_ready & auto_mem_out_d_valid; // @[Decoupled.scala 51:35]
+  wire [15:0] _req_cache_memoryLength_T_2 = _GEN_234 - 16'h40; // @[CScratchpad.scala 210:72]
+  wire  _GEN_445 = 4'h0 == auto_mem_out_d_bits_source | _GEN_171; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_446 = 4'h1 == auto_mem_out_d_bits_source | _GEN_172; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_447 = 4'h2 == auto_mem_out_d_bits_source | _GEN_173; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_448 = 4'h3 == auto_mem_out_d_bits_source | _GEN_174; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_449 = 4'h4 == auto_mem_out_d_bits_source | _GEN_175; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_450 = 4'h5 == auto_mem_out_d_bits_source | _GEN_176; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_451 = 4'h6 == auto_mem_out_d_bits_source | _GEN_177; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_452 = 4'h7 == auto_mem_out_d_bits_source | _GEN_178; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_453 = 4'h8 == auto_mem_out_d_bits_source | _GEN_179; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_454 = 4'h9 == auto_mem_out_d_bits_source | _GEN_180; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_455 = 4'ha == auto_mem_out_d_bits_source | _GEN_181; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_456 = 4'hb == auto_mem_out_d_bits_source | _GEN_182; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_457 = 4'hc == auto_mem_out_d_bits_source | _GEN_183; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_458 = 4'hd == auto_mem_out_d_bits_source | _GEN_184; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_459 = 4'he == auto_mem_out_d_bits_source | _GEN_185; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_460 = 4'hf == auto_mem_out_d_bits_source | _GEN_186; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_461 = _GEN_234 <= 16'h40 ? _GEN_445 : _GEN_171; // @[CScratchpad.scala 212:57]
+  wire  _GEN_462 = _GEN_234 <= 16'h40 ? _GEN_446 : _GEN_172; // @[CScratchpad.scala 212:57]
+  wire  _GEN_463 = _GEN_234 <= 16'h40 ? _GEN_447 : _GEN_173; // @[CScratchpad.scala 212:57]
+  wire  _GEN_464 = _GEN_234 <= 16'h40 ? _GEN_448 : _GEN_174; // @[CScratchpad.scala 212:57]
+  wire  _GEN_465 = _GEN_234 <= 16'h40 ? _GEN_449 : _GEN_175; // @[CScratchpad.scala 212:57]
+  wire  _GEN_466 = _GEN_234 <= 16'h40 ? _GEN_450 : _GEN_176; // @[CScratchpad.scala 212:57]
+  wire  _GEN_467 = _GEN_234 <= 16'h40 ? _GEN_451 : _GEN_177; // @[CScratchpad.scala 212:57]
+  wire  _GEN_468 = _GEN_234 <= 16'h40 ? _GEN_452 : _GEN_178; // @[CScratchpad.scala 212:57]
+  wire  _GEN_469 = _GEN_234 <= 16'h40 ? _GEN_453 : _GEN_179; // @[CScratchpad.scala 212:57]
+  wire  _GEN_470 = _GEN_234 <= 16'h40 ? _GEN_454 : _GEN_180; // @[CScratchpad.scala 212:57]
+  wire  _GEN_471 = _GEN_234 <= 16'h40 ? _GEN_455 : _GEN_181; // @[CScratchpad.scala 212:57]
+  wire  _GEN_472 = _GEN_234 <= 16'h40 ? _GEN_456 : _GEN_182; // @[CScratchpad.scala 212:57]
+  wire  _GEN_473 = _GEN_234 <= 16'h40 ? _GEN_457 : _GEN_183; // @[CScratchpad.scala 212:57]
+  wire  _GEN_474 = _GEN_234 <= 16'h40 ? _GEN_458 : _GEN_184; // @[CScratchpad.scala 212:57]
+  wire  _GEN_475 = _GEN_234 <= 16'h40 ? _GEN_459 : _GEN_185; // @[CScratchpad.scala 212:57]
+  wire  _GEN_476 = _GEN_234 <= 16'h40 ? _GEN_460 : _GEN_186; // @[CScratchpad.scala 212:57]
+  wire  _GEN_494 = _T_36 ? _GEN_461 : _GEN_171; // @[CScratchpad.scala 209:24]
+  wire  _GEN_495 = _T_36 ? _GEN_462 : _GEN_172; // @[CScratchpad.scala 209:24]
+  wire  _GEN_496 = _T_36 ? _GEN_463 : _GEN_173; // @[CScratchpad.scala 209:24]
+  wire  _GEN_497 = _T_36 ? _GEN_464 : _GEN_174; // @[CScratchpad.scala 209:24]
+  wire  _GEN_498 = _T_36 ? _GEN_465 : _GEN_175; // @[CScratchpad.scala 209:24]
+  wire  _GEN_499 = _T_36 ? _GEN_466 : _GEN_176; // @[CScratchpad.scala 209:24]
+  wire  _GEN_500 = _T_36 ? _GEN_467 : _GEN_177; // @[CScratchpad.scala 209:24]
+  wire  _GEN_501 = _T_36 ? _GEN_468 : _GEN_178; // @[CScratchpad.scala 209:24]
+  wire  _GEN_502 = _T_36 ? _GEN_469 : _GEN_179; // @[CScratchpad.scala 209:24]
+  wire  _GEN_503 = _T_36 ? _GEN_470 : _GEN_180; // @[CScratchpad.scala 209:24]
+  wire  _GEN_504 = _T_36 ? _GEN_471 : _GEN_181; // @[CScratchpad.scala 209:24]
+  wire  _GEN_505 = _T_36 ? _GEN_472 : _GEN_182; // @[CScratchpad.scala 209:24]
+  wire  _GEN_506 = _T_36 ? _GEN_473 : _GEN_183; // @[CScratchpad.scala 209:24]
+  wire  _GEN_507 = _T_36 ? _GEN_474 : _GEN_184; // @[CScratchpad.scala 209:24]
+  wire  _GEN_508 = _T_36 ? _GEN_475 : _GEN_185; // @[CScratchpad.scala 209:24]
+  wire  _GEN_509 = _T_36 ? _GEN_476 : _GEN_186; // @[CScratchpad.scala 209:24]
+  CScratchpadPackedSubwordLoader loader ( // @[CScratchpad.scala 94:30]
+    .clock(loader_clock),
+    .reset(loader_reset),
+    .io_cache_block_in_ready(loader_io_cache_block_in_ready),
+    .io_cache_block_in_valid(loader_io_cache_block_in_valid),
+    .io_cache_block_in_bits_len(loader_io_cache_block_in_bits_len),
+    .io_sp_write_out_valid(loader_io_sp_write_out_valid)
+  );
+  assign auto_mem_out_a_valid = 2'h0 == mem_tx_state ? mem_tx_state == 2'h1 : _GEN_112; // @[CScratchpad.scala 136:19 138:24]
+  assign auto_mem_out_a_bits_size = txEmitLengthLg[2:0]; // @[Edges.scala 447:17 450:15]
+  assign auto_mem_out_a_bits_source = reqIdleBits_0 ? 4'h0 : _reqChosen_T_13; // @[Mux.scala 47:70]
+  assign auto_mem_out_a_bits_address = totalTx_memoryAddress; // @[Edges.scala 447:17 452:15]
+  assign auto_mem_out_a_bits_mask = {x1_a_bits_a_mask_hi,x1_a_bits_a_mask_lo}; // @[Cat.scala 33:92]
+  assign auto_mem_out_d_ready = loader_io_cache_block_in_ready; // @[Nodes.scala 1212:84 CScratchpad.scala 180:19]
+  assign loader_clock = clock;
+  assign loader_reset = reset;
+  assign loader_io_cache_block_in_valid = auto_mem_out_d_valid; // @[Nodes.scala 1212:84 LazyModule.scala 368:12]
+  assign loader_io_cache_block_in_bits_len = _GEN_235[6:0];
+  always @(posedge clock) begin
+    if (reset) begin // @[CScratchpad.scala 102:37]
+      mem_tx_state <= 2'h0; // @[CScratchpad.scala 102:37]
+    end else if (!(2'h0 == mem_tx_state)) begin // @[CScratchpad.scala 138:24]
+      if (2'h1 == mem_tx_state) begin // @[CScratchpad.scala 138:24]
+        if (_T_13) begin // @[CScratchpad.scala 152:28]
+          mem_tx_state <= _GEN_56;
+        end
+      end else if (2'h2 == mem_tx_state) begin // @[CScratchpad.scala 138:24]
+        mem_tx_state <= _GEN_109;
+      end
+    end
+    reqIdleBits_0 <= reset | _GEN_494; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_1 <= reset | _GEN_495; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_2 <= reset | _GEN_496; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_3 <= reset | _GEN_497; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_4 <= reset | _GEN_498; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_5 <= reset | _GEN_499; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_6 <= reset | _GEN_500; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_7 <= reset | _GEN_501; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_8 <= reset | _GEN_502; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_9 <= reset | _GEN_503; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_10 <= reset | _GEN_504; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_11 <= reset | _GEN_505; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_12 <= reset | _GEN_506; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_13 <= reset | _GEN_507; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_14 <= reset | _GEN_508; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_15 <= reset | _GEN_509; // @[CScratchpad.scala 110:{36,36}]
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'h0 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_0_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_0_memoryLength <= _GEN_203;
+      end
+    end else begin
+      req_cache_0_memoryLength <= _GEN_203;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'h1 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_1_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_1_memoryLength <= _GEN_204;
+      end
+    end else begin
+      req_cache_1_memoryLength <= _GEN_204;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'h2 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_2_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_2_memoryLength <= _GEN_205;
+      end
+    end else begin
+      req_cache_2_memoryLength <= _GEN_205;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'h3 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_3_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_3_memoryLength <= _GEN_206;
+      end
+    end else begin
+      req_cache_3_memoryLength <= _GEN_206;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'h4 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_4_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_4_memoryLength <= _GEN_207;
+      end
+    end else begin
+      req_cache_4_memoryLength <= _GEN_207;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'h5 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_5_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_5_memoryLength <= _GEN_208;
+      end
+    end else begin
+      req_cache_5_memoryLength <= _GEN_208;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'h6 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_6_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_6_memoryLength <= _GEN_209;
+      end
+    end else begin
+      req_cache_6_memoryLength <= _GEN_209;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'h7 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_7_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_7_memoryLength <= _GEN_210;
+      end
+    end else begin
+      req_cache_7_memoryLength <= _GEN_210;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'h8 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_8_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_8_memoryLength <= _GEN_211;
+      end
+    end else begin
+      req_cache_8_memoryLength <= _GEN_211;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'h9 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_9_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_9_memoryLength <= _GEN_212;
+      end
+    end else begin
+      req_cache_9_memoryLength <= _GEN_212;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'ha == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_10_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_10_memoryLength <= _GEN_213;
+      end
+    end else begin
+      req_cache_10_memoryLength <= _GEN_213;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'hb == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_11_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_11_memoryLength <= _GEN_214;
+      end
+    end else begin
+      req_cache_11_memoryLength <= _GEN_214;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'hc == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_12_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_12_memoryLength <= _GEN_215;
+      end
+    end else begin
+      req_cache_12_memoryLength <= _GEN_215;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'hd == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_13_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_13_memoryLength <= _GEN_216;
+      end
+    end else begin
+      req_cache_13_memoryLength <= _GEN_216;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'he == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_14_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_14_memoryLength <= _GEN_217;
+      end
+    end else begin
+      req_cache_14_memoryLength <= _GEN_217;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'hf == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_15_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_15_memoryLength <= _GEN_218;
+      end
+    end else begin
+      req_cache_15_memoryLength <= _GEN_218;
+    end
+    if (!(2'h0 == mem_tx_state)) begin // @[CScratchpad.scala 138:24]
+      if (2'h1 == mem_tx_state) begin // @[CScratchpad.scala 138:24]
+        if (_T_13) begin // @[CScratchpad.scala 152:28]
+          totalTx_memoryAddress <= _totalTx_memoryAddress_T_1; // @[CScratchpad.scala 158:31]
+        end
+      end
+    end
+    if (!(2'h0 == mem_tx_state)) begin // @[CScratchpad.scala 138:24]
+      if (2'h1 == mem_tx_state) begin // @[CScratchpad.scala 138:24]
+        if (_T_13) begin // @[CScratchpad.scala 152:28]
+          totalTx_memoryLength <= _totalTx_memoryLength_T_1; // @[CScratchpad.scala 156:30]
+        end
+      end
+    end
+  end
+endmodule
+module CScratchpadPackedSubwordLoader_1(
   input          clock,
   input          reset,
   output         io_cache_block_in_ready,
   input          io_cache_block_in_valid,
   input  [511:0] io_cache_block_in_bits_dat,
   input  [6:0]   io_cache_block_in_bits_len,
-  input  [5:0]   io_cache_block_in_bits_idxBase,
+  input  [3:0]   io_cache_block_in_bits_idxBase,
   output         io_sp_write_out_valid,
-  output [127:0] io_sp_write_out_bits_dat,
-  output [5:0]   io_sp_write_out_bits_idx
+  output [255:0] io_sp_write_out_bits_dat,
+  output [3:0]   io_sp_write_out_bits_idx
 );
   reg [511:0] beat; // @[CScratchpadPackedSubwordLoader.scala 16:17]
-  reg [5:0] idxBase; // @[CScratchpadPackedSubwordLoader.scala 17:20]
+  reg [3:0] idxBase; // @[CScratchpadPackedSubwordLoader.scala 17:20]
   reg [6:0] lenRemainingFromReq; // @[CScratchpadPackedSubwordLoader.scala 18:32]
   reg  state; // @[CScratchpadPackedSubwordLoader.scala 21:22]
   wire  _io_cache_block_in_ready_T = ~state; // @[CScratchpadPackedSubwordLoader.scala 22:36]
   wire  _T_1 = io_cache_block_in_ready & io_cache_block_in_valid; // @[Decoupled.scala 51:35]
   wire  _GEN_0 = _T_1 | state; // @[CScratchpadPackedSubwordLoader.scala 34:36 35:15 21:22]
-  wire [5:0] _idxBase_T_1 = idxBase + 6'h1; // @[CScratchpadPackedSubwordLoader.scala 50:28]
-  wire [6:0] _lenRemainingFromReq_T_1 = lenRemainingFromReq - 7'h10; // @[CScratchpadPackedSubwordLoader.scala 53:54]
-  wire  _GEN_6 = lenRemainingFromReq == 7'h10 ? 1'h0 : state; // @[CScratchpadPackedSubwordLoader.scala 54:60 55:19 21:22]
-  wire [511:0] _GEN_10 = {{128'd0}, beat[511:128]}; // @[CScratchpadPackedSubwordLoader.scala 51:59 57:16 16:17]
+  wire [3:0] _idxBase_T_1 = idxBase + 4'h1; // @[CScratchpadPackedSubwordLoader.scala 50:28]
+  wire [6:0] _lenRemainingFromReq_T_1 = lenRemainingFromReq - 7'h20; // @[CScratchpadPackedSubwordLoader.scala 53:54]
+  wire  _GEN_6 = lenRemainingFromReq == 7'h20 ? 1'h0 : state; // @[CScratchpadPackedSubwordLoader.scala 54:60 55:19 21:22]
+  wire [511:0] _GEN_10 = {{256'd0}, beat[511:256]}; // @[CScratchpadPackedSubwordLoader.scala 51:59 57:16 16:17]
   assign io_cache_block_in_ready = ~state; // @[CScratchpadPackedSubwordLoader.scala 22:36]
   assign io_sp_write_out_valid = _io_cache_block_in_ready_T ? 1'h0 : state; // @[CScratchpadPackedSubwordLoader.scala 32:17 24:25]
-  assign io_sp_write_out_bits_dat = beat[127:0]; // @[CScratchpadPackedSubwordLoader.scala 29:9]
+  assign io_sp_write_out_bits_dat = beat[255:0]; // @[CScratchpadPackedSubwordLoader.scala 29:9]
   assign io_sp_write_out_bits_idx = idxBase; // @[CScratchpadPackedSubwordLoader.scala 32:17 47:32]
   always @(posedge clock) begin
     if (_io_cache_block_in_ready_T) begin // @[CScratchpadPackedSubwordLoader.scala 32:17]
@@ -64,7 +910,7 @@ module CScratchpadPackedSubwordLoader(
     end
   end
 endmodule
-module CScratchpad(
+module CScratchpad_1(
   input          clock,
   input          reset,
   input          auto_mem_out_a_ready,
@@ -79,17 +925,2375 @@ module CScratchpad(
   input  [511:0] auto_mem_out_d_bits_data,
   input          access_readReq_valid,
   output         access_readRes_valid,
-  output [127:0] access_readRes_bits
+  output [255:0] access_readRes_bits
 );
-  reg [127:0] mem [0:63]; // @[CScratchpad.scala 92:24]
+  reg [255:0] mem [0:15]; // @[CScratchpad.scala 92:24]
+  wire  mem_rval_en; // @[CScratchpad.scala 92:24]
+  wire [3:0] mem_rval_addr; // @[CScratchpad.scala 92:24]
+  wire [255:0] mem_rval_data; // @[CScratchpad.scala 92:24]
+  wire [255:0] mem_MPORT_data; // @[CScratchpad.scala 92:24]
+  wire [3:0] mem_MPORT_addr; // @[CScratchpad.scala 92:24]
+  wire  mem_MPORT_mask; // @[CScratchpad.scala 92:24]
+  wire  mem_MPORT_en; // @[CScratchpad.scala 92:24]
+  wire [255:0] mem_MPORT_1_data; // @[CScratchpad.scala 92:24]
+  wire [3:0] mem_MPORT_1_addr; // @[CScratchpad.scala 92:24]
+  wire  mem_MPORT_1_mask; // @[CScratchpad.scala 92:24]
+  wire  mem_MPORT_1_en; // @[CScratchpad.scala 92:24]
+  reg  mem_rval_en_pipe_0;
+  reg [3:0] mem_rval_addr_pipe_0;
+  wire  loader_clock; // @[CScratchpad.scala 94:30]
+  wire  loader_reset; // @[CScratchpad.scala 94:30]
+  wire  loader_io_cache_block_in_ready; // @[CScratchpad.scala 94:30]
+  wire  loader_io_cache_block_in_valid; // @[CScratchpad.scala 94:30]
+  wire [511:0] loader_io_cache_block_in_bits_dat; // @[CScratchpad.scala 94:30]
+  wire [6:0] loader_io_cache_block_in_bits_len; // @[CScratchpad.scala 94:30]
+  wire [3:0] loader_io_cache_block_in_bits_idxBase; // @[CScratchpad.scala 94:30]
+  wire  loader_io_sp_write_out_valid; // @[CScratchpad.scala 94:30]
+  wire [255:0] loader_io_sp_write_out_bits_dat; // @[CScratchpad.scala 94:30]
+  wire [3:0] loader_io_sp_write_out_bits_idx; // @[CScratchpad.scala 94:30]
+  reg [1:0] mem_tx_state; // @[CScratchpad.scala 102:37]
+  reg  access_readRes_valid_REG; // @[CScratchpad.scala 85:30]
+  reg  reqIdleBits_0; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_1; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_2; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_3; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_4; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_5; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_6; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_7; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_8; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_9; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_10; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_11; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_12; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_13; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_14; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_15; // @[CScratchpad.scala 110:36]
+  wire  reqAvailable = reqIdleBits_0 | reqIdleBits_1 | reqIdleBits_2 | reqIdleBits_3 | reqIdleBits_4 | reqIdleBits_5 |
+    reqIdleBits_6 | reqIdleBits_7 | reqIdleBits_8 | reqIdleBits_9 | reqIdleBits_10 | reqIdleBits_11 | reqIdleBits_12 |
+    reqIdleBits_13 | reqIdleBits_14 | reqIdleBits_15; // @[CScratchpad.scala 111:51]
+  wire [3:0] _reqChosen_T = reqIdleBits_14 ? 4'he : 4'hf; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_1 = reqIdleBits_13 ? 4'hd : _reqChosen_T; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_2 = reqIdleBits_12 ? 4'hc : _reqChosen_T_1; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_3 = reqIdleBits_11 ? 4'hb : _reqChosen_T_2; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_4 = reqIdleBits_10 ? 4'ha : _reqChosen_T_3; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_5 = reqIdleBits_9 ? 4'h9 : _reqChosen_T_4; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_6 = reqIdleBits_8 ? 4'h8 : _reqChosen_T_5; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_7 = reqIdleBits_7 ? 4'h7 : _reqChosen_T_6; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_8 = reqIdleBits_6 ? 4'h6 : _reqChosen_T_7; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_9 = reqIdleBits_5 ? 4'h5 : _reqChosen_T_8; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_10 = reqIdleBits_4 ? 4'h4 : _reqChosen_T_9; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_11 = reqIdleBits_3 ? 4'h3 : _reqChosen_T_10; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_12 = reqIdleBits_2 ? 4'h2 : _reqChosen_T_11; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_13 = reqIdleBits_1 ? 4'h1 : _reqChosen_T_12; // @[Mux.scala 47:70]
+  wire [3:0] reqChosen = reqIdleBits_0 ? 4'h0 : _reqChosen_T_13; // @[Mux.scala 47:70]
+  reg [3:0] req_cache_0_scratchpadAddress; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_0_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [3:0] req_cache_1_scratchpadAddress; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_1_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [3:0] req_cache_2_scratchpadAddress; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_2_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [3:0] req_cache_3_scratchpadAddress; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_3_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [3:0] req_cache_4_scratchpadAddress; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_4_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [3:0] req_cache_5_scratchpadAddress; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_5_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [3:0] req_cache_6_scratchpadAddress; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_6_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [3:0] req_cache_7_scratchpadAddress; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_7_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [3:0] req_cache_8_scratchpadAddress; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_8_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [3:0] req_cache_9_scratchpadAddress; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_9_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [3:0] req_cache_10_scratchpadAddress; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_10_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [3:0] req_cache_11_scratchpadAddress; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_11_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [3:0] req_cache_12_scratchpadAddress; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_12_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [3:0] req_cache_13_scratchpadAddress; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_13_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [3:0] req_cache_14_scratchpadAddress; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_14_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [3:0] req_cache_15_scratchpadAddress; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_15_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [33:0] totalTx_memoryAddress; // @[CScratchpad.scala 124:28]
+  reg [3:0] totalTx_scratchpadAddress; // @[CScratchpad.scala 124:28]
+  reg [33:0] totalTx_memoryLength; // @[CScratchpad.scala 124:28]
+  wire  isBelowLimit = totalTx_memoryLength <= 34'h40; // @[CScratchpad.scala 149:47]
+  wire [1:0] txEmitLengthLg_hi = totalTx_memoryLength[33:32]; // @[OneHot.scala 30:18]
+  wire  _txEmitLengthLg_T = |txEmitLengthLg_hi; // @[OneHot.scala 32:14]
+  wire [31:0] txEmitLengthLg_lo = totalTx_memoryLength[31:0]; // @[OneHot.scala 31:18]
+  wire [31:0] _GEN_569 = {{30'd0}, txEmitLengthLg_hi}; // @[OneHot.scala 32:28]
+  wire [31:0] _txEmitLengthLg_T_1 = _GEN_569 | txEmitLengthLg_lo; // @[OneHot.scala 32:28]
+  wire [15:0] txEmitLengthLg_hi_1 = _txEmitLengthLg_T_1[31:16]; // @[OneHot.scala 30:18]
+  wire  _txEmitLengthLg_T_2 = |txEmitLengthLg_hi_1; // @[OneHot.scala 32:14]
+  wire [15:0] txEmitLengthLg_lo_1 = _txEmitLengthLg_T_1[15:0]; // @[OneHot.scala 31:18]
+  wire [15:0] _txEmitLengthLg_T_3 = txEmitLengthLg_hi_1 | txEmitLengthLg_lo_1; // @[OneHot.scala 32:28]
+  wire [7:0] txEmitLengthLg_hi_2 = _txEmitLengthLg_T_3[15:8]; // @[OneHot.scala 30:18]
+  wire  _txEmitLengthLg_T_4 = |txEmitLengthLg_hi_2; // @[OneHot.scala 32:14]
+  wire [7:0] txEmitLengthLg_lo_2 = _txEmitLengthLg_T_3[7:0]; // @[OneHot.scala 31:18]
+  wire [7:0] _txEmitLengthLg_T_5 = txEmitLengthLg_hi_2 | txEmitLengthLg_lo_2; // @[OneHot.scala 32:28]
+  wire [3:0] txEmitLengthLg_hi_3 = _txEmitLengthLg_T_5[7:4]; // @[OneHot.scala 30:18]
+  wire  _txEmitLengthLg_T_6 = |txEmitLengthLg_hi_3; // @[OneHot.scala 32:14]
+  wire [3:0] txEmitLengthLg_lo_3 = _txEmitLengthLg_T_5[3:0]; // @[OneHot.scala 31:18]
+  wire [3:0] _txEmitLengthLg_T_7 = txEmitLengthLg_hi_3 | txEmitLengthLg_lo_3; // @[OneHot.scala 32:28]
+  wire [1:0] txEmitLengthLg_hi_4 = _txEmitLengthLg_T_7[3:2]; // @[OneHot.scala 30:18]
+  wire  _txEmitLengthLg_T_8 = |txEmitLengthLg_hi_4; // @[OneHot.scala 32:14]
+  wire [1:0] txEmitLengthLg_lo_4 = _txEmitLengthLg_T_7[1:0]; // @[OneHot.scala 31:18]
+  wire [1:0] _txEmitLengthLg_T_9 = txEmitLengthLg_hi_4 | txEmitLengthLg_lo_4; // @[OneHot.scala 32:28]
+  wire [5:0] _txEmitLengthLg_T_15 = {_txEmitLengthLg_T,_txEmitLengthLg_T_2,_txEmitLengthLg_T_4,_txEmitLengthLg_T_6,
+    _txEmitLengthLg_T_8,_txEmitLengthLg_T_9[1]}; // @[Cat.scala 33:92]
+  wire [5:0] _txEmitLengthLg_T_16 = isBelowLimit ? _txEmitLengthLg_T_15 : 6'h6; // @[CScratchpad.scala 150:28]
+  wire [5:0] _GEN_111 = 2'h1 == mem_tx_state ? _txEmitLengthLg_T_16 : 6'h0; // @[CScratchpad.scala 131:18 138:24 150:22]
+  wire [5:0] _GEN_169 = 2'h0 == mem_tx_state ? 6'h0 : _GEN_111; // @[CScratchpad.scala 131:18 138:24]
+  wire [3:0] txEmitLengthLg = _GEN_169[3:0]; // @[CScratchpad.scala 130:36]
+  wire [5:0] _x1_a_bits_a_mask_sizeOH_T = {{2'd0}, txEmitLengthLg}; // @[Misc.scala 201:34]
+  wire [2:0] x1_a_bits_a_mask_sizeOH_shiftAmount = _x1_a_bits_a_mask_sizeOH_T[2:0]; // @[OneHot.scala 63:49]
+  wire [7:0] _x1_a_bits_a_mask_sizeOH_T_1 = 8'h1 << x1_a_bits_a_mask_sizeOH_shiftAmount; // @[OneHot.scala 64:12]
+  wire [5:0] x1_a_bits_a_mask_sizeOH = _x1_a_bits_a_mask_sizeOH_T_1[5:0] | 6'h1; // @[Misc.scala 201:81]
+  wire  _x1_a_bits_a_mask_T = txEmitLengthLg >= 4'h6; // @[Misc.scala 205:21]
+  wire  x1_a_bits_a_mask_size = x1_a_bits_a_mask_sizeOH[5]; // @[Misc.scala 208:26]
+  wire  x1_a_bits_a_mask_bit = totalTx_memoryAddress[5]; // @[Misc.scala 209:26]
+  wire  x1_a_bits_a_mask_nbit = ~x1_a_bits_a_mask_bit; // @[Misc.scala 210:20]
+  wire  x1_a_bits_a_mask_acc = _x1_a_bits_a_mask_T | x1_a_bits_a_mask_size & x1_a_bits_a_mask_nbit; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_acc_1 = _x1_a_bits_a_mask_T | x1_a_bits_a_mask_size & x1_a_bits_a_mask_bit; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_size_1 = x1_a_bits_a_mask_sizeOH[4]; // @[Misc.scala 208:26]
+  wire  x1_a_bits_a_mask_bit_1 = totalTx_memoryAddress[4]; // @[Misc.scala 209:26]
+  wire  x1_a_bits_a_mask_nbit_1 = ~x1_a_bits_a_mask_bit_1; // @[Misc.scala 210:20]
+  wire  x1_a_bits_a_mask_eq_2 = x1_a_bits_a_mask_nbit & x1_a_bits_a_mask_nbit_1; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_2 = x1_a_bits_a_mask_acc | x1_a_bits_a_mask_size_1 & x1_a_bits_a_mask_eq_2; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_3 = x1_a_bits_a_mask_nbit & x1_a_bits_a_mask_bit_1; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_3 = x1_a_bits_a_mask_acc | x1_a_bits_a_mask_size_1 & x1_a_bits_a_mask_eq_3; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_4 = x1_a_bits_a_mask_bit & x1_a_bits_a_mask_nbit_1; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_4 = x1_a_bits_a_mask_acc_1 | x1_a_bits_a_mask_size_1 & x1_a_bits_a_mask_eq_4; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_5 = x1_a_bits_a_mask_bit & x1_a_bits_a_mask_bit_1; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_5 = x1_a_bits_a_mask_acc_1 | x1_a_bits_a_mask_size_1 & x1_a_bits_a_mask_eq_5; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_size_2 = x1_a_bits_a_mask_sizeOH[3]; // @[Misc.scala 208:26]
+  wire  x1_a_bits_a_mask_bit_2 = totalTx_memoryAddress[3]; // @[Misc.scala 209:26]
+  wire  x1_a_bits_a_mask_nbit_2 = ~x1_a_bits_a_mask_bit_2; // @[Misc.scala 210:20]
+  wire  x1_a_bits_a_mask_eq_6 = x1_a_bits_a_mask_eq_2 & x1_a_bits_a_mask_nbit_2; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_6 = x1_a_bits_a_mask_acc_2 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_6; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_7 = x1_a_bits_a_mask_eq_2 & x1_a_bits_a_mask_bit_2; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_7 = x1_a_bits_a_mask_acc_2 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_7; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_8 = x1_a_bits_a_mask_eq_3 & x1_a_bits_a_mask_nbit_2; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_8 = x1_a_bits_a_mask_acc_3 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_8; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_9 = x1_a_bits_a_mask_eq_3 & x1_a_bits_a_mask_bit_2; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_9 = x1_a_bits_a_mask_acc_3 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_9; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_10 = x1_a_bits_a_mask_eq_4 & x1_a_bits_a_mask_nbit_2; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_10 = x1_a_bits_a_mask_acc_4 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_10; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_11 = x1_a_bits_a_mask_eq_4 & x1_a_bits_a_mask_bit_2; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_11 = x1_a_bits_a_mask_acc_4 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_11; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_12 = x1_a_bits_a_mask_eq_5 & x1_a_bits_a_mask_nbit_2; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_12 = x1_a_bits_a_mask_acc_5 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_12; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_13 = x1_a_bits_a_mask_eq_5 & x1_a_bits_a_mask_bit_2; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_13 = x1_a_bits_a_mask_acc_5 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_13; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_size_3 = x1_a_bits_a_mask_sizeOH[2]; // @[Misc.scala 208:26]
+  wire  x1_a_bits_a_mask_bit_3 = totalTx_memoryAddress[2]; // @[Misc.scala 209:26]
+  wire  x1_a_bits_a_mask_nbit_3 = ~x1_a_bits_a_mask_bit_3; // @[Misc.scala 210:20]
+  wire  x1_a_bits_a_mask_eq_14 = x1_a_bits_a_mask_eq_6 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_14 = x1_a_bits_a_mask_acc_6 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_14; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_15 = x1_a_bits_a_mask_eq_6 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_15 = x1_a_bits_a_mask_acc_6 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_15; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_16 = x1_a_bits_a_mask_eq_7 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_16 = x1_a_bits_a_mask_acc_7 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_16; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_17 = x1_a_bits_a_mask_eq_7 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_17 = x1_a_bits_a_mask_acc_7 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_17; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_18 = x1_a_bits_a_mask_eq_8 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_18 = x1_a_bits_a_mask_acc_8 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_18; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_19 = x1_a_bits_a_mask_eq_8 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_19 = x1_a_bits_a_mask_acc_8 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_19; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_20 = x1_a_bits_a_mask_eq_9 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_20 = x1_a_bits_a_mask_acc_9 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_20; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_21 = x1_a_bits_a_mask_eq_9 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_21 = x1_a_bits_a_mask_acc_9 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_21; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_22 = x1_a_bits_a_mask_eq_10 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_22 = x1_a_bits_a_mask_acc_10 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_22; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_23 = x1_a_bits_a_mask_eq_10 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_23 = x1_a_bits_a_mask_acc_10 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_23; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_24 = x1_a_bits_a_mask_eq_11 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_24 = x1_a_bits_a_mask_acc_11 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_24; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_25 = x1_a_bits_a_mask_eq_11 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_25 = x1_a_bits_a_mask_acc_11 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_25; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_26 = x1_a_bits_a_mask_eq_12 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_26 = x1_a_bits_a_mask_acc_12 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_26; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_27 = x1_a_bits_a_mask_eq_12 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_27 = x1_a_bits_a_mask_acc_12 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_27; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_28 = x1_a_bits_a_mask_eq_13 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_28 = x1_a_bits_a_mask_acc_13 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_28; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_29 = x1_a_bits_a_mask_eq_13 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_29 = x1_a_bits_a_mask_acc_13 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_29; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_size_4 = x1_a_bits_a_mask_sizeOH[1]; // @[Misc.scala 208:26]
+  wire  x1_a_bits_a_mask_bit_4 = totalTx_memoryAddress[1]; // @[Misc.scala 209:26]
+  wire  x1_a_bits_a_mask_nbit_4 = ~x1_a_bits_a_mask_bit_4; // @[Misc.scala 210:20]
+  wire  x1_a_bits_a_mask_eq_30 = x1_a_bits_a_mask_eq_14 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_30 = x1_a_bits_a_mask_acc_14 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_30; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_31 = x1_a_bits_a_mask_eq_14 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_31 = x1_a_bits_a_mask_acc_14 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_31; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_32 = x1_a_bits_a_mask_eq_15 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_32 = x1_a_bits_a_mask_acc_15 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_32; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_33 = x1_a_bits_a_mask_eq_15 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_33 = x1_a_bits_a_mask_acc_15 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_33; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_34 = x1_a_bits_a_mask_eq_16 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_34 = x1_a_bits_a_mask_acc_16 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_34; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_35 = x1_a_bits_a_mask_eq_16 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_35 = x1_a_bits_a_mask_acc_16 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_35; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_36 = x1_a_bits_a_mask_eq_17 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_36 = x1_a_bits_a_mask_acc_17 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_36; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_37 = x1_a_bits_a_mask_eq_17 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_37 = x1_a_bits_a_mask_acc_17 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_37; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_38 = x1_a_bits_a_mask_eq_18 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_38 = x1_a_bits_a_mask_acc_18 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_38; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_39 = x1_a_bits_a_mask_eq_18 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_39 = x1_a_bits_a_mask_acc_18 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_39; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_40 = x1_a_bits_a_mask_eq_19 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_40 = x1_a_bits_a_mask_acc_19 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_40; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_41 = x1_a_bits_a_mask_eq_19 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_41 = x1_a_bits_a_mask_acc_19 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_41; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_42 = x1_a_bits_a_mask_eq_20 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_42 = x1_a_bits_a_mask_acc_20 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_42; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_43 = x1_a_bits_a_mask_eq_20 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_43 = x1_a_bits_a_mask_acc_20 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_43; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_44 = x1_a_bits_a_mask_eq_21 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_44 = x1_a_bits_a_mask_acc_21 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_44; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_45 = x1_a_bits_a_mask_eq_21 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_45 = x1_a_bits_a_mask_acc_21 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_45; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_46 = x1_a_bits_a_mask_eq_22 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_46 = x1_a_bits_a_mask_acc_22 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_46; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_47 = x1_a_bits_a_mask_eq_22 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_47 = x1_a_bits_a_mask_acc_22 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_47; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_48 = x1_a_bits_a_mask_eq_23 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_48 = x1_a_bits_a_mask_acc_23 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_48; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_49 = x1_a_bits_a_mask_eq_23 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_49 = x1_a_bits_a_mask_acc_23 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_49; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_50 = x1_a_bits_a_mask_eq_24 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_50 = x1_a_bits_a_mask_acc_24 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_50; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_51 = x1_a_bits_a_mask_eq_24 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_51 = x1_a_bits_a_mask_acc_24 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_51; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_52 = x1_a_bits_a_mask_eq_25 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_52 = x1_a_bits_a_mask_acc_25 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_52; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_53 = x1_a_bits_a_mask_eq_25 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_53 = x1_a_bits_a_mask_acc_25 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_53; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_54 = x1_a_bits_a_mask_eq_26 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_54 = x1_a_bits_a_mask_acc_26 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_54; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_55 = x1_a_bits_a_mask_eq_26 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_55 = x1_a_bits_a_mask_acc_26 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_55; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_56 = x1_a_bits_a_mask_eq_27 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_56 = x1_a_bits_a_mask_acc_27 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_56; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_57 = x1_a_bits_a_mask_eq_27 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_57 = x1_a_bits_a_mask_acc_27 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_57; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_58 = x1_a_bits_a_mask_eq_28 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_58 = x1_a_bits_a_mask_acc_28 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_58; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_59 = x1_a_bits_a_mask_eq_28 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_59 = x1_a_bits_a_mask_acc_28 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_59; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_60 = x1_a_bits_a_mask_eq_29 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_60 = x1_a_bits_a_mask_acc_29 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_60; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_61 = x1_a_bits_a_mask_eq_29 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_61 = x1_a_bits_a_mask_acc_29 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_61; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_size_5 = x1_a_bits_a_mask_sizeOH[0]; // @[Misc.scala 208:26]
+  wire  x1_a_bits_a_mask_bit_5 = totalTx_memoryAddress[0]; // @[Misc.scala 209:26]
+  wire  x1_a_bits_a_mask_nbit_5 = ~x1_a_bits_a_mask_bit_5; // @[Misc.scala 210:20]
+  wire  x1_a_bits_a_mask_eq_62 = x1_a_bits_a_mask_eq_30 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_62 = x1_a_bits_a_mask_acc_30 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_62; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_63 = x1_a_bits_a_mask_eq_30 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_63 = x1_a_bits_a_mask_acc_30 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_63; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_64 = x1_a_bits_a_mask_eq_31 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_64 = x1_a_bits_a_mask_acc_31 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_64; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_65 = x1_a_bits_a_mask_eq_31 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_65 = x1_a_bits_a_mask_acc_31 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_65; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_66 = x1_a_bits_a_mask_eq_32 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_66 = x1_a_bits_a_mask_acc_32 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_66; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_67 = x1_a_bits_a_mask_eq_32 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_67 = x1_a_bits_a_mask_acc_32 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_67; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_68 = x1_a_bits_a_mask_eq_33 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_68 = x1_a_bits_a_mask_acc_33 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_68; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_69 = x1_a_bits_a_mask_eq_33 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_69 = x1_a_bits_a_mask_acc_33 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_69; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_70 = x1_a_bits_a_mask_eq_34 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_70 = x1_a_bits_a_mask_acc_34 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_70; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_71 = x1_a_bits_a_mask_eq_34 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_71 = x1_a_bits_a_mask_acc_34 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_71; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_72 = x1_a_bits_a_mask_eq_35 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_72 = x1_a_bits_a_mask_acc_35 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_72; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_73 = x1_a_bits_a_mask_eq_35 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_73 = x1_a_bits_a_mask_acc_35 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_73; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_74 = x1_a_bits_a_mask_eq_36 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_74 = x1_a_bits_a_mask_acc_36 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_74; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_75 = x1_a_bits_a_mask_eq_36 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_75 = x1_a_bits_a_mask_acc_36 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_75; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_76 = x1_a_bits_a_mask_eq_37 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_76 = x1_a_bits_a_mask_acc_37 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_76; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_77 = x1_a_bits_a_mask_eq_37 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_77 = x1_a_bits_a_mask_acc_37 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_77; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_78 = x1_a_bits_a_mask_eq_38 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_78 = x1_a_bits_a_mask_acc_38 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_78; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_79 = x1_a_bits_a_mask_eq_38 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_79 = x1_a_bits_a_mask_acc_38 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_79; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_80 = x1_a_bits_a_mask_eq_39 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_80 = x1_a_bits_a_mask_acc_39 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_80; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_81 = x1_a_bits_a_mask_eq_39 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_81 = x1_a_bits_a_mask_acc_39 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_81; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_82 = x1_a_bits_a_mask_eq_40 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_82 = x1_a_bits_a_mask_acc_40 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_82; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_83 = x1_a_bits_a_mask_eq_40 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_83 = x1_a_bits_a_mask_acc_40 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_83; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_84 = x1_a_bits_a_mask_eq_41 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_84 = x1_a_bits_a_mask_acc_41 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_84; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_85 = x1_a_bits_a_mask_eq_41 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_85 = x1_a_bits_a_mask_acc_41 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_85; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_86 = x1_a_bits_a_mask_eq_42 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_86 = x1_a_bits_a_mask_acc_42 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_86; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_87 = x1_a_bits_a_mask_eq_42 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_87 = x1_a_bits_a_mask_acc_42 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_87; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_88 = x1_a_bits_a_mask_eq_43 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_88 = x1_a_bits_a_mask_acc_43 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_88; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_89 = x1_a_bits_a_mask_eq_43 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_89 = x1_a_bits_a_mask_acc_43 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_89; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_90 = x1_a_bits_a_mask_eq_44 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_90 = x1_a_bits_a_mask_acc_44 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_90; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_91 = x1_a_bits_a_mask_eq_44 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_91 = x1_a_bits_a_mask_acc_44 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_91; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_92 = x1_a_bits_a_mask_eq_45 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_92 = x1_a_bits_a_mask_acc_45 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_92; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_93 = x1_a_bits_a_mask_eq_45 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_93 = x1_a_bits_a_mask_acc_45 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_93; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_94 = x1_a_bits_a_mask_eq_46 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_94 = x1_a_bits_a_mask_acc_46 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_94; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_95 = x1_a_bits_a_mask_eq_46 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_95 = x1_a_bits_a_mask_acc_46 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_95; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_96 = x1_a_bits_a_mask_eq_47 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_96 = x1_a_bits_a_mask_acc_47 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_96; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_97 = x1_a_bits_a_mask_eq_47 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_97 = x1_a_bits_a_mask_acc_47 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_97; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_98 = x1_a_bits_a_mask_eq_48 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_98 = x1_a_bits_a_mask_acc_48 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_98; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_99 = x1_a_bits_a_mask_eq_48 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_99 = x1_a_bits_a_mask_acc_48 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_99; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_100 = x1_a_bits_a_mask_eq_49 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_100 = x1_a_bits_a_mask_acc_49 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_100; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_101 = x1_a_bits_a_mask_eq_49 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_101 = x1_a_bits_a_mask_acc_49 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_101; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_102 = x1_a_bits_a_mask_eq_50 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_102 = x1_a_bits_a_mask_acc_50 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_102; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_103 = x1_a_bits_a_mask_eq_50 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_103 = x1_a_bits_a_mask_acc_50 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_103; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_104 = x1_a_bits_a_mask_eq_51 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_104 = x1_a_bits_a_mask_acc_51 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_104; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_105 = x1_a_bits_a_mask_eq_51 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_105 = x1_a_bits_a_mask_acc_51 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_105; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_106 = x1_a_bits_a_mask_eq_52 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_106 = x1_a_bits_a_mask_acc_52 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_106; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_107 = x1_a_bits_a_mask_eq_52 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_107 = x1_a_bits_a_mask_acc_52 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_107; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_108 = x1_a_bits_a_mask_eq_53 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_108 = x1_a_bits_a_mask_acc_53 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_108; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_109 = x1_a_bits_a_mask_eq_53 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_109 = x1_a_bits_a_mask_acc_53 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_109; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_110 = x1_a_bits_a_mask_eq_54 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_110 = x1_a_bits_a_mask_acc_54 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_110; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_111 = x1_a_bits_a_mask_eq_54 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_111 = x1_a_bits_a_mask_acc_54 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_111; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_112 = x1_a_bits_a_mask_eq_55 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_112 = x1_a_bits_a_mask_acc_55 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_112; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_113 = x1_a_bits_a_mask_eq_55 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_113 = x1_a_bits_a_mask_acc_55 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_113; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_114 = x1_a_bits_a_mask_eq_56 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_114 = x1_a_bits_a_mask_acc_56 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_114; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_115 = x1_a_bits_a_mask_eq_56 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_115 = x1_a_bits_a_mask_acc_56 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_115; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_116 = x1_a_bits_a_mask_eq_57 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_116 = x1_a_bits_a_mask_acc_57 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_116; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_117 = x1_a_bits_a_mask_eq_57 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_117 = x1_a_bits_a_mask_acc_57 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_117; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_118 = x1_a_bits_a_mask_eq_58 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_118 = x1_a_bits_a_mask_acc_58 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_118; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_119 = x1_a_bits_a_mask_eq_58 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_119 = x1_a_bits_a_mask_acc_58 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_119; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_120 = x1_a_bits_a_mask_eq_59 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_120 = x1_a_bits_a_mask_acc_59 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_120; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_121 = x1_a_bits_a_mask_eq_59 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_121 = x1_a_bits_a_mask_acc_59 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_121; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_122 = x1_a_bits_a_mask_eq_60 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_122 = x1_a_bits_a_mask_acc_60 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_122; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_123 = x1_a_bits_a_mask_eq_60 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_123 = x1_a_bits_a_mask_acc_60 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_123; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_124 = x1_a_bits_a_mask_eq_61 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_124 = x1_a_bits_a_mask_acc_61 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_124; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_125 = x1_a_bits_a_mask_eq_61 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_125 = x1_a_bits_a_mask_acc_61 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_125; // @[Misc.scala 214:29]
+  wire [7:0] x1_a_bits_a_mask_lo_lo_lo = {x1_a_bits_a_mask_acc_69,x1_a_bits_a_mask_acc_68,x1_a_bits_a_mask_acc_67,
+    x1_a_bits_a_mask_acc_66,x1_a_bits_a_mask_acc_65,x1_a_bits_a_mask_acc_64,x1_a_bits_a_mask_acc_63,
+    x1_a_bits_a_mask_acc_62}; // @[Cat.scala 33:92]
+  wire [15:0] x1_a_bits_a_mask_lo_lo = {x1_a_bits_a_mask_acc_77,x1_a_bits_a_mask_acc_76,x1_a_bits_a_mask_acc_75,
+    x1_a_bits_a_mask_acc_74,x1_a_bits_a_mask_acc_73,x1_a_bits_a_mask_acc_72,x1_a_bits_a_mask_acc_71,
+    x1_a_bits_a_mask_acc_70,x1_a_bits_a_mask_lo_lo_lo}; // @[Cat.scala 33:92]
+  wire [7:0] x1_a_bits_a_mask_lo_hi_lo = {x1_a_bits_a_mask_acc_85,x1_a_bits_a_mask_acc_84,x1_a_bits_a_mask_acc_83,
+    x1_a_bits_a_mask_acc_82,x1_a_bits_a_mask_acc_81,x1_a_bits_a_mask_acc_80,x1_a_bits_a_mask_acc_79,
+    x1_a_bits_a_mask_acc_78}; // @[Cat.scala 33:92]
+  wire [31:0] x1_a_bits_a_mask_lo = {x1_a_bits_a_mask_acc_93,x1_a_bits_a_mask_acc_92,x1_a_bits_a_mask_acc_91,
+    x1_a_bits_a_mask_acc_90,x1_a_bits_a_mask_acc_89,x1_a_bits_a_mask_acc_88,x1_a_bits_a_mask_acc_87,
+    x1_a_bits_a_mask_acc_86,x1_a_bits_a_mask_lo_hi_lo,x1_a_bits_a_mask_lo_lo}; // @[Cat.scala 33:92]
+  wire [7:0] x1_a_bits_a_mask_hi_lo_lo = {x1_a_bits_a_mask_acc_101,x1_a_bits_a_mask_acc_100,x1_a_bits_a_mask_acc_99,
+    x1_a_bits_a_mask_acc_98,x1_a_bits_a_mask_acc_97,x1_a_bits_a_mask_acc_96,x1_a_bits_a_mask_acc_95,
+    x1_a_bits_a_mask_acc_94}; // @[Cat.scala 33:92]
+  wire [15:0] x1_a_bits_a_mask_hi_lo = {x1_a_bits_a_mask_acc_109,x1_a_bits_a_mask_acc_108,x1_a_bits_a_mask_acc_107,
+    x1_a_bits_a_mask_acc_106,x1_a_bits_a_mask_acc_105,x1_a_bits_a_mask_acc_104,x1_a_bits_a_mask_acc_103,
+    x1_a_bits_a_mask_acc_102,x1_a_bits_a_mask_hi_lo_lo}; // @[Cat.scala 33:92]
+  wire [7:0] x1_a_bits_a_mask_hi_hi_lo = {x1_a_bits_a_mask_acc_117,x1_a_bits_a_mask_acc_116,x1_a_bits_a_mask_acc_115,
+    x1_a_bits_a_mask_acc_114,x1_a_bits_a_mask_acc_113,x1_a_bits_a_mask_acc_112,x1_a_bits_a_mask_acc_111,
+    x1_a_bits_a_mask_acc_110}; // @[Cat.scala 33:92]
+  wire [31:0] x1_a_bits_a_mask_hi = {x1_a_bits_a_mask_acc_125,x1_a_bits_a_mask_acc_124,x1_a_bits_a_mask_acc_123,
+    x1_a_bits_a_mask_acc_122,x1_a_bits_a_mask_acc_121,x1_a_bits_a_mask_acc_120,x1_a_bits_a_mask_acc_119,
+    x1_a_bits_a_mask_acc_118,x1_a_bits_a_mask_hi_hi_lo,x1_a_bits_a_mask_hi_lo}; // @[Cat.scala 33:92]
+  wire  _GEN_112 = 2'h1 == mem_tx_state ? reqAvailable : mem_tx_state == 2'h1; // @[CScratchpad.scala 136:19 138:24 151:23]
+  wire  mem_out_a_valid = 2'h0 == mem_tx_state ? mem_tx_state == 2'h1 : _GEN_112; // @[CScratchpad.scala 136:19 138:24]
+  wire  _T_13 = auto_mem_out_a_ready & mem_out_a_valid; // @[Decoupled.scala 51:35]
+  wire  _GEN_8 = 4'h0 == reqChosen ? 1'h0 : reqIdleBits_0; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_9 = 4'h1 == reqChosen ? 1'h0 : reqIdleBits_1; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_10 = 4'h2 == reqChosen ? 1'h0 : reqIdleBits_2; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_11 = 4'h3 == reqChosen ? 1'h0 : reqIdleBits_3; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_12 = 4'h4 == reqChosen ? 1'h0 : reqIdleBits_4; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_13 = 4'h5 == reqChosen ? 1'h0 : reqIdleBits_5; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_14 = 4'h6 == reqChosen ? 1'h0 : reqIdleBits_6; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_15 = 4'h7 == reqChosen ? 1'h0 : reqIdleBits_7; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_16 = 4'h8 == reqChosen ? 1'h0 : reqIdleBits_8; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_17 = 4'h9 == reqChosen ? 1'h0 : reqIdleBits_9; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_18 = 4'ha == reqChosen ? 1'h0 : reqIdleBits_10; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_19 = 4'hb == reqChosen ? 1'h0 : reqIdleBits_11; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_20 = 4'hc == reqChosen ? 1'h0 : reqIdleBits_12; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_21 = 4'hd == reqChosen ? 1'h0 : reqIdleBits_13; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_22 = 4'he == reqChosen ? 1'h0 : reqIdleBits_14; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_23 = 4'hf == reqChosen ? 1'h0 : reqIdleBits_15; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire [3:0] _GEN_24 = 4'h0 == reqChosen ? totalTx_scratchpadAddress : req_cache_0_scratchpadAddress; // @[CScratchpad.scala 114:30 154:{48,48}]
+  wire [3:0] _GEN_25 = 4'h1 == reqChosen ? totalTx_scratchpadAddress : req_cache_1_scratchpadAddress; // @[CScratchpad.scala 114:30 154:{48,48}]
+  wire [3:0] _GEN_26 = 4'h2 == reqChosen ? totalTx_scratchpadAddress : req_cache_2_scratchpadAddress; // @[CScratchpad.scala 114:30 154:{48,48}]
+  wire [3:0] _GEN_27 = 4'h3 == reqChosen ? totalTx_scratchpadAddress : req_cache_3_scratchpadAddress; // @[CScratchpad.scala 114:30 154:{48,48}]
+  wire [3:0] _GEN_28 = 4'h4 == reqChosen ? totalTx_scratchpadAddress : req_cache_4_scratchpadAddress; // @[CScratchpad.scala 114:30 154:{48,48}]
+  wire [3:0] _GEN_29 = 4'h5 == reqChosen ? totalTx_scratchpadAddress : req_cache_5_scratchpadAddress; // @[CScratchpad.scala 114:30 154:{48,48}]
+  wire [3:0] _GEN_30 = 4'h6 == reqChosen ? totalTx_scratchpadAddress : req_cache_6_scratchpadAddress; // @[CScratchpad.scala 114:30 154:{48,48}]
+  wire [3:0] _GEN_31 = 4'h7 == reqChosen ? totalTx_scratchpadAddress : req_cache_7_scratchpadAddress; // @[CScratchpad.scala 114:30 154:{48,48}]
+  wire [3:0] _GEN_32 = 4'h8 == reqChosen ? totalTx_scratchpadAddress : req_cache_8_scratchpadAddress; // @[CScratchpad.scala 114:30 154:{48,48}]
+  wire [3:0] _GEN_33 = 4'h9 == reqChosen ? totalTx_scratchpadAddress : req_cache_9_scratchpadAddress; // @[CScratchpad.scala 114:30 154:{48,48}]
+  wire [3:0] _GEN_34 = 4'ha == reqChosen ? totalTx_scratchpadAddress : req_cache_10_scratchpadAddress; // @[CScratchpad.scala 114:30 154:{48,48}]
+  wire [3:0] _GEN_35 = 4'hb == reqChosen ? totalTx_scratchpadAddress : req_cache_11_scratchpadAddress; // @[CScratchpad.scala 114:30 154:{48,48}]
+  wire [3:0] _GEN_36 = 4'hc == reqChosen ? totalTx_scratchpadAddress : req_cache_12_scratchpadAddress; // @[CScratchpad.scala 114:30 154:{48,48}]
+  wire [3:0] _GEN_37 = 4'hd == reqChosen ? totalTx_scratchpadAddress : req_cache_13_scratchpadAddress; // @[CScratchpad.scala 114:30 154:{48,48}]
+  wire [3:0] _GEN_38 = 4'he == reqChosen ? totalTx_scratchpadAddress : req_cache_14_scratchpadAddress; // @[CScratchpad.scala 114:30 154:{48,48}]
+  wire [3:0] _GEN_39 = 4'hf == reqChosen ? totalTx_scratchpadAddress : req_cache_15_scratchpadAddress; // @[CScratchpad.scala 114:30 154:{48,48}]
+  wire [33:0] _req_cache_memoryLength_T = isBelowLimit ? totalTx_memoryLength : 34'h40; // @[CScratchpad.scala 155:49]
+  wire [15:0] _GEN_40 = 4'h0 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_0_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_41 = 4'h1 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_1_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_42 = 4'h2 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_2_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_43 = 4'h3 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_3_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_44 = 4'h4 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_4_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_45 = 4'h5 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_5_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_46 = 4'h6 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_6_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_47 = 4'h7 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_7_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_48 = 4'h8 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_8_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_49 = 4'h9 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_9_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_50 = 4'ha == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_10_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_51 = 4'hb == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_11_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_52 = 4'hc == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_12_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_53 = 4'hd == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_13_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_54 = 4'he == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_14_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_55 = 4'hf == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_15_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [33:0] _totalTx_memoryLength_T_1 = totalTx_memoryLength - 34'h40; // @[CScratchpad.scala 156:54]
+  wire [3:0] _totalTx_scratchpadAddress_T_1 = totalTx_scratchpadAddress + 4'h2; // @[CScratchpad.scala 157:64]
+  wire [33:0] _totalTx_memoryAddress_T_1 = totalTx_memoryAddress + 34'h40; // @[CScratchpad.scala 158:56]
+  wire [1:0] _GEN_56 = isBelowLimit ? 2'h2 : mem_tx_state; // @[CScratchpad.scala 159:28 160:24 102:37]
+  wire  _GEN_57 = _T_13 ? _GEN_8 : reqIdleBits_0; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_58 = _T_13 ? _GEN_9 : reqIdleBits_1; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_59 = _T_13 ? _GEN_10 : reqIdleBits_2; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_60 = _T_13 ? _GEN_11 : reqIdleBits_3; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_61 = _T_13 ? _GEN_12 : reqIdleBits_4; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_62 = _T_13 ? _GEN_13 : reqIdleBits_5; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_63 = _T_13 ? _GEN_14 : reqIdleBits_6; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_64 = _T_13 ? _GEN_15 : reqIdleBits_7; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_65 = _T_13 ? _GEN_16 : reqIdleBits_8; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_66 = _T_13 ? _GEN_17 : reqIdleBits_9; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_67 = _T_13 ? _GEN_18 : reqIdleBits_10; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_68 = _T_13 ? _GEN_19 : reqIdleBits_11; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_69 = _T_13 ? _GEN_20 : reqIdleBits_12; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_70 = _T_13 ? _GEN_21 : reqIdleBits_13; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_71 = _T_13 ? _GEN_22 : reqIdleBits_14; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_72 = _T_13 ? _GEN_23 : reqIdleBits_15; // @[CScratchpad.scala 152:28 110:36]
+  wire [3:0] _GEN_73 = _T_13 ? _GEN_24 : req_cache_0_scratchpadAddress; // @[CScratchpad.scala 152:28 114:30]
+  wire [3:0] _GEN_74 = _T_13 ? _GEN_25 : req_cache_1_scratchpadAddress; // @[CScratchpad.scala 152:28 114:30]
+  wire [3:0] _GEN_75 = _T_13 ? _GEN_26 : req_cache_2_scratchpadAddress; // @[CScratchpad.scala 152:28 114:30]
+  wire [3:0] _GEN_76 = _T_13 ? _GEN_27 : req_cache_3_scratchpadAddress; // @[CScratchpad.scala 152:28 114:30]
+  wire [3:0] _GEN_77 = _T_13 ? _GEN_28 : req_cache_4_scratchpadAddress; // @[CScratchpad.scala 152:28 114:30]
+  wire [3:0] _GEN_78 = _T_13 ? _GEN_29 : req_cache_5_scratchpadAddress; // @[CScratchpad.scala 152:28 114:30]
+  wire [3:0] _GEN_79 = _T_13 ? _GEN_30 : req_cache_6_scratchpadAddress; // @[CScratchpad.scala 152:28 114:30]
+  wire [3:0] _GEN_80 = _T_13 ? _GEN_31 : req_cache_7_scratchpadAddress; // @[CScratchpad.scala 152:28 114:30]
+  wire [3:0] _GEN_81 = _T_13 ? _GEN_32 : req_cache_8_scratchpadAddress; // @[CScratchpad.scala 152:28 114:30]
+  wire [3:0] _GEN_82 = _T_13 ? _GEN_33 : req_cache_9_scratchpadAddress; // @[CScratchpad.scala 152:28 114:30]
+  wire [3:0] _GEN_83 = _T_13 ? _GEN_34 : req_cache_10_scratchpadAddress; // @[CScratchpad.scala 152:28 114:30]
+  wire [3:0] _GEN_84 = _T_13 ? _GEN_35 : req_cache_11_scratchpadAddress; // @[CScratchpad.scala 152:28 114:30]
+  wire [3:0] _GEN_85 = _T_13 ? _GEN_36 : req_cache_12_scratchpadAddress; // @[CScratchpad.scala 152:28 114:30]
+  wire [3:0] _GEN_86 = _T_13 ? _GEN_37 : req_cache_13_scratchpadAddress; // @[CScratchpad.scala 152:28 114:30]
+  wire [3:0] _GEN_87 = _T_13 ? _GEN_38 : req_cache_14_scratchpadAddress; // @[CScratchpad.scala 152:28 114:30]
+  wire [3:0] _GEN_88 = _T_13 ? _GEN_39 : req_cache_15_scratchpadAddress; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_89 = _T_13 ? _GEN_40 : req_cache_0_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_90 = _T_13 ? _GEN_41 : req_cache_1_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_91 = _T_13 ? _GEN_42 : req_cache_2_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_92 = _T_13 ? _GEN_43 : req_cache_3_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_93 = _T_13 ? _GEN_44 : req_cache_4_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_94 = _T_13 ? _GEN_45 : req_cache_5_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_95 = _T_13 ? _GEN_46 : req_cache_6_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_96 = _T_13 ? _GEN_47 : req_cache_7_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_97 = _T_13 ? _GEN_48 : req_cache_8_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_98 = _T_13 ? _GEN_49 : req_cache_9_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_99 = _T_13 ? _GEN_50 : req_cache_10_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_100 = _T_13 ? _GEN_51 : req_cache_11_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_101 = _T_13 ? _GEN_52 : req_cache_12_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_102 = _T_13 ? _GEN_53 : req_cache_13_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_103 = _T_13 ? _GEN_54 : req_cache_14_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_104 = _T_13 ? _GEN_55 : req_cache_15_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [1:0] _GEN_109 = reqIdleBits_0 & reqIdleBits_1 & reqIdleBits_2 & reqIdleBits_3 & reqIdleBits_4 & reqIdleBits_5 &
+    reqIdleBits_6 & reqIdleBits_7 & reqIdleBits_8 & reqIdleBits_9 & reqIdleBits_10 & reqIdleBits_11 & reqIdleBits_12 &
+    reqIdleBits_13 & reqIdleBits_14 & reqIdleBits_15 ? 2'h0 : mem_tx_state; // @[CScratchpad.scala 166:40 167:22 102:37]
+  wire  _GEN_113 = 2'h1 == mem_tx_state ? _GEN_57 : reqIdleBits_0; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_114 = 2'h1 == mem_tx_state ? _GEN_58 : reqIdleBits_1; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_115 = 2'h1 == mem_tx_state ? _GEN_59 : reqIdleBits_2; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_116 = 2'h1 == mem_tx_state ? _GEN_60 : reqIdleBits_3; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_117 = 2'h1 == mem_tx_state ? _GEN_61 : reqIdleBits_4; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_118 = 2'h1 == mem_tx_state ? _GEN_62 : reqIdleBits_5; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_119 = 2'h1 == mem_tx_state ? _GEN_63 : reqIdleBits_6; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_120 = 2'h1 == mem_tx_state ? _GEN_64 : reqIdleBits_7; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_121 = 2'h1 == mem_tx_state ? _GEN_65 : reqIdleBits_8; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_122 = 2'h1 == mem_tx_state ? _GEN_66 : reqIdleBits_9; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_123 = 2'h1 == mem_tx_state ? _GEN_67 : reqIdleBits_10; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_124 = 2'h1 == mem_tx_state ? _GEN_68 : reqIdleBits_11; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_125 = 2'h1 == mem_tx_state ? _GEN_69 : reqIdleBits_12; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_126 = 2'h1 == mem_tx_state ? _GEN_70 : reqIdleBits_13; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_127 = 2'h1 == mem_tx_state ? _GEN_71 : reqIdleBits_14; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_128 = 2'h1 == mem_tx_state ? _GEN_72 : reqIdleBits_15; // @[CScratchpad.scala 138:24 110:36]
+  wire [3:0] _GEN_129 = 2'h1 == mem_tx_state ? _GEN_73 : req_cache_0_scratchpadAddress; // @[CScratchpad.scala 138:24 114:30]
+  wire [3:0] _GEN_130 = 2'h1 == mem_tx_state ? _GEN_74 : req_cache_1_scratchpadAddress; // @[CScratchpad.scala 138:24 114:30]
+  wire [3:0] _GEN_131 = 2'h1 == mem_tx_state ? _GEN_75 : req_cache_2_scratchpadAddress; // @[CScratchpad.scala 138:24 114:30]
+  wire [3:0] _GEN_132 = 2'h1 == mem_tx_state ? _GEN_76 : req_cache_3_scratchpadAddress; // @[CScratchpad.scala 138:24 114:30]
+  wire [3:0] _GEN_133 = 2'h1 == mem_tx_state ? _GEN_77 : req_cache_4_scratchpadAddress; // @[CScratchpad.scala 138:24 114:30]
+  wire [3:0] _GEN_134 = 2'h1 == mem_tx_state ? _GEN_78 : req_cache_5_scratchpadAddress; // @[CScratchpad.scala 138:24 114:30]
+  wire [3:0] _GEN_135 = 2'h1 == mem_tx_state ? _GEN_79 : req_cache_6_scratchpadAddress; // @[CScratchpad.scala 138:24 114:30]
+  wire [3:0] _GEN_136 = 2'h1 == mem_tx_state ? _GEN_80 : req_cache_7_scratchpadAddress; // @[CScratchpad.scala 138:24 114:30]
+  wire [3:0] _GEN_137 = 2'h1 == mem_tx_state ? _GEN_81 : req_cache_8_scratchpadAddress; // @[CScratchpad.scala 138:24 114:30]
+  wire [3:0] _GEN_138 = 2'h1 == mem_tx_state ? _GEN_82 : req_cache_9_scratchpadAddress; // @[CScratchpad.scala 138:24 114:30]
+  wire [3:0] _GEN_139 = 2'h1 == mem_tx_state ? _GEN_83 : req_cache_10_scratchpadAddress; // @[CScratchpad.scala 138:24 114:30]
+  wire [3:0] _GEN_140 = 2'h1 == mem_tx_state ? _GEN_84 : req_cache_11_scratchpadAddress; // @[CScratchpad.scala 138:24 114:30]
+  wire [3:0] _GEN_141 = 2'h1 == mem_tx_state ? _GEN_85 : req_cache_12_scratchpadAddress; // @[CScratchpad.scala 138:24 114:30]
+  wire [3:0] _GEN_142 = 2'h1 == mem_tx_state ? _GEN_86 : req_cache_13_scratchpadAddress; // @[CScratchpad.scala 138:24 114:30]
+  wire [3:0] _GEN_143 = 2'h1 == mem_tx_state ? _GEN_87 : req_cache_14_scratchpadAddress; // @[CScratchpad.scala 138:24 114:30]
+  wire [3:0] _GEN_144 = 2'h1 == mem_tx_state ? _GEN_88 : req_cache_15_scratchpadAddress; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_145 = 2'h1 == mem_tx_state ? _GEN_89 : req_cache_0_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_146 = 2'h1 == mem_tx_state ? _GEN_90 : req_cache_1_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_147 = 2'h1 == mem_tx_state ? _GEN_91 : req_cache_2_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_148 = 2'h1 == mem_tx_state ? _GEN_92 : req_cache_3_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_149 = 2'h1 == mem_tx_state ? _GEN_93 : req_cache_4_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_150 = 2'h1 == mem_tx_state ? _GEN_94 : req_cache_5_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_151 = 2'h1 == mem_tx_state ? _GEN_95 : req_cache_6_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_152 = 2'h1 == mem_tx_state ? _GEN_96 : req_cache_7_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_153 = 2'h1 == mem_tx_state ? _GEN_97 : req_cache_8_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_154 = 2'h1 == mem_tx_state ? _GEN_98 : req_cache_9_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_155 = 2'h1 == mem_tx_state ? _GEN_99 : req_cache_10_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_156 = 2'h1 == mem_tx_state ? _GEN_100 : req_cache_11_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_157 = 2'h1 == mem_tx_state ? _GEN_101 : req_cache_12_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_158 = 2'h1 == mem_tx_state ? _GEN_102 : req_cache_13_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_159 = 2'h1 == mem_tx_state ? _GEN_103 : req_cache_14_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_160 = 2'h1 == mem_tx_state ? _GEN_104 : req_cache_15_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire  _GEN_171 = 2'h0 == mem_tx_state ? reqIdleBits_0 : _GEN_113; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_172 = 2'h0 == mem_tx_state ? reqIdleBits_1 : _GEN_114; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_173 = 2'h0 == mem_tx_state ? reqIdleBits_2 : _GEN_115; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_174 = 2'h0 == mem_tx_state ? reqIdleBits_3 : _GEN_116; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_175 = 2'h0 == mem_tx_state ? reqIdleBits_4 : _GEN_117; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_176 = 2'h0 == mem_tx_state ? reqIdleBits_5 : _GEN_118; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_177 = 2'h0 == mem_tx_state ? reqIdleBits_6 : _GEN_119; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_178 = 2'h0 == mem_tx_state ? reqIdleBits_7 : _GEN_120; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_179 = 2'h0 == mem_tx_state ? reqIdleBits_8 : _GEN_121; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_180 = 2'h0 == mem_tx_state ? reqIdleBits_9 : _GEN_122; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_181 = 2'h0 == mem_tx_state ? reqIdleBits_10 : _GEN_123; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_182 = 2'h0 == mem_tx_state ? reqIdleBits_11 : _GEN_124; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_183 = 2'h0 == mem_tx_state ? reqIdleBits_12 : _GEN_125; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_184 = 2'h0 == mem_tx_state ? reqIdleBits_13 : _GEN_126; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_185 = 2'h0 == mem_tx_state ? reqIdleBits_14 : _GEN_127; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_186 = 2'h0 == mem_tx_state ? reqIdleBits_15 : _GEN_128; // @[CScratchpad.scala 138:24 110:36]
+  wire [3:0] _GEN_187 = 2'h0 == mem_tx_state ? req_cache_0_scratchpadAddress : _GEN_129; // @[CScratchpad.scala 138:24 114:30]
+  wire [3:0] _GEN_188 = 2'h0 == mem_tx_state ? req_cache_1_scratchpadAddress : _GEN_130; // @[CScratchpad.scala 138:24 114:30]
+  wire [3:0] _GEN_189 = 2'h0 == mem_tx_state ? req_cache_2_scratchpadAddress : _GEN_131; // @[CScratchpad.scala 138:24 114:30]
+  wire [3:0] _GEN_190 = 2'h0 == mem_tx_state ? req_cache_3_scratchpadAddress : _GEN_132; // @[CScratchpad.scala 138:24 114:30]
+  wire [3:0] _GEN_191 = 2'h0 == mem_tx_state ? req_cache_4_scratchpadAddress : _GEN_133; // @[CScratchpad.scala 138:24 114:30]
+  wire [3:0] _GEN_192 = 2'h0 == mem_tx_state ? req_cache_5_scratchpadAddress : _GEN_134; // @[CScratchpad.scala 138:24 114:30]
+  wire [3:0] _GEN_193 = 2'h0 == mem_tx_state ? req_cache_6_scratchpadAddress : _GEN_135; // @[CScratchpad.scala 138:24 114:30]
+  wire [3:0] _GEN_194 = 2'h0 == mem_tx_state ? req_cache_7_scratchpadAddress : _GEN_136; // @[CScratchpad.scala 138:24 114:30]
+  wire [3:0] _GEN_195 = 2'h0 == mem_tx_state ? req_cache_8_scratchpadAddress : _GEN_137; // @[CScratchpad.scala 138:24 114:30]
+  wire [3:0] _GEN_196 = 2'h0 == mem_tx_state ? req_cache_9_scratchpadAddress : _GEN_138; // @[CScratchpad.scala 138:24 114:30]
+  wire [3:0] _GEN_197 = 2'h0 == mem_tx_state ? req_cache_10_scratchpadAddress : _GEN_139; // @[CScratchpad.scala 138:24 114:30]
+  wire [3:0] _GEN_198 = 2'h0 == mem_tx_state ? req_cache_11_scratchpadAddress : _GEN_140; // @[CScratchpad.scala 138:24 114:30]
+  wire [3:0] _GEN_199 = 2'h0 == mem_tx_state ? req_cache_12_scratchpadAddress : _GEN_141; // @[CScratchpad.scala 138:24 114:30]
+  wire [3:0] _GEN_200 = 2'h0 == mem_tx_state ? req_cache_13_scratchpadAddress : _GEN_142; // @[CScratchpad.scala 138:24 114:30]
+  wire [3:0] _GEN_201 = 2'h0 == mem_tx_state ? req_cache_14_scratchpadAddress : _GEN_143; // @[CScratchpad.scala 138:24 114:30]
+  wire [3:0] _GEN_202 = 2'h0 == mem_tx_state ? req_cache_15_scratchpadAddress : _GEN_144; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_203 = 2'h0 == mem_tx_state ? req_cache_0_memoryLength : _GEN_145; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_204 = 2'h0 == mem_tx_state ? req_cache_1_memoryLength : _GEN_146; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_205 = 2'h0 == mem_tx_state ? req_cache_2_memoryLength : _GEN_147; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_206 = 2'h0 == mem_tx_state ? req_cache_3_memoryLength : _GEN_148; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_207 = 2'h0 == mem_tx_state ? req_cache_4_memoryLength : _GEN_149; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_208 = 2'h0 == mem_tx_state ? req_cache_5_memoryLength : _GEN_150; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_209 = 2'h0 == mem_tx_state ? req_cache_6_memoryLength : _GEN_151; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_210 = 2'h0 == mem_tx_state ? req_cache_7_memoryLength : _GEN_152; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_211 = 2'h0 == mem_tx_state ? req_cache_8_memoryLength : _GEN_153; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_212 = 2'h0 == mem_tx_state ? req_cache_9_memoryLength : _GEN_154; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_213 = 2'h0 == mem_tx_state ? req_cache_10_memoryLength : _GEN_155; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_214 = 2'h0 == mem_tx_state ? req_cache_11_memoryLength : _GEN_156; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_215 = 2'h0 == mem_tx_state ? req_cache_12_memoryLength : _GEN_157; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_216 = 2'h0 == mem_tx_state ? req_cache_13_memoryLength : _GEN_158; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_217 = 2'h0 == mem_tx_state ? req_cache_14_memoryLength : _GEN_159; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_218 = 2'h0 == mem_tx_state ? req_cache_15_memoryLength : _GEN_160; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_220 = 4'h1 == auto_mem_out_d_bits_source ? req_cache_1_memoryLength : req_cache_0_memoryLength; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_221 = 4'h2 == auto_mem_out_d_bits_source ? req_cache_2_memoryLength : _GEN_220; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_222 = 4'h3 == auto_mem_out_d_bits_source ? req_cache_3_memoryLength : _GEN_221; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_223 = 4'h4 == auto_mem_out_d_bits_source ? req_cache_4_memoryLength : _GEN_222; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_224 = 4'h5 == auto_mem_out_d_bits_source ? req_cache_5_memoryLength : _GEN_223; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_225 = 4'h6 == auto_mem_out_d_bits_source ? req_cache_6_memoryLength : _GEN_224; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_226 = 4'h7 == auto_mem_out_d_bits_source ? req_cache_7_memoryLength : _GEN_225; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_227 = 4'h8 == auto_mem_out_d_bits_source ? req_cache_8_memoryLength : _GEN_226; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_228 = 4'h9 == auto_mem_out_d_bits_source ? req_cache_9_memoryLength : _GEN_227; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_229 = 4'ha == auto_mem_out_d_bits_source ? req_cache_10_memoryLength : _GEN_228; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_230 = 4'hb == auto_mem_out_d_bits_source ? req_cache_11_memoryLength : _GEN_229; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_231 = 4'hc == auto_mem_out_d_bits_source ? req_cache_12_memoryLength : _GEN_230; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_232 = 4'hd == auto_mem_out_d_bits_source ? req_cache_13_memoryLength : _GEN_231; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_233 = 4'he == auto_mem_out_d_bits_source ? req_cache_14_memoryLength : _GEN_232; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_234 = 4'hf == auto_mem_out_d_bits_source ? req_cache_15_memoryLength : _GEN_233; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_235 = _GEN_234 >= 16'h40 ? 16'h40 : _GEN_234; // @[CScratchpad.scala 174:55 175:39 177:39]
+  wire [3:0] _GEN_237 = 4'h1 == auto_mem_out_d_bits_source ? req_cache_1_scratchpadAddress :
+    req_cache_0_scratchpadAddress; // @[CScratchpad.scala 179:{41,41}]
+  wire [3:0] _GEN_238 = 4'h2 == auto_mem_out_d_bits_source ? req_cache_2_scratchpadAddress : _GEN_237; // @[CScratchpad.scala 179:{41,41}]
+  wire [3:0] _GEN_239 = 4'h3 == auto_mem_out_d_bits_source ? req_cache_3_scratchpadAddress : _GEN_238; // @[CScratchpad.scala 179:{41,41}]
+  wire [3:0] _GEN_240 = 4'h4 == auto_mem_out_d_bits_source ? req_cache_4_scratchpadAddress : _GEN_239; // @[CScratchpad.scala 179:{41,41}]
+  wire [3:0] _GEN_241 = 4'h5 == auto_mem_out_d_bits_source ? req_cache_5_scratchpadAddress : _GEN_240; // @[CScratchpad.scala 179:{41,41}]
+  wire [3:0] _GEN_242 = 4'h6 == auto_mem_out_d_bits_source ? req_cache_6_scratchpadAddress : _GEN_241; // @[CScratchpad.scala 179:{41,41}]
+  wire [3:0] _GEN_243 = 4'h7 == auto_mem_out_d_bits_source ? req_cache_7_scratchpadAddress : _GEN_242; // @[CScratchpad.scala 179:{41,41}]
+  wire [3:0] _GEN_244 = 4'h8 == auto_mem_out_d_bits_source ? req_cache_8_scratchpadAddress : _GEN_243; // @[CScratchpad.scala 179:{41,41}]
+  wire [3:0] _GEN_245 = 4'h9 == auto_mem_out_d_bits_source ? req_cache_9_scratchpadAddress : _GEN_244; // @[CScratchpad.scala 179:{41,41}]
+  wire [3:0] _GEN_246 = 4'ha == auto_mem_out_d_bits_source ? req_cache_10_scratchpadAddress : _GEN_245; // @[CScratchpad.scala 179:{41,41}]
+  wire [3:0] _GEN_247 = 4'hb == auto_mem_out_d_bits_source ? req_cache_11_scratchpadAddress : _GEN_246; // @[CScratchpad.scala 179:{41,41}]
+  wire [3:0] _GEN_248 = 4'hc == auto_mem_out_d_bits_source ? req_cache_12_scratchpadAddress : _GEN_247; // @[CScratchpad.scala 179:{41,41}]
+  wire [3:0] _GEN_249 = 4'hd == auto_mem_out_d_bits_source ? req_cache_13_scratchpadAddress : _GEN_248; // @[CScratchpad.scala 179:{41,41}]
+  wire [3:0] _GEN_250 = 4'he == auto_mem_out_d_bits_source ? req_cache_14_scratchpadAddress : _GEN_249; // @[CScratchpad.scala 179:{41,41}]
+  wire [3:0] _GEN_251 = 4'hf == auto_mem_out_d_bits_source ? req_cache_15_scratchpadAddress : _GEN_250; // @[CScratchpad.scala 179:{41,41}]
+  wire  _T_31 = loader_io_cache_block_in_ready & loader_io_cache_block_in_valid; // @[Decoupled.scala 51:35]
+  wire [3:0] _req_cache_scratchpadAddress_T_1 = _GEN_251 + 4'h2; // @[CScratchpad.scala 183:82]
+  wire  mem_out_d_ready = loader_io_cache_block_in_ready; // @[Nodes.scala 1212:84 CScratchpad.scala 180:19]
+  wire  _T_36 = mem_out_d_ready & auto_mem_out_d_valid; // @[Decoupled.scala 51:35]
+  wire [15:0] _req_cache_memoryLength_T_2 = _GEN_234 - 16'h40; // @[CScratchpad.scala 210:72]
+  wire  _GEN_445 = 4'h0 == auto_mem_out_d_bits_source | _GEN_171; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_446 = 4'h1 == auto_mem_out_d_bits_source | _GEN_172; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_447 = 4'h2 == auto_mem_out_d_bits_source | _GEN_173; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_448 = 4'h3 == auto_mem_out_d_bits_source | _GEN_174; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_449 = 4'h4 == auto_mem_out_d_bits_source | _GEN_175; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_450 = 4'h5 == auto_mem_out_d_bits_source | _GEN_176; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_451 = 4'h6 == auto_mem_out_d_bits_source | _GEN_177; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_452 = 4'h7 == auto_mem_out_d_bits_source | _GEN_178; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_453 = 4'h8 == auto_mem_out_d_bits_source | _GEN_179; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_454 = 4'h9 == auto_mem_out_d_bits_source | _GEN_180; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_455 = 4'ha == auto_mem_out_d_bits_source | _GEN_181; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_456 = 4'hb == auto_mem_out_d_bits_source | _GEN_182; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_457 = 4'hc == auto_mem_out_d_bits_source | _GEN_183; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_458 = 4'hd == auto_mem_out_d_bits_source | _GEN_184; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_459 = 4'he == auto_mem_out_d_bits_source | _GEN_185; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_460 = 4'hf == auto_mem_out_d_bits_source | _GEN_186; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_461 = _GEN_234 <= 16'h40 ? _GEN_445 : _GEN_171; // @[CScratchpad.scala 212:57]
+  wire  _GEN_462 = _GEN_234 <= 16'h40 ? _GEN_446 : _GEN_172; // @[CScratchpad.scala 212:57]
+  wire  _GEN_463 = _GEN_234 <= 16'h40 ? _GEN_447 : _GEN_173; // @[CScratchpad.scala 212:57]
+  wire  _GEN_464 = _GEN_234 <= 16'h40 ? _GEN_448 : _GEN_174; // @[CScratchpad.scala 212:57]
+  wire  _GEN_465 = _GEN_234 <= 16'h40 ? _GEN_449 : _GEN_175; // @[CScratchpad.scala 212:57]
+  wire  _GEN_466 = _GEN_234 <= 16'h40 ? _GEN_450 : _GEN_176; // @[CScratchpad.scala 212:57]
+  wire  _GEN_467 = _GEN_234 <= 16'h40 ? _GEN_451 : _GEN_177; // @[CScratchpad.scala 212:57]
+  wire  _GEN_468 = _GEN_234 <= 16'h40 ? _GEN_452 : _GEN_178; // @[CScratchpad.scala 212:57]
+  wire  _GEN_469 = _GEN_234 <= 16'h40 ? _GEN_453 : _GEN_179; // @[CScratchpad.scala 212:57]
+  wire  _GEN_470 = _GEN_234 <= 16'h40 ? _GEN_454 : _GEN_180; // @[CScratchpad.scala 212:57]
+  wire  _GEN_471 = _GEN_234 <= 16'h40 ? _GEN_455 : _GEN_181; // @[CScratchpad.scala 212:57]
+  wire  _GEN_472 = _GEN_234 <= 16'h40 ? _GEN_456 : _GEN_182; // @[CScratchpad.scala 212:57]
+  wire  _GEN_473 = _GEN_234 <= 16'h40 ? _GEN_457 : _GEN_183; // @[CScratchpad.scala 212:57]
+  wire  _GEN_474 = _GEN_234 <= 16'h40 ? _GEN_458 : _GEN_184; // @[CScratchpad.scala 212:57]
+  wire  _GEN_475 = _GEN_234 <= 16'h40 ? _GEN_459 : _GEN_185; // @[CScratchpad.scala 212:57]
+  wire  _GEN_476 = _GEN_234 <= 16'h40 ? _GEN_460 : _GEN_186; // @[CScratchpad.scala 212:57]
+  wire  _GEN_494 = _T_36 ? _GEN_461 : _GEN_171; // @[CScratchpad.scala 209:24]
+  wire  _GEN_495 = _T_36 ? _GEN_462 : _GEN_172; // @[CScratchpad.scala 209:24]
+  wire  _GEN_496 = _T_36 ? _GEN_463 : _GEN_173; // @[CScratchpad.scala 209:24]
+  wire  _GEN_497 = _T_36 ? _GEN_464 : _GEN_174; // @[CScratchpad.scala 209:24]
+  wire  _GEN_498 = _T_36 ? _GEN_465 : _GEN_175; // @[CScratchpad.scala 209:24]
+  wire  _GEN_499 = _T_36 ? _GEN_466 : _GEN_176; // @[CScratchpad.scala 209:24]
+  wire  _GEN_500 = _T_36 ? _GEN_467 : _GEN_177; // @[CScratchpad.scala 209:24]
+  wire  _GEN_501 = _T_36 ? _GEN_468 : _GEN_178; // @[CScratchpad.scala 209:24]
+  wire  _GEN_502 = _T_36 ? _GEN_469 : _GEN_179; // @[CScratchpad.scala 209:24]
+  wire  _GEN_503 = _T_36 ? _GEN_470 : _GEN_180; // @[CScratchpad.scala 209:24]
+  wire  _GEN_504 = _T_36 ? _GEN_471 : _GEN_181; // @[CScratchpad.scala 209:24]
+  wire  _GEN_505 = _T_36 ? _GEN_472 : _GEN_182; // @[CScratchpad.scala 209:24]
+  wire  _GEN_506 = _T_36 ? _GEN_473 : _GEN_183; // @[CScratchpad.scala 209:24]
+  wire  _GEN_507 = _T_36 ? _GEN_474 : _GEN_184; // @[CScratchpad.scala 209:24]
+  wire  _GEN_508 = _T_36 ? _GEN_475 : _GEN_185; // @[CScratchpad.scala 209:24]
+  wire  _GEN_509 = _T_36 ? _GEN_476 : _GEN_186; // @[CScratchpad.scala 209:24]
+  CScratchpadPackedSubwordLoader_1 loader ( // @[CScratchpad.scala 94:30]
+    .clock(loader_clock),
+    .reset(loader_reset),
+    .io_cache_block_in_ready(loader_io_cache_block_in_ready),
+    .io_cache_block_in_valid(loader_io_cache_block_in_valid),
+    .io_cache_block_in_bits_dat(loader_io_cache_block_in_bits_dat),
+    .io_cache_block_in_bits_len(loader_io_cache_block_in_bits_len),
+    .io_cache_block_in_bits_idxBase(loader_io_cache_block_in_bits_idxBase),
+    .io_sp_write_out_valid(loader_io_sp_write_out_valid),
+    .io_sp_write_out_bits_dat(loader_io_sp_write_out_bits_dat),
+    .io_sp_write_out_bits_idx(loader_io_sp_write_out_bits_idx)
+  );
+  assign mem_rval_en = mem_rval_en_pipe_0;
+  assign mem_rval_addr = mem_rval_addr_pipe_0;
+  assign mem_rval_data = mem[mem_rval_addr]; // @[CScratchpad.scala 92:24]
+  assign mem_MPORT_data = loader_io_sp_write_out_bits_dat;
+  assign mem_MPORT_addr = loader_io_sp_write_out_bits_idx;
+  assign mem_MPORT_mask = 1'h1;
+  assign mem_MPORT_en = loader_io_sp_write_out_valid;
+  assign mem_MPORT_1_data = 256'h0;
+  assign mem_MPORT_1_addr = 4'h0;
+  assign mem_MPORT_1_mask = 1'h1;
+  assign mem_MPORT_1_en = 1'h0;
+  assign auto_mem_out_a_valid = 2'h0 == mem_tx_state ? mem_tx_state == 2'h1 : _GEN_112; // @[CScratchpad.scala 136:19 138:24]
+  assign auto_mem_out_a_bits_size = txEmitLengthLg[2:0]; // @[Edges.scala 447:17 450:15]
+  assign auto_mem_out_a_bits_source = reqIdleBits_0 ? 4'h0 : _reqChosen_T_13; // @[Mux.scala 47:70]
+  assign auto_mem_out_a_bits_address = totalTx_memoryAddress; // @[Edges.scala 447:17 452:15]
+  assign auto_mem_out_a_bits_mask = {x1_a_bits_a_mask_hi,x1_a_bits_a_mask_lo}; // @[Cat.scala 33:92]
+  assign auto_mem_out_d_ready = loader_io_cache_block_in_ready; // @[Nodes.scala 1212:84 CScratchpad.scala 180:19]
+  assign access_readRes_valid = access_readRes_valid_REG; // @[CScratchpad.scala 103:24]
+  assign access_readRes_bits = mem_rval_data; // @[CScratchpad.scala 105:23]
+  assign loader_clock = clock;
+  assign loader_reset = reset;
+  assign loader_io_cache_block_in_valid = auto_mem_out_d_valid; // @[Nodes.scala 1212:84 LazyModule.scala 368:12]
+  assign loader_io_cache_block_in_bits_dat = auto_mem_out_d_bits_data; // @[Nodes.scala 1212:84 LazyModule.scala 368:12]
+  assign loader_io_cache_block_in_bits_len = _GEN_235[6:0];
+  assign loader_io_cache_block_in_bits_idxBase = 4'hf == auto_mem_out_d_bits_source ? req_cache_15_scratchpadAddress :
+    _GEN_250; // @[CScratchpad.scala 179:{41,41}]
+  always @(posedge clock) begin
+    if (mem_MPORT_en & mem_MPORT_mask) begin
+      mem[mem_MPORT_addr] <= mem_MPORT_data; // @[CScratchpad.scala 92:24]
+    end
+    if (mem_MPORT_1_en & mem_MPORT_1_mask) begin
+      mem[mem_MPORT_1_addr] <= mem_MPORT_1_data; // @[CScratchpad.scala 92:24]
+    end
+    mem_rval_en_pipe_0 <= access_readReq_valid;
+    if (access_readReq_valid) begin
+      mem_rval_addr_pipe_0 <= 4'h0;
+    end
+    if (reset) begin // @[CScratchpad.scala 102:37]
+      mem_tx_state <= 2'h0; // @[CScratchpad.scala 102:37]
+    end else if (!(2'h0 == mem_tx_state)) begin // @[CScratchpad.scala 138:24]
+      if (2'h1 == mem_tx_state) begin // @[CScratchpad.scala 138:24]
+        if (_T_13) begin // @[CScratchpad.scala 152:28]
+          mem_tx_state <= _GEN_56;
+        end
+      end else if (2'h2 == mem_tx_state) begin // @[CScratchpad.scala 138:24]
+        mem_tx_state <= _GEN_109;
+      end
+    end
+    access_readRes_valid_REG <= access_readReq_valid; // @[CScratchpad.scala 85:30]
+    reqIdleBits_0 <= reset | _GEN_494; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_1 <= reset | _GEN_495; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_2 <= reset | _GEN_496; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_3 <= reset | _GEN_497; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_4 <= reset | _GEN_498; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_5 <= reset | _GEN_499; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_6 <= reset | _GEN_500; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_7 <= reset | _GEN_501; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_8 <= reset | _GEN_502; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_9 <= reset | _GEN_503; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_10 <= reset | _GEN_504; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_11 <= reset | _GEN_505; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_12 <= reset | _GEN_506; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_13 <= reset | _GEN_507; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_14 <= reset | _GEN_508; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_15 <= reset | _GEN_509; // @[CScratchpad.scala 110:{36,36}]
+    if (_T_31) begin // @[CScratchpad.scala 182:39]
+      if (4'h0 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 183:42]
+        req_cache_0_scratchpadAddress <= _req_cache_scratchpadAddress_T_1; // @[CScratchpad.scala 183:42]
+      end else begin
+        req_cache_0_scratchpadAddress <= _GEN_187;
+      end
+    end else begin
+      req_cache_0_scratchpadAddress <= _GEN_187;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'h0 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_0_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_0_memoryLength <= _GEN_203;
+      end
+    end else begin
+      req_cache_0_memoryLength <= _GEN_203;
+    end
+    if (_T_31) begin // @[CScratchpad.scala 182:39]
+      if (4'h1 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 183:42]
+        req_cache_1_scratchpadAddress <= _req_cache_scratchpadAddress_T_1; // @[CScratchpad.scala 183:42]
+      end else begin
+        req_cache_1_scratchpadAddress <= _GEN_188;
+      end
+    end else begin
+      req_cache_1_scratchpadAddress <= _GEN_188;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'h1 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_1_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_1_memoryLength <= _GEN_204;
+      end
+    end else begin
+      req_cache_1_memoryLength <= _GEN_204;
+    end
+    if (_T_31) begin // @[CScratchpad.scala 182:39]
+      if (4'h2 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 183:42]
+        req_cache_2_scratchpadAddress <= _req_cache_scratchpadAddress_T_1; // @[CScratchpad.scala 183:42]
+      end else begin
+        req_cache_2_scratchpadAddress <= _GEN_189;
+      end
+    end else begin
+      req_cache_2_scratchpadAddress <= _GEN_189;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'h2 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_2_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_2_memoryLength <= _GEN_205;
+      end
+    end else begin
+      req_cache_2_memoryLength <= _GEN_205;
+    end
+    if (_T_31) begin // @[CScratchpad.scala 182:39]
+      if (4'h3 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 183:42]
+        req_cache_3_scratchpadAddress <= _req_cache_scratchpadAddress_T_1; // @[CScratchpad.scala 183:42]
+      end else begin
+        req_cache_3_scratchpadAddress <= _GEN_190;
+      end
+    end else begin
+      req_cache_3_scratchpadAddress <= _GEN_190;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'h3 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_3_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_3_memoryLength <= _GEN_206;
+      end
+    end else begin
+      req_cache_3_memoryLength <= _GEN_206;
+    end
+    if (_T_31) begin // @[CScratchpad.scala 182:39]
+      if (4'h4 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 183:42]
+        req_cache_4_scratchpadAddress <= _req_cache_scratchpadAddress_T_1; // @[CScratchpad.scala 183:42]
+      end else begin
+        req_cache_4_scratchpadAddress <= _GEN_191;
+      end
+    end else begin
+      req_cache_4_scratchpadAddress <= _GEN_191;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'h4 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_4_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_4_memoryLength <= _GEN_207;
+      end
+    end else begin
+      req_cache_4_memoryLength <= _GEN_207;
+    end
+    if (_T_31) begin // @[CScratchpad.scala 182:39]
+      if (4'h5 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 183:42]
+        req_cache_5_scratchpadAddress <= _req_cache_scratchpadAddress_T_1; // @[CScratchpad.scala 183:42]
+      end else begin
+        req_cache_5_scratchpadAddress <= _GEN_192;
+      end
+    end else begin
+      req_cache_5_scratchpadAddress <= _GEN_192;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'h5 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_5_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_5_memoryLength <= _GEN_208;
+      end
+    end else begin
+      req_cache_5_memoryLength <= _GEN_208;
+    end
+    if (_T_31) begin // @[CScratchpad.scala 182:39]
+      if (4'h6 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 183:42]
+        req_cache_6_scratchpadAddress <= _req_cache_scratchpadAddress_T_1; // @[CScratchpad.scala 183:42]
+      end else begin
+        req_cache_6_scratchpadAddress <= _GEN_193;
+      end
+    end else begin
+      req_cache_6_scratchpadAddress <= _GEN_193;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'h6 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_6_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_6_memoryLength <= _GEN_209;
+      end
+    end else begin
+      req_cache_6_memoryLength <= _GEN_209;
+    end
+    if (_T_31) begin // @[CScratchpad.scala 182:39]
+      if (4'h7 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 183:42]
+        req_cache_7_scratchpadAddress <= _req_cache_scratchpadAddress_T_1; // @[CScratchpad.scala 183:42]
+      end else begin
+        req_cache_7_scratchpadAddress <= _GEN_194;
+      end
+    end else begin
+      req_cache_7_scratchpadAddress <= _GEN_194;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'h7 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_7_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_7_memoryLength <= _GEN_210;
+      end
+    end else begin
+      req_cache_7_memoryLength <= _GEN_210;
+    end
+    if (_T_31) begin // @[CScratchpad.scala 182:39]
+      if (4'h8 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 183:42]
+        req_cache_8_scratchpadAddress <= _req_cache_scratchpadAddress_T_1; // @[CScratchpad.scala 183:42]
+      end else begin
+        req_cache_8_scratchpadAddress <= _GEN_195;
+      end
+    end else begin
+      req_cache_8_scratchpadAddress <= _GEN_195;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'h8 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_8_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_8_memoryLength <= _GEN_211;
+      end
+    end else begin
+      req_cache_8_memoryLength <= _GEN_211;
+    end
+    if (_T_31) begin // @[CScratchpad.scala 182:39]
+      if (4'h9 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 183:42]
+        req_cache_9_scratchpadAddress <= _req_cache_scratchpadAddress_T_1; // @[CScratchpad.scala 183:42]
+      end else begin
+        req_cache_9_scratchpadAddress <= _GEN_196;
+      end
+    end else begin
+      req_cache_9_scratchpadAddress <= _GEN_196;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'h9 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_9_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_9_memoryLength <= _GEN_212;
+      end
+    end else begin
+      req_cache_9_memoryLength <= _GEN_212;
+    end
+    if (_T_31) begin // @[CScratchpad.scala 182:39]
+      if (4'ha == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 183:42]
+        req_cache_10_scratchpadAddress <= _req_cache_scratchpadAddress_T_1; // @[CScratchpad.scala 183:42]
+      end else begin
+        req_cache_10_scratchpadAddress <= _GEN_197;
+      end
+    end else begin
+      req_cache_10_scratchpadAddress <= _GEN_197;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'ha == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_10_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_10_memoryLength <= _GEN_213;
+      end
+    end else begin
+      req_cache_10_memoryLength <= _GEN_213;
+    end
+    if (_T_31) begin // @[CScratchpad.scala 182:39]
+      if (4'hb == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 183:42]
+        req_cache_11_scratchpadAddress <= _req_cache_scratchpadAddress_T_1; // @[CScratchpad.scala 183:42]
+      end else begin
+        req_cache_11_scratchpadAddress <= _GEN_198;
+      end
+    end else begin
+      req_cache_11_scratchpadAddress <= _GEN_198;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'hb == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_11_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_11_memoryLength <= _GEN_214;
+      end
+    end else begin
+      req_cache_11_memoryLength <= _GEN_214;
+    end
+    if (_T_31) begin // @[CScratchpad.scala 182:39]
+      if (4'hc == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 183:42]
+        req_cache_12_scratchpadAddress <= _req_cache_scratchpadAddress_T_1; // @[CScratchpad.scala 183:42]
+      end else begin
+        req_cache_12_scratchpadAddress <= _GEN_199;
+      end
+    end else begin
+      req_cache_12_scratchpadAddress <= _GEN_199;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'hc == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_12_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_12_memoryLength <= _GEN_215;
+      end
+    end else begin
+      req_cache_12_memoryLength <= _GEN_215;
+    end
+    if (_T_31) begin // @[CScratchpad.scala 182:39]
+      if (4'hd == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 183:42]
+        req_cache_13_scratchpadAddress <= _req_cache_scratchpadAddress_T_1; // @[CScratchpad.scala 183:42]
+      end else begin
+        req_cache_13_scratchpadAddress <= _GEN_200;
+      end
+    end else begin
+      req_cache_13_scratchpadAddress <= _GEN_200;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'hd == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_13_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_13_memoryLength <= _GEN_216;
+      end
+    end else begin
+      req_cache_13_memoryLength <= _GEN_216;
+    end
+    if (_T_31) begin // @[CScratchpad.scala 182:39]
+      if (4'he == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 183:42]
+        req_cache_14_scratchpadAddress <= _req_cache_scratchpadAddress_T_1; // @[CScratchpad.scala 183:42]
+      end else begin
+        req_cache_14_scratchpadAddress <= _GEN_201;
+      end
+    end else begin
+      req_cache_14_scratchpadAddress <= _GEN_201;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'he == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_14_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_14_memoryLength <= _GEN_217;
+      end
+    end else begin
+      req_cache_14_memoryLength <= _GEN_217;
+    end
+    if (_T_31) begin // @[CScratchpad.scala 182:39]
+      if (4'hf == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 183:42]
+        req_cache_15_scratchpadAddress <= _req_cache_scratchpadAddress_T_1; // @[CScratchpad.scala 183:42]
+      end else begin
+        req_cache_15_scratchpadAddress <= _GEN_202;
+      end
+    end else begin
+      req_cache_15_scratchpadAddress <= _GEN_202;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'hf == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_15_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_15_memoryLength <= _GEN_218;
+      end
+    end else begin
+      req_cache_15_memoryLength <= _GEN_218;
+    end
+    if (!(2'h0 == mem_tx_state)) begin // @[CScratchpad.scala 138:24]
+      if (2'h1 == mem_tx_state) begin // @[CScratchpad.scala 138:24]
+        if (_T_13) begin // @[CScratchpad.scala 152:28]
+          totalTx_memoryAddress <= _totalTx_memoryAddress_T_1; // @[CScratchpad.scala 158:31]
+        end
+      end
+    end
+    if (!(2'h0 == mem_tx_state)) begin // @[CScratchpad.scala 138:24]
+      if (2'h1 == mem_tx_state) begin // @[CScratchpad.scala 138:24]
+        if (_T_13) begin // @[CScratchpad.scala 152:28]
+          totalTx_scratchpadAddress <= _totalTx_scratchpadAddress_T_1; // @[CScratchpad.scala 157:35]
+        end
+      end
+    end
+    if (!(2'h0 == mem_tx_state)) begin // @[CScratchpad.scala 138:24]
+      if (2'h1 == mem_tx_state) begin // @[CScratchpad.scala 138:24]
+        if (_T_13) begin // @[CScratchpad.scala 152:28]
+          totalTx_memoryLength <= _totalTx_memoryLength_T_1; // @[CScratchpad.scala 156:30]
+        end
+      end
+    end
+  end
+endmodule
+module CScratchpadPackedSubwordLoader_2(
+  input          clock,
+  input          reset,
+  output         io_cache_block_in_ready,
+  input          io_cache_block_in_valid,
+  input  [511:0] io_cache_block_in_bits_dat,
+  input  [6:0]   io_cache_block_in_bits_len,
+  input  [8:0]   io_cache_block_in_bits_idxBase,
+  output         io_sp_write_out_valid,
+  output [255:0] io_sp_write_out_bits_dat,
+  output [8:0]   io_sp_write_out_bits_idx
+);
+  reg [511:0] beat; // @[CScratchpadPackedSubwordLoader.scala 16:17]
+  reg [8:0] idxBase; // @[CScratchpadPackedSubwordLoader.scala 17:20]
+  reg [6:0] lenRemainingFromReq; // @[CScratchpadPackedSubwordLoader.scala 18:32]
+  reg  state; // @[CScratchpadPackedSubwordLoader.scala 21:22]
+  wire  _io_cache_block_in_ready_T = ~state; // @[CScratchpadPackedSubwordLoader.scala 22:36]
+  wire  _T_1 = io_cache_block_in_ready & io_cache_block_in_valid; // @[Decoupled.scala 51:35]
+  wire  _GEN_0 = _T_1 | state; // @[CScratchpadPackedSubwordLoader.scala 34:36 35:15 21:22]
+  wire [8:0] _idxBase_T_1 = idxBase + 9'h1; // @[CScratchpadPackedSubwordLoader.scala 50:28]
+  wire [6:0] _lenRemainingFromReq_T_1 = lenRemainingFromReq - 7'h20; // @[CScratchpadPackedSubwordLoader.scala 53:54]
+  wire  _GEN_6 = lenRemainingFromReq == 7'h20 ? 1'h0 : state; // @[CScratchpadPackedSubwordLoader.scala 54:60 55:19 21:22]
+  wire [511:0] _GEN_10 = {{256'd0}, beat[511:256]}; // @[CScratchpadPackedSubwordLoader.scala 51:59 57:16 16:17]
+  assign io_cache_block_in_ready = ~state; // @[CScratchpadPackedSubwordLoader.scala 22:36]
+  assign io_sp_write_out_valid = _io_cache_block_in_ready_T ? 1'h0 : state; // @[CScratchpadPackedSubwordLoader.scala 32:17 24:25]
+  assign io_sp_write_out_bits_dat = beat[255:0]; // @[CScratchpadPackedSubwordLoader.scala 29:9]
+  assign io_sp_write_out_bits_idx = idxBase; // @[CScratchpadPackedSubwordLoader.scala 32:17 47:32]
+  always @(posedge clock) begin
+    if (_io_cache_block_in_ready_T) begin // @[CScratchpadPackedSubwordLoader.scala 32:17]
+      if (_T_1) begin // @[CScratchpadPackedSubwordLoader.scala 34:36]
+        beat <= io_cache_block_in_bits_dat; // @[CScratchpadPackedSubwordLoader.scala 36:14]
+      end
+    end else if (state) begin // @[CScratchpadPackedSubwordLoader.scala 32:17]
+      if (io_sp_write_out_valid) begin // @[CScratchpadPackedSubwordLoader.scala 48:34]
+        beat <= _GEN_10;
+      end
+    end
+    if (_io_cache_block_in_ready_T) begin // @[CScratchpadPackedSubwordLoader.scala 32:17]
+      if (_T_1) begin // @[CScratchpadPackedSubwordLoader.scala 34:36]
+        idxBase <= io_cache_block_in_bits_idxBase; // @[CScratchpadPackedSubwordLoader.scala 37:17]
+      end
+    end else if (state) begin // @[CScratchpadPackedSubwordLoader.scala 32:17]
+      if (io_sp_write_out_valid) begin // @[CScratchpadPackedSubwordLoader.scala 48:34]
+        idxBase <= _idxBase_T_1; // @[CScratchpadPackedSubwordLoader.scala 50:17]
+      end
+    end
+    if (_io_cache_block_in_ready_T) begin // @[CScratchpadPackedSubwordLoader.scala 32:17]
+      if (_T_1) begin // @[CScratchpadPackedSubwordLoader.scala 34:36]
+        lenRemainingFromReq <= io_cache_block_in_bits_len; // @[CScratchpadPackedSubwordLoader.scala 38:29]
+      end
+    end else if (state) begin // @[CScratchpadPackedSubwordLoader.scala 32:17]
+      if (io_sp_write_out_valid) begin // @[CScratchpadPackedSubwordLoader.scala 48:34]
+        lenRemainingFromReq <= _lenRemainingFromReq_T_1;
+      end
+    end
+    if (reset) begin // @[CScratchpadPackedSubwordLoader.scala 21:22]
+      state <= 1'h0; // @[CScratchpadPackedSubwordLoader.scala 21:22]
+    end else if (_io_cache_block_in_ready_T) begin // @[CScratchpadPackedSubwordLoader.scala 32:17]
+      state <= _GEN_0;
+    end else if (state) begin // @[CScratchpadPackedSubwordLoader.scala 32:17]
+      if (io_sp_write_out_valid) begin // @[CScratchpadPackedSubwordLoader.scala 48:34]
+        state <= _GEN_6;
+      end
+    end
+  end
+endmodule
+module CScratchpad_2(
+  input          clock,
+  input          reset,
+  input          auto_mem_out_a_ready,
+  output         auto_mem_out_a_valid,
+  output [2:0]   auto_mem_out_a_bits_size,
+  output [3:0]   auto_mem_out_a_bits_source,
+  output [33:0]  auto_mem_out_a_bits_address,
+  output [63:0]  auto_mem_out_a_bits_mask,
+  output         auto_mem_out_d_ready,
+  input          auto_mem_out_d_valid,
+  input  [3:0]   auto_mem_out_d_bits_source,
+  input  [511:0] auto_mem_out_d_bits_data,
+  input          access_readReq_valid,
+  output         access_readRes_valid,
+  output [255:0] access_readRes_bits
+);
+  reg [255:0] mem [0:511]; // @[CScratchpad.scala 92:24]
+  wire  mem_rval_en; // @[CScratchpad.scala 92:24]
+  wire [8:0] mem_rval_addr; // @[CScratchpad.scala 92:24]
+  wire [255:0] mem_rval_data; // @[CScratchpad.scala 92:24]
+  wire [255:0] mem_MPORT_data; // @[CScratchpad.scala 92:24]
+  wire [8:0] mem_MPORT_addr; // @[CScratchpad.scala 92:24]
+  wire  mem_MPORT_mask; // @[CScratchpad.scala 92:24]
+  wire  mem_MPORT_en; // @[CScratchpad.scala 92:24]
+  wire [255:0] mem_MPORT_1_data; // @[CScratchpad.scala 92:24]
+  wire [8:0] mem_MPORT_1_addr; // @[CScratchpad.scala 92:24]
+  wire  mem_MPORT_1_mask; // @[CScratchpad.scala 92:24]
+  wire  mem_MPORT_1_en; // @[CScratchpad.scala 92:24]
+  reg  mem_rval_en_pipe_0;
+  reg [8:0] mem_rval_addr_pipe_0;
+  wire  loader_clock; // @[CScratchpad.scala 94:30]
+  wire  loader_reset; // @[CScratchpad.scala 94:30]
+  wire  loader_io_cache_block_in_ready; // @[CScratchpad.scala 94:30]
+  wire  loader_io_cache_block_in_valid; // @[CScratchpad.scala 94:30]
+  wire [511:0] loader_io_cache_block_in_bits_dat; // @[CScratchpad.scala 94:30]
+  wire [6:0] loader_io_cache_block_in_bits_len; // @[CScratchpad.scala 94:30]
+  wire [8:0] loader_io_cache_block_in_bits_idxBase; // @[CScratchpad.scala 94:30]
+  wire  loader_io_sp_write_out_valid; // @[CScratchpad.scala 94:30]
+  wire [255:0] loader_io_sp_write_out_bits_dat; // @[CScratchpad.scala 94:30]
+  wire [8:0] loader_io_sp_write_out_bits_idx; // @[CScratchpad.scala 94:30]
+  reg [1:0] mem_tx_state; // @[CScratchpad.scala 102:37]
+  reg  access_readRes_valid_REG; // @[CScratchpad.scala 85:30]
+  reg  reqIdleBits_0; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_1; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_2; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_3; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_4; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_5; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_6; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_7; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_8; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_9; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_10; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_11; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_12; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_13; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_14; // @[CScratchpad.scala 110:36]
+  reg  reqIdleBits_15; // @[CScratchpad.scala 110:36]
+  wire  reqAvailable = reqIdleBits_0 | reqIdleBits_1 | reqIdleBits_2 | reqIdleBits_3 | reqIdleBits_4 | reqIdleBits_5 |
+    reqIdleBits_6 | reqIdleBits_7 | reqIdleBits_8 | reqIdleBits_9 | reqIdleBits_10 | reqIdleBits_11 | reqIdleBits_12 |
+    reqIdleBits_13 | reqIdleBits_14 | reqIdleBits_15; // @[CScratchpad.scala 111:51]
+  wire [3:0] _reqChosen_T = reqIdleBits_14 ? 4'he : 4'hf; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_1 = reqIdleBits_13 ? 4'hd : _reqChosen_T; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_2 = reqIdleBits_12 ? 4'hc : _reqChosen_T_1; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_3 = reqIdleBits_11 ? 4'hb : _reqChosen_T_2; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_4 = reqIdleBits_10 ? 4'ha : _reqChosen_T_3; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_5 = reqIdleBits_9 ? 4'h9 : _reqChosen_T_4; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_6 = reqIdleBits_8 ? 4'h8 : _reqChosen_T_5; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_7 = reqIdleBits_7 ? 4'h7 : _reqChosen_T_6; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_8 = reqIdleBits_6 ? 4'h6 : _reqChosen_T_7; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_9 = reqIdleBits_5 ? 4'h5 : _reqChosen_T_8; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_10 = reqIdleBits_4 ? 4'h4 : _reqChosen_T_9; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_11 = reqIdleBits_3 ? 4'h3 : _reqChosen_T_10; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_12 = reqIdleBits_2 ? 4'h2 : _reqChosen_T_11; // @[Mux.scala 47:70]
+  wire [3:0] _reqChosen_T_13 = reqIdleBits_1 ? 4'h1 : _reqChosen_T_12; // @[Mux.scala 47:70]
+  wire [3:0] reqChosen = reqIdleBits_0 ? 4'h0 : _reqChosen_T_13; // @[Mux.scala 47:70]
+  reg [8:0] req_cache_0_scratchpadAddress; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_0_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [8:0] req_cache_1_scratchpadAddress; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_1_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [8:0] req_cache_2_scratchpadAddress; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_2_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [8:0] req_cache_3_scratchpadAddress; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_3_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [8:0] req_cache_4_scratchpadAddress; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_4_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [8:0] req_cache_5_scratchpadAddress; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_5_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [8:0] req_cache_6_scratchpadAddress; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_6_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [8:0] req_cache_7_scratchpadAddress; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_7_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [8:0] req_cache_8_scratchpadAddress; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_8_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [8:0] req_cache_9_scratchpadAddress; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_9_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [8:0] req_cache_10_scratchpadAddress; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_10_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [8:0] req_cache_11_scratchpadAddress; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_11_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [8:0] req_cache_12_scratchpadAddress; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_12_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [8:0] req_cache_13_scratchpadAddress; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_13_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [8:0] req_cache_14_scratchpadAddress; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_14_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [8:0] req_cache_15_scratchpadAddress; // @[CScratchpad.scala 114:30]
+  reg [15:0] req_cache_15_memoryLength; // @[CScratchpad.scala 114:30]
+  reg [33:0] totalTx_memoryAddress; // @[CScratchpad.scala 124:28]
+  reg [8:0] totalTx_scratchpadAddress; // @[CScratchpad.scala 124:28]
+  reg [33:0] totalTx_memoryLength; // @[CScratchpad.scala 124:28]
+  wire  isBelowLimit = totalTx_memoryLength <= 34'h40; // @[CScratchpad.scala 149:47]
+  wire [1:0] txEmitLengthLg_hi = totalTx_memoryLength[33:32]; // @[OneHot.scala 30:18]
+  wire  _txEmitLengthLg_T = |txEmitLengthLg_hi; // @[OneHot.scala 32:14]
+  wire [31:0] txEmitLengthLg_lo = totalTx_memoryLength[31:0]; // @[OneHot.scala 31:18]
+  wire [31:0] _GEN_569 = {{30'd0}, txEmitLengthLg_hi}; // @[OneHot.scala 32:28]
+  wire [31:0] _txEmitLengthLg_T_1 = _GEN_569 | txEmitLengthLg_lo; // @[OneHot.scala 32:28]
+  wire [15:0] txEmitLengthLg_hi_1 = _txEmitLengthLg_T_1[31:16]; // @[OneHot.scala 30:18]
+  wire  _txEmitLengthLg_T_2 = |txEmitLengthLg_hi_1; // @[OneHot.scala 32:14]
+  wire [15:0] txEmitLengthLg_lo_1 = _txEmitLengthLg_T_1[15:0]; // @[OneHot.scala 31:18]
+  wire [15:0] _txEmitLengthLg_T_3 = txEmitLengthLg_hi_1 | txEmitLengthLg_lo_1; // @[OneHot.scala 32:28]
+  wire [7:0] txEmitLengthLg_hi_2 = _txEmitLengthLg_T_3[15:8]; // @[OneHot.scala 30:18]
+  wire  _txEmitLengthLg_T_4 = |txEmitLengthLg_hi_2; // @[OneHot.scala 32:14]
+  wire [7:0] txEmitLengthLg_lo_2 = _txEmitLengthLg_T_3[7:0]; // @[OneHot.scala 31:18]
+  wire [7:0] _txEmitLengthLg_T_5 = txEmitLengthLg_hi_2 | txEmitLengthLg_lo_2; // @[OneHot.scala 32:28]
+  wire [3:0] txEmitLengthLg_hi_3 = _txEmitLengthLg_T_5[7:4]; // @[OneHot.scala 30:18]
+  wire  _txEmitLengthLg_T_6 = |txEmitLengthLg_hi_3; // @[OneHot.scala 32:14]
+  wire [3:0] txEmitLengthLg_lo_3 = _txEmitLengthLg_T_5[3:0]; // @[OneHot.scala 31:18]
+  wire [3:0] _txEmitLengthLg_T_7 = txEmitLengthLg_hi_3 | txEmitLengthLg_lo_3; // @[OneHot.scala 32:28]
+  wire [1:0] txEmitLengthLg_hi_4 = _txEmitLengthLg_T_7[3:2]; // @[OneHot.scala 30:18]
+  wire  _txEmitLengthLg_T_8 = |txEmitLengthLg_hi_4; // @[OneHot.scala 32:14]
+  wire [1:0] txEmitLengthLg_lo_4 = _txEmitLengthLg_T_7[1:0]; // @[OneHot.scala 31:18]
+  wire [1:0] _txEmitLengthLg_T_9 = txEmitLengthLg_hi_4 | txEmitLengthLg_lo_4; // @[OneHot.scala 32:28]
+  wire [5:0] _txEmitLengthLg_T_15 = {_txEmitLengthLg_T,_txEmitLengthLg_T_2,_txEmitLengthLg_T_4,_txEmitLengthLg_T_6,
+    _txEmitLengthLg_T_8,_txEmitLengthLg_T_9[1]}; // @[Cat.scala 33:92]
+  wire [5:0] _txEmitLengthLg_T_16 = isBelowLimit ? _txEmitLengthLg_T_15 : 6'h6; // @[CScratchpad.scala 150:28]
+  wire [5:0] _GEN_111 = 2'h1 == mem_tx_state ? _txEmitLengthLg_T_16 : 6'h0; // @[CScratchpad.scala 131:18 138:24 150:22]
+  wire [5:0] _GEN_169 = 2'h0 == mem_tx_state ? 6'h0 : _GEN_111; // @[CScratchpad.scala 131:18 138:24]
+  wire [3:0] txEmitLengthLg = _GEN_169[3:0]; // @[CScratchpad.scala 130:36]
+  wire [5:0] _x1_a_bits_a_mask_sizeOH_T = {{2'd0}, txEmitLengthLg}; // @[Misc.scala 201:34]
+  wire [2:0] x1_a_bits_a_mask_sizeOH_shiftAmount = _x1_a_bits_a_mask_sizeOH_T[2:0]; // @[OneHot.scala 63:49]
+  wire [7:0] _x1_a_bits_a_mask_sizeOH_T_1 = 8'h1 << x1_a_bits_a_mask_sizeOH_shiftAmount; // @[OneHot.scala 64:12]
+  wire [5:0] x1_a_bits_a_mask_sizeOH = _x1_a_bits_a_mask_sizeOH_T_1[5:0] | 6'h1; // @[Misc.scala 201:81]
+  wire  _x1_a_bits_a_mask_T = txEmitLengthLg >= 4'h6; // @[Misc.scala 205:21]
+  wire  x1_a_bits_a_mask_size = x1_a_bits_a_mask_sizeOH[5]; // @[Misc.scala 208:26]
+  wire  x1_a_bits_a_mask_bit = totalTx_memoryAddress[5]; // @[Misc.scala 209:26]
+  wire  x1_a_bits_a_mask_nbit = ~x1_a_bits_a_mask_bit; // @[Misc.scala 210:20]
+  wire  x1_a_bits_a_mask_acc = _x1_a_bits_a_mask_T | x1_a_bits_a_mask_size & x1_a_bits_a_mask_nbit; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_acc_1 = _x1_a_bits_a_mask_T | x1_a_bits_a_mask_size & x1_a_bits_a_mask_bit; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_size_1 = x1_a_bits_a_mask_sizeOH[4]; // @[Misc.scala 208:26]
+  wire  x1_a_bits_a_mask_bit_1 = totalTx_memoryAddress[4]; // @[Misc.scala 209:26]
+  wire  x1_a_bits_a_mask_nbit_1 = ~x1_a_bits_a_mask_bit_1; // @[Misc.scala 210:20]
+  wire  x1_a_bits_a_mask_eq_2 = x1_a_bits_a_mask_nbit & x1_a_bits_a_mask_nbit_1; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_2 = x1_a_bits_a_mask_acc | x1_a_bits_a_mask_size_1 & x1_a_bits_a_mask_eq_2; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_3 = x1_a_bits_a_mask_nbit & x1_a_bits_a_mask_bit_1; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_3 = x1_a_bits_a_mask_acc | x1_a_bits_a_mask_size_1 & x1_a_bits_a_mask_eq_3; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_4 = x1_a_bits_a_mask_bit & x1_a_bits_a_mask_nbit_1; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_4 = x1_a_bits_a_mask_acc_1 | x1_a_bits_a_mask_size_1 & x1_a_bits_a_mask_eq_4; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_5 = x1_a_bits_a_mask_bit & x1_a_bits_a_mask_bit_1; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_5 = x1_a_bits_a_mask_acc_1 | x1_a_bits_a_mask_size_1 & x1_a_bits_a_mask_eq_5; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_size_2 = x1_a_bits_a_mask_sizeOH[3]; // @[Misc.scala 208:26]
+  wire  x1_a_bits_a_mask_bit_2 = totalTx_memoryAddress[3]; // @[Misc.scala 209:26]
+  wire  x1_a_bits_a_mask_nbit_2 = ~x1_a_bits_a_mask_bit_2; // @[Misc.scala 210:20]
+  wire  x1_a_bits_a_mask_eq_6 = x1_a_bits_a_mask_eq_2 & x1_a_bits_a_mask_nbit_2; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_6 = x1_a_bits_a_mask_acc_2 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_6; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_7 = x1_a_bits_a_mask_eq_2 & x1_a_bits_a_mask_bit_2; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_7 = x1_a_bits_a_mask_acc_2 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_7; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_8 = x1_a_bits_a_mask_eq_3 & x1_a_bits_a_mask_nbit_2; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_8 = x1_a_bits_a_mask_acc_3 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_8; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_9 = x1_a_bits_a_mask_eq_3 & x1_a_bits_a_mask_bit_2; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_9 = x1_a_bits_a_mask_acc_3 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_9; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_10 = x1_a_bits_a_mask_eq_4 & x1_a_bits_a_mask_nbit_2; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_10 = x1_a_bits_a_mask_acc_4 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_10; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_11 = x1_a_bits_a_mask_eq_4 & x1_a_bits_a_mask_bit_2; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_11 = x1_a_bits_a_mask_acc_4 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_11; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_12 = x1_a_bits_a_mask_eq_5 & x1_a_bits_a_mask_nbit_2; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_12 = x1_a_bits_a_mask_acc_5 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_12; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_13 = x1_a_bits_a_mask_eq_5 & x1_a_bits_a_mask_bit_2; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_13 = x1_a_bits_a_mask_acc_5 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_13; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_size_3 = x1_a_bits_a_mask_sizeOH[2]; // @[Misc.scala 208:26]
+  wire  x1_a_bits_a_mask_bit_3 = totalTx_memoryAddress[2]; // @[Misc.scala 209:26]
+  wire  x1_a_bits_a_mask_nbit_3 = ~x1_a_bits_a_mask_bit_3; // @[Misc.scala 210:20]
+  wire  x1_a_bits_a_mask_eq_14 = x1_a_bits_a_mask_eq_6 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_14 = x1_a_bits_a_mask_acc_6 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_14; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_15 = x1_a_bits_a_mask_eq_6 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_15 = x1_a_bits_a_mask_acc_6 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_15; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_16 = x1_a_bits_a_mask_eq_7 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_16 = x1_a_bits_a_mask_acc_7 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_16; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_17 = x1_a_bits_a_mask_eq_7 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_17 = x1_a_bits_a_mask_acc_7 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_17; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_18 = x1_a_bits_a_mask_eq_8 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_18 = x1_a_bits_a_mask_acc_8 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_18; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_19 = x1_a_bits_a_mask_eq_8 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_19 = x1_a_bits_a_mask_acc_8 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_19; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_20 = x1_a_bits_a_mask_eq_9 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_20 = x1_a_bits_a_mask_acc_9 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_20; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_21 = x1_a_bits_a_mask_eq_9 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_21 = x1_a_bits_a_mask_acc_9 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_21; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_22 = x1_a_bits_a_mask_eq_10 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_22 = x1_a_bits_a_mask_acc_10 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_22; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_23 = x1_a_bits_a_mask_eq_10 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_23 = x1_a_bits_a_mask_acc_10 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_23; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_24 = x1_a_bits_a_mask_eq_11 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_24 = x1_a_bits_a_mask_acc_11 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_24; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_25 = x1_a_bits_a_mask_eq_11 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_25 = x1_a_bits_a_mask_acc_11 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_25; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_26 = x1_a_bits_a_mask_eq_12 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_26 = x1_a_bits_a_mask_acc_12 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_26; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_27 = x1_a_bits_a_mask_eq_12 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_27 = x1_a_bits_a_mask_acc_12 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_27; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_28 = x1_a_bits_a_mask_eq_13 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_28 = x1_a_bits_a_mask_acc_13 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_28; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_29 = x1_a_bits_a_mask_eq_13 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_29 = x1_a_bits_a_mask_acc_13 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_29; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_size_4 = x1_a_bits_a_mask_sizeOH[1]; // @[Misc.scala 208:26]
+  wire  x1_a_bits_a_mask_bit_4 = totalTx_memoryAddress[1]; // @[Misc.scala 209:26]
+  wire  x1_a_bits_a_mask_nbit_4 = ~x1_a_bits_a_mask_bit_4; // @[Misc.scala 210:20]
+  wire  x1_a_bits_a_mask_eq_30 = x1_a_bits_a_mask_eq_14 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_30 = x1_a_bits_a_mask_acc_14 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_30; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_31 = x1_a_bits_a_mask_eq_14 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_31 = x1_a_bits_a_mask_acc_14 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_31; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_32 = x1_a_bits_a_mask_eq_15 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_32 = x1_a_bits_a_mask_acc_15 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_32; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_33 = x1_a_bits_a_mask_eq_15 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_33 = x1_a_bits_a_mask_acc_15 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_33; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_34 = x1_a_bits_a_mask_eq_16 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_34 = x1_a_bits_a_mask_acc_16 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_34; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_35 = x1_a_bits_a_mask_eq_16 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_35 = x1_a_bits_a_mask_acc_16 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_35; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_36 = x1_a_bits_a_mask_eq_17 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_36 = x1_a_bits_a_mask_acc_17 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_36; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_37 = x1_a_bits_a_mask_eq_17 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_37 = x1_a_bits_a_mask_acc_17 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_37; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_38 = x1_a_bits_a_mask_eq_18 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_38 = x1_a_bits_a_mask_acc_18 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_38; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_39 = x1_a_bits_a_mask_eq_18 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_39 = x1_a_bits_a_mask_acc_18 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_39; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_40 = x1_a_bits_a_mask_eq_19 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_40 = x1_a_bits_a_mask_acc_19 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_40; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_41 = x1_a_bits_a_mask_eq_19 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_41 = x1_a_bits_a_mask_acc_19 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_41; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_42 = x1_a_bits_a_mask_eq_20 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_42 = x1_a_bits_a_mask_acc_20 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_42; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_43 = x1_a_bits_a_mask_eq_20 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_43 = x1_a_bits_a_mask_acc_20 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_43; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_44 = x1_a_bits_a_mask_eq_21 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_44 = x1_a_bits_a_mask_acc_21 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_44; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_45 = x1_a_bits_a_mask_eq_21 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_45 = x1_a_bits_a_mask_acc_21 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_45; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_46 = x1_a_bits_a_mask_eq_22 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_46 = x1_a_bits_a_mask_acc_22 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_46; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_47 = x1_a_bits_a_mask_eq_22 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_47 = x1_a_bits_a_mask_acc_22 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_47; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_48 = x1_a_bits_a_mask_eq_23 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_48 = x1_a_bits_a_mask_acc_23 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_48; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_49 = x1_a_bits_a_mask_eq_23 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_49 = x1_a_bits_a_mask_acc_23 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_49; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_50 = x1_a_bits_a_mask_eq_24 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_50 = x1_a_bits_a_mask_acc_24 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_50; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_51 = x1_a_bits_a_mask_eq_24 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_51 = x1_a_bits_a_mask_acc_24 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_51; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_52 = x1_a_bits_a_mask_eq_25 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_52 = x1_a_bits_a_mask_acc_25 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_52; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_53 = x1_a_bits_a_mask_eq_25 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_53 = x1_a_bits_a_mask_acc_25 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_53; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_54 = x1_a_bits_a_mask_eq_26 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_54 = x1_a_bits_a_mask_acc_26 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_54; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_55 = x1_a_bits_a_mask_eq_26 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_55 = x1_a_bits_a_mask_acc_26 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_55; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_56 = x1_a_bits_a_mask_eq_27 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_56 = x1_a_bits_a_mask_acc_27 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_56; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_57 = x1_a_bits_a_mask_eq_27 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_57 = x1_a_bits_a_mask_acc_27 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_57; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_58 = x1_a_bits_a_mask_eq_28 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_58 = x1_a_bits_a_mask_acc_28 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_58; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_59 = x1_a_bits_a_mask_eq_28 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_59 = x1_a_bits_a_mask_acc_28 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_59; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_60 = x1_a_bits_a_mask_eq_29 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_60 = x1_a_bits_a_mask_acc_29 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_60; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_61 = x1_a_bits_a_mask_eq_29 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_61 = x1_a_bits_a_mask_acc_29 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_61; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_size_5 = x1_a_bits_a_mask_sizeOH[0]; // @[Misc.scala 208:26]
+  wire  x1_a_bits_a_mask_bit_5 = totalTx_memoryAddress[0]; // @[Misc.scala 209:26]
+  wire  x1_a_bits_a_mask_nbit_5 = ~x1_a_bits_a_mask_bit_5; // @[Misc.scala 210:20]
+  wire  x1_a_bits_a_mask_eq_62 = x1_a_bits_a_mask_eq_30 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_62 = x1_a_bits_a_mask_acc_30 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_62; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_63 = x1_a_bits_a_mask_eq_30 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_63 = x1_a_bits_a_mask_acc_30 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_63; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_64 = x1_a_bits_a_mask_eq_31 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_64 = x1_a_bits_a_mask_acc_31 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_64; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_65 = x1_a_bits_a_mask_eq_31 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_65 = x1_a_bits_a_mask_acc_31 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_65; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_66 = x1_a_bits_a_mask_eq_32 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_66 = x1_a_bits_a_mask_acc_32 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_66; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_67 = x1_a_bits_a_mask_eq_32 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_67 = x1_a_bits_a_mask_acc_32 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_67; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_68 = x1_a_bits_a_mask_eq_33 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_68 = x1_a_bits_a_mask_acc_33 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_68; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_69 = x1_a_bits_a_mask_eq_33 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_69 = x1_a_bits_a_mask_acc_33 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_69; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_70 = x1_a_bits_a_mask_eq_34 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_70 = x1_a_bits_a_mask_acc_34 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_70; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_71 = x1_a_bits_a_mask_eq_34 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_71 = x1_a_bits_a_mask_acc_34 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_71; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_72 = x1_a_bits_a_mask_eq_35 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_72 = x1_a_bits_a_mask_acc_35 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_72; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_73 = x1_a_bits_a_mask_eq_35 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_73 = x1_a_bits_a_mask_acc_35 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_73; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_74 = x1_a_bits_a_mask_eq_36 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_74 = x1_a_bits_a_mask_acc_36 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_74; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_75 = x1_a_bits_a_mask_eq_36 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_75 = x1_a_bits_a_mask_acc_36 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_75; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_76 = x1_a_bits_a_mask_eq_37 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_76 = x1_a_bits_a_mask_acc_37 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_76; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_77 = x1_a_bits_a_mask_eq_37 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_77 = x1_a_bits_a_mask_acc_37 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_77; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_78 = x1_a_bits_a_mask_eq_38 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_78 = x1_a_bits_a_mask_acc_38 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_78; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_79 = x1_a_bits_a_mask_eq_38 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_79 = x1_a_bits_a_mask_acc_38 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_79; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_80 = x1_a_bits_a_mask_eq_39 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_80 = x1_a_bits_a_mask_acc_39 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_80; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_81 = x1_a_bits_a_mask_eq_39 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_81 = x1_a_bits_a_mask_acc_39 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_81; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_82 = x1_a_bits_a_mask_eq_40 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_82 = x1_a_bits_a_mask_acc_40 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_82; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_83 = x1_a_bits_a_mask_eq_40 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_83 = x1_a_bits_a_mask_acc_40 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_83; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_84 = x1_a_bits_a_mask_eq_41 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_84 = x1_a_bits_a_mask_acc_41 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_84; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_85 = x1_a_bits_a_mask_eq_41 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_85 = x1_a_bits_a_mask_acc_41 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_85; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_86 = x1_a_bits_a_mask_eq_42 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_86 = x1_a_bits_a_mask_acc_42 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_86; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_87 = x1_a_bits_a_mask_eq_42 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_87 = x1_a_bits_a_mask_acc_42 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_87; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_88 = x1_a_bits_a_mask_eq_43 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_88 = x1_a_bits_a_mask_acc_43 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_88; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_89 = x1_a_bits_a_mask_eq_43 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_89 = x1_a_bits_a_mask_acc_43 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_89; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_90 = x1_a_bits_a_mask_eq_44 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_90 = x1_a_bits_a_mask_acc_44 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_90; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_91 = x1_a_bits_a_mask_eq_44 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_91 = x1_a_bits_a_mask_acc_44 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_91; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_92 = x1_a_bits_a_mask_eq_45 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_92 = x1_a_bits_a_mask_acc_45 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_92; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_93 = x1_a_bits_a_mask_eq_45 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_93 = x1_a_bits_a_mask_acc_45 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_93; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_94 = x1_a_bits_a_mask_eq_46 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_94 = x1_a_bits_a_mask_acc_46 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_94; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_95 = x1_a_bits_a_mask_eq_46 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_95 = x1_a_bits_a_mask_acc_46 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_95; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_96 = x1_a_bits_a_mask_eq_47 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_96 = x1_a_bits_a_mask_acc_47 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_96; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_97 = x1_a_bits_a_mask_eq_47 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_97 = x1_a_bits_a_mask_acc_47 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_97; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_98 = x1_a_bits_a_mask_eq_48 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_98 = x1_a_bits_a_mask_acc_48 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_98; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_99 = x1_a_bits_a_mask_eq_48 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_99 = x1_a_bits_a_mask_acc_48 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_99; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_100 = x1_a_bits_a_mask_eq_49 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_100 = x1_a_bits_a_mask_acc_49 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_100; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_101 = x1_a_bits_a_mask_eq_49 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_101 = x1_a_bits_a_mask_acc_49 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_101; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_102 = x1_a_bits_a_mask_eq_50 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_102 = x1_a_bits_a_mask_acc_50 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_102; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_103 = x1_a_bits_a_mask_eq_50 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_103 = x1_a_bits_a_mask_acc_50 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_103; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_104 = x1_a_bits_a_mask_eq_51 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_104 = x1_a_bits_a_mask_acc_51 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_104; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_105 = x1_a_bits_a_mask_eq_51 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_105 = x1_a_bits_a_mask_acc_51 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_105; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_106 = x1_a_bits_a_mask_eq_52 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_106 = x1_a_bits_a_mask_acc_52 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_106; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_107 = x1_a_bits_a_mask_eq_52 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_107 = x1_a_bits_a_mask_acc_52 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_107; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_108 = x1_a_bits_a_mask_eq_53 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_108 = x1_a_bits_a_mask_acc_53 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_108; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_109 = x1_a_bits_a_mask_eq_53 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_109 = x1_a_bits_a_mask_acc_53 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_109; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_110 = x1_a_bits_a_mask_eq_54 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_110 = x1_a_bits_a_mask_acc_54 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_110; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_111 = x1_a_bits_a_mask_eq_54 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_111 = x1_a_bits_a_mask_acc_54 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_111; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_112 = x1_a_bits_a_mask_eq_55 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_112 = x1_a_bits_a_mask_acc_55 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_112; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_113 = x1_a_bits_a_mask_eq_55 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_113 = x1_a_bits_a_mask_acc_55 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_113; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_114 = x1_a_bits_a_mask_eq_56 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_114 = x1_a_bits_a_mask_acc_56 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_114; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_115 = x1_a_bits_a_mask_eq_56 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_115 = x1_a_bits_a_mask_acc_56 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_115; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_116 = x1_a_bits_a_mask_eq_57 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_116 = x1_a_bits_a_mask_acc_57 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_116; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_117 = x1_a_bits_a_mask_eq_57 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_117 = x1_a_bits_a_mask_acc_57 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_117; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_118 = x1_a_bits_a_mask_eq_58 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_118 = x1_a_bits_a_mask_acc_58 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_118; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_119 = x1_a_bits_a_mask_eq_58 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_119 = x1_a_bits_a_mask_acc_58 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_119; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_120 = x1_a_bits_a_mask_eq_59 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_120 = x1_a_bits_a_mask_acc_59 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_120; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_121 = x1_a_bits_a_mask_eq_59 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_121 = x1_a_bits_a_mask_acc_59 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_121; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_122 = x1_a_bits_a_mask_eq_60 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_122 = x1_a_bits_a_mask_acc_60 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_122; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_123 = x1_a_bits_a_mask_eq_60 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_123 = x1_a_bits_a_mask_acc_60 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_123; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_124 = x1_a_bits_a_mask_eq_61 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_124 = x1_a_bits_a_mask_acc_61 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_124; // @[Misc.scala 214:29]
+  wire  x1_a_bits_a_mask_eq_125 = x1_a_bits_a_mask_eq_61 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
+  wire  x1_a_bits_a_mask_acc_125 = x1_a_bits_a_mask_acc_61 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_125; // @[Misc.scala 214:29]
+  wire [7:0] x1_a_bits_a_mask_lo_lo_lo = {x1_a_bits_a_mask_acc_69,x1_a_bits_a_mask_acc_68,x1_a_bits_a_mask_acc_67,
+    x1_a_bits_a_mask_acc_66,x1_a_bits_a_mask_acc_65,x1_a_bits_a_mask_acc_64,x1_a_bits_a_mask_acc_63,
+    x1_a_bits_a_mask_acc_62}; // @[Cat.scala 33:92]
+  wire [15:0] x1_a_bits_a_mask_lo_lo = {x1_a_bits_a_mask_acc_77,x1_a_bits_a_mask_acc_76,x1_a_bits_a_mask_acc_75,
+    x1_a_bits_a_mask_acc_74,x1_a_bits_a_mask_acc_73,x1_a_bits_a_mask_acc_72,x1_a_bits_a_mask_acc_71,
+    x1_a_bits_a_mask_acc_70,x1_a_bits_a_mask_lo_lo_lo}; // @[Cat.scala 33:92]
+  wire [7:0] x1_a_bits_a_mask_lo_hi_lo = {x1_a_bits_a_mask_acc_85,x1_a_bits_a_mask_acc_84,x1_a_bits_a_mask_acc_83,
+    x1_a_bits_a_mask_acc_82,x1_a_bits_a_mask_acc_81,x1_a_bits_a_mask_acc_80,x1_a_bits_a_mask_acc_79,
+    x1_a_bits_a_mask_acc_78}; // @[Cat.scala 33:92]
+  wire [31:0] x1_a_bits_a_mask_lo = {x1_a_bits_a_mask_acc_93,x1_a_bits_a_mask_acc_92,x1_a_bits_a_mask_acc_91,
+    x1_a_bits_a_mask_acc_90,x1_a_bits_a_mask_acc_89,x1_a_bits_a_mask_acc_88,x1_a_bits_a_mask_acc_87,
+    x1_a_bits_a_mask_acc_86,x1_a_bits_a_mask_lo_hi_lo,x1_a_bits_a_mask_lo_lo}; // @[Cat.scala 33:92]
+  wire [7:0] x1_a_bits_a_mask_hi_lo_lo = {x1_a_bits_a_mask_acc_101,x1_a_bits_a_mask_acc_100,x1_a_bits_a_mask_acc_99,
+    x1_a_bits_a_mask_acc_98,x1_a_bits_a_mask_acc_97,x1_a_bits_a_mask_acc_96,x1_a_bits_a_mask_acc_95,
+    x1_a_bits_a_mask_acc_94}; // @[Cat.scala 33:92]
+  wire [15:0] x1_a_bits_a_mask_hi_lo = {x1_a_bits_a_mask_acc_109,x1_a_bits_a_mask_acc_108,x1_a_bits_a_mask_acc_107,
+    x1_a_bits_a_mask_acc_106,x1_a_bits_a_mask_acc_105,x1_a_bits_a_mask_acc_104,x1_a_bits_a_mask_acc_103,
+    x1_a_bits_a_mask_acc_102,x1_a_bits_a_mask_hi_lo_lo}; // @[Cat.scala 33:92]
+  wire [7:0] x1_a_bits_a_mask_hi_hi_lo = {x1_a_bits_a_mask_acc_117,x1_a_bits_a_mask_acc_116,x1_a_bits_a_mask_acc_115,
+    x1_a_bits_a_mask_acc_114,x1_a_bits_a_mask_acc_113,x1_a_bits_a_mask_acc_112,x1_a_bits_a_mask_acc_111,
+    x1_a_bits_a_mask_acc_110}; // @[Cat.scala 33:92]
+  wire [31:0] x1_a_bits_a_mask_hi = {x1_a_bits_a_mask_acc_125,x1_a_bits_a_mask_acc_124,x1_a_bits_a_mask_acc_123,
+    x1_a_bits_a_mask_acc_122,x1_a_bits_a_mask_acc_121,x1_a_bits_a_mask_acc_120,x1_a_bits_a_mask_acc_119,
+    x1_a_bits_a_mask_acc_118,x1_a_bits_a_mask_hi_hi_lo,x1_a_bits_a_mask_hi_lo}; // @[Cat.scala 33:92]
+  wire  _GEN_112 = 2'h1 == mem_tx_state ? reqAvailable : mem_tx_state == 2'h1; // @[CScratchpad.scala 136:19 138:24 151:23]
+  wire  mem_out_a_valid = 2'h0 == mem_tx_state ? mem_tx_state == 2'h1 : _GEN_112; // @[CScratchpad.scala 136:19 138:24]
+  wire  _T_13 = auto_mem_out_a_ready & mem_out_a_valid; // @[Decoupled.scala 51:35]
+  wire  _GEN_8 = 4'h0 == reqChosen ? 1'h0 : reqIdleBits_0; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_9 = 4'h1 == reqChosen ? 1'h0 : reqIdleBits_1; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_10 = 4'h2 == reqChosen ? 1'h0 : reqIdleBits_2; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_11 = 4'h3 == reqChosen ? 1'h0 : reqIdleBits_3; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_12 = 4'h4 == reqChosen ? 1'h0 : reqIdleBits_4; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_13 = 4'h5 == reqChosen ? 1'h0 : reqIdleBits_5; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_14 = 4'h6 == reqChosen ? 1'h0 : reqIdleBits_6; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_15 = 4'h7 == reqChosen ? 1'h0 : reqIdleBits_7; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_16 = 4'h8 == reqChosen ? 1'h0 : reqIdleBits_8; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_17 = 4'h9 == reqChosen ? 1'h0 : reqIdleBits_9; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_18 = 4'ha == reqChosen ? 1'h0 : reqIdleBits_10; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_19 = 4'hb == reqChosen ? 1'h0 : reqIdleBits_11; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_20 = 4'hc == reqChosen ? 1'h0 : reqIdleBits_12; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_21 = 4'hd == reqChosen ? 1'h0 : reqIdleBits_13; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_22 = 4'he == reqChosen ? 1'h0 : reqIdleBits_14; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire  _GEN_23 = 4'hf == reqChosen ? 1'h0 : reqIdleBits_15; // @[CScratchpad.scala 153:{32,32} 110:36]
+  wire [8:0] _GEN_24 = 4'h0 == reqChosen ? totalTx_scratchpadAddress : req_cache_0_scratchpadAddress; // @[CScratchpad.scala 114:30 154:{48,48}]
+  wire [8:0] _GEN_25 = 4'h1 == reqChosen ? totalTx_scratchpadAddress : req_cache_1_scratchpadAddress; // @[CScratchpad.scala 114:30 154:{48,48}]
+  wire [8:0] _GEN_26 = 4'h2 == reqChosen ? totalTx_scratchpadAddress : req_cache_2_scratchpadAddress; // @[CScratchpad.scala 114:30 154:{48,48}]
+  wire [8:0] _GEN_27 = 4'h3 == reqChosen ? totalTx_scratchpadAddress : req_cache_3_scratchpadAddress; // @[CScratchpad.scala 114:30 154:{48,48}]
+  wire [8:0] _GEN_28 = 4'h4 == reqChosen ? totalTx_scratchpadAddress : req_cache_4_scratchpadAddress; // @[CScratchpad.scala 114:30 154:{48,48}]
+  wire [8:0] _GEN_29 = 4'h5 == reqChosen ? totalTx_scratchpadAddress : req_cache_5_scratchpadAddress; // @[CScratchpad.scala 114:30 154:{48,48}]
+  wire [8:0] _GEN_30 = 4'h6 == reqChosen ? totalTx_scratchpadAddress : req_cache_6_scratchpadAddress; // @[CScratchpad.scala 114:30 154:{48,48}]
+  wire [8:0] _GEN_31 = 4'h7 == reqChosen ? totalTx_scratchpadAddress : req_cache_7_scratchpadAddress; // @[CScratchpad.scala 114:30 154:{48,48}]
+  wire [8:0] _GEN_32 = 4'h8 == reqChosen ? totalTx_scratchpadAddress : req_cache_8_scratchpadAddress; // @[CScratchpad.scala 114:30 154:{48,48}]
+  wire [8:0] _GEN_33 = 4'h9 == reqChosen ? totalTx_scratchpadAddress : req_cache_9_scratchpadAddress; // @[CScratchpad.scala 114:30 154:{48,48}]
+  wire [8:0] _GEN_34 = 4'ha == reqChosen ? totalTx_scratchpadAddress : req_cache_10_scratchpadAddress; // @[CScratchpad.scala 114:30 154:{48,48}]
+  wire [8:0] _GEN_35 = 4'hb == reqChosen ? totalTx_scratchpadAddress : req_cache_11_scratchpadAddress; // @[CScratchpad.scala 114:30 154:{48,48}]
+  wire [8:0] _GEN_36 = 4'hc == reqChosen ? totalTx_scratchpadAddress : req_cache_12_scratchpadAddress; // @[CScratchpad.scala 114:30 154:{48,48}]
+  wire [8:0] _GEN_37 = 4'hd == reqChosen ? totalTx_scratchpadAddress : req_cache_13_scratchpadAddress; // @[CScratchpad.scala 114:30 154:{48,48}]
+  wire [8:0] _GEN_38 = 4'he == reqChosen ? totalTx_scratchpadAddress : req_cache_14_scratchpadAddress; // @[CScratchpad.scala 114:30 154:{48,48}]
+  wire [8:0] _GEN_39 = 4'hf == reqChosen ? totalTx_scratchpadAddress : req_cache_15_scratchpadAddress; // @[CScratchpad.scala 114:30 154:{48,48}]
+  wire [33:0] _req_cache_memoryLength_T = isBelowLimit ? totalTx_memoryLength : 34'h40; // @[CScratchpad.scala 155:49]
+  wire [15:0] _GEN_40 = 4'h0 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_0_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_41 = 4'h1 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_1_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_42 = 4'h2 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_2_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_43 = 4'h3 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_3_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_44 = 4'h4 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_4_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_45 = 4'h5 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_5_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_46 = 4'h6 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_6_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_47 = 4'h7 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_7_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_48 = 4'h8 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_8_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_49 = 4'h9 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_9_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_50 = 4'ha == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_10_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_51 = 4'hb == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_11_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_52 = 4'hc == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_12_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_53 = 4'hd == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_13_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_54 = 4'he == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_14_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [15:0] _GEN_55 = 4'hf == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_15_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
+  wire [33:0] _totalTx_memoryLength_T_1 = totalTx_memoryLength - 34'h40; // @[CScratchpad.scala 156:54]
+  wire [8:0] _totalTx_scratchpadAddress_T_1 = totalTx_scratchpadAddress + 9'h2; // @[CScratchpad.scala 157:64]
+  wire [33:0] _totalTx_memoryAddress_T_1 = totalTx_memoryAddress + 34'h40; // @[CScratchpad.scala 158:56]
+  wire [1:0] _GEN_56 = isBelowLimit ? 2'h2 : mem_tx_state; // @[CScratchpad.scala 159:28 160:24 102:37]
+  wire  _GEN_57 = _T_13 ? _GEN_8 : reqIdleBits_0; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_58 = _T_13 ? _GEN_9 : reqIdleBits_1; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_59 = _T_13 ? _GEN_10 : reqIdleBits_2; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_60 = _T_13 ? _GEN_11 : reqIdleBits_3; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_61 = _T_13 ? _GEN_12 : reqIdleBits_4; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_62 = _T_13 ? _GEN_13 : reqIdleBits_5; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_63 = _T_13 ? _GEN_14 : reqIdleBits_6; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_64 = _T_13 ? _GEN_15 : reqIdleBits_7; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_65 = _T_13 ? _GEN_16 : reqIdleBits_8; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_66 = _T_13 ? _GEN_17 : reqIdleBits_9; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_67 = _T_13 ? _GEN_18 : reqIdleBits_10; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_68 = _T_13 ? _GEN_19 : reqIdleBits_11; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_69 = _T_13 ? _GEN_20 : reqIdleBits_12; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_70 = _T_13 ? _GEN_21 : reqIdleBits_13; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_71 = _T_13 ? _GEN_22 : reqIdleBits_14; // @[CScratchpad.scala 152:28 110:36]
+  wire  _GEN_72 = _T_13 ? _GEN_23 : reqIdleBits_15; // @[CScratchpad.scala 152:28 110:36]
+  wire [8:0] _GEN_73 = _T_13 ? _GEN_24 : req_cache_0_scratchpadAddress; // @[CScratchpad.scala 152:28 114:30]
+  wire [8:0] _GEN_74 = _T_13 ? _GEN_25 : req_cache_1_scratchpadAddress; // @[CScratchpad.scala 152:28 114:30]
+  wire [8:0] _GEN_75 = _T_13 ? _GEN_26 : req_cache_2_scratchpadAddress; // @[CScratchpad.scala 152:28 114:30]
+  wire [8:0] _GEN_76 = _T_13 ? _GEN_27 : req_cache_3_scratchpadAddress; // @[CScratchpad.scala 152:28 114:30]
+  wire [8:0] _GEN_77 = _T_13 ? _GEN_28 : req_cache_4_scratchpadAddress; // @[CScratchpad.scala 152:28 114:30]
+  wire [8:0] _GEN_78 = _T_13 ? _GEN_29 : req_cache_5_scratchpadAddress; // @[CScratchpad.scala 152:28 114:30]
+  wire [8:0] _GEN_79 = _T_13 ? _GEN_30 : req_cache_6_scratchpadAddress; // @[CScratchpad.scala 152:28 114:30]
+  wire [8:0] _GEN_80 = _T_13 ? _GEN_31 : req_cache_7_scratchpadAddress; // @[CScratchpad.scala 152:28 114:30]
+  wire [8:0] _GEN_81 = _T_13 ? _GEN_32 : req_cache_8_scratchpadAddress; // @[CScratchpad.scala 152:28 114:30]
+  wire [8:0] _GEN_82 = _T_13 ? _GEN_33 : req_cache_9_scratchpadAddress; // @[CScratchpad.scala 152:28 114:30]
+  wire [8:0] _GEN_83 = _T_13 ? _GEN_34 : req_cache_10_scratchpadAddress; // @[CScratchpad.scala 152:28 114:30]
+  wire [8:0] _GEN_84 = _T_13 ? _GEN_35 : req_cache_11_scratchpadAddress; // @[CScratchpad.scala 152:28 114:30]
+  wire [8:0] _GEN_85 = _T_13 ? _GEN_36 : req_cache_12_scratchpadAddress; // @[CScratchpad.scala 152:28 114:30]
+  wire [8:0] _GEN_86 = _T_13 ? _GEN_37 : req_cache_13_scratchpadAddress; // @[CScratchpad.scala 152:28 114:30]
+  wire [8:0] _GEN_87 = _T_13 ? _GEN_38 : req_cache_14_scratchpadAddress; // @[CScratchpad.scala 152:28 114:30]
+  wire [8:0] _GEN_88 = _T_13 ? _GEN_39 : req_cache_15_scratchpadAddress; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_89 = _T_13 ? _GEN_40 : req_cache_0_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_90 = _T_13 ? _GEN_41 : req_cache_1_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_91 = _T_13 ? _GEN_42 : req_cache_2_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_92 = _T_13 ? _GEN_43 : req_cache_3_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_93 = _T_13 ? _GEN_44 : req_cache_4_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_94 = _T_13 ? _GEN_45 : req_cache_5_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_95 = _T_13 ? _GEN_46 : req_cache_6_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_96 = _T_13 ? _GEN_47 : req_cache_7_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_97 = _T_13 ? _GEN_48 : req_cache_8_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_98 = _T_13 ? _GEN_49 : req_cache_9_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_99 = _T_13 ? _GEN_50 : req_cache_10_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_100 = _T_13 ? _GEN_51 : req_cache_11_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_101 = _T_13 ? _GEN_52 : req_cache_12_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_102 = _T_13 ? _GEN_53 : req_cache_13_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_103 = _T_13 ? _GEN_54 : req_cache_14_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [15:0] _GEN_104 = _T_13 ? _GEN_55 : req_cache_15_memoryLength; // @[CScratchpad.scala 152:28 114:30]
+  wire [1:0] _GEN_109 = reqIdleBits_0 & reqIdleBits_1 & reqIdleBits_2 & reqIdleBits_3 & reqIdleBits_4 & reqIdleBits_5 &
+    reqIdleBits_6 & reqIdleBits_7 & reqIdleBits_8 & reqIdleBits_9 & reqIdleBits_10 & reqIdleBits_11 & reqIdleBits_12 &
+    reqIdleBits_13 & reqIdleBits_14 & reqIdleBits_15 ? 2'h0 : mem_tx_state; // @[CScratchpad.scala 166:40 167:22 102:37]
+  wire  _GEN_113 = 2'h1 == mem_tx_state ? _GEN_57 : reqIdleBits_0; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_114 = 2'h1 == mem_tx_state ? _GEN_58 : reqIdleBits_1; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_115 = 2'h1 == mem_tx_state ? _GEN_59 : reqIdleBits_2; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_116 = 2'h1 == mem_tx_state ? _GEN_60 : reqIdleBits_3; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_117 = 2'h1 == mem_tx_state ? _GEN_61 : reqIdleBits_4; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_118 = 2'h1 == mem_tx_state ? _GEN_62 : reqIdleBits_5; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_119 = 2'h1 == mem_tx_state ? _GEN_63 : reqIdleBits_6; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_120 = 2'h1 == mem_tx_state ? _GEN_64 : reqIdleBits_7; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_121 = 2'h1 == mem_tx_state ? _GEN_65 : reqIdleBits_8; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_122 = 2'h1 == mem_tx_state ? _GEN_66 : reqIdleBits_9; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_123 = 2'h1 == mem_tx_state ? _GEN_67 : reqIdleBits_10; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_124 = 2'h1 == mem_tx_state ? _GEN_68 : reqIdleBits_11; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_125 = 2'h1 == mem_tx_state ? _GEN_69 : reqIdleBits_12; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_126 = 2'h1 == mem_tx_state ? _GEN_70 : reqIdleBits_13; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_127 = 2'h1 == mem_tx_state ? _GEN_71 : reqIdleBits_14; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_128 = 2'h1 == mem_tx_state ? _GEN_72 : reqIdleBits_15; // @[CScratchpad.scala 138:24 110:36]
+  wire [8:0] _GEN_129 = 2'h1 == mem_tx_state ? _GEN_73 : req_cache_0_scratchpadAddress; // @[CScratchpad.scala 138:24 114:30]
+  wire [8:0] _GEN_130 = 2'h1 == mem_tx_state ? _GEN_74 : req_cache_1_scratchpadAddress; // @[CScratchpad.scala 138:24 114:30]
+  wire [8:0] _GEN_131 = 2'h1 == mem_tx_state ? _GEN_75 : req_cache_2_scratchpadAddress; // @[CScratchpad.scala 138:24 114:30]
+  wire [8:0] _GEN_132 = 2'h1 == mem_tx_state ? _GEN_76 : req_cache_3_scratchpadAddress; // @[CScratchpad.scala 138:24 114:30]
+  wire [8:0] _GEN_133 = 2'h1 == mem_tx_state ? _GEN_77 : req_cache_4_scratchpadAddress; // @[CScratchpad.scala 138:24 114:30]
+  wire [8:0] _GEN_134 = 2'h1 == mem_tx_state ? _GEN_78 : req_cache_5_scratchpadAddress; // @[CScratchpad.scala 138:24 114:30]
+  wire [8:0] _GEN_135 = 2'h1 == mem_tx_state ? _GEN_79 : req_cache_6_scratchpadAddress; // @[CScratchpad.scala 138:24 114:30]
+  wire [8:0] _GEN_136 = 2'h1 == mem_tx_state ? _GEN_80 : req_cache_7_scratchpadAddress; // @[CScratchpad.scala 138:24 114:30]
+  wire [8:0] _GEN_137 = 2'h1 == mem_tx_state ? _GEN_81 : req_cache_8_scratchpadAddress; // @[CScratchpad.scala 138:24 114:30]
+  wire [8:0] _GEN_138 = 2'h1 == mem_tx_state ? _GEN_82 : req_cache_9_scratchpadAddress; // @[CScratchpad.scala 138:24 114:30]
+  wire [8:0] _GEN_139 = 2'h1 == mem_tx_state ? _GEN_83 : req_cache_10_scratchpadAddress; // @[CScratchpad.scala 138:24 114:30]
+  wire [8:0] _GEN_140 = 2'h1 == mem_tx_state ? _GEN_84 : req_cache_11_scratchpadAddress; // @[CScratchpad.scala 138:24 114:30]
+  wire [8:0] _GEN_141 = 2'h1 == mem_tx_state ? _GEN_85 : req_cache_12_scratchpadAddress; // @[CScratchpad.scala 138:24 114:30]
+  wire [8:0] _GEN_142 = 2'h1 == mem_tx_state ? _GEN_86 : req_cache_13_scratchpadAddress; // @[CScratchpad.scala 138:24 114:30]
+  wire [8:0] _GEN_143 = 2'h1 == mem_tx_state ? _GEN_87 : req_cache_14_scratchpadAddress; // @[CScratchpad.scala 138:24 114:30]
+  wire [8:0] _GEN_144 = 2'h1 == mem_tx_state ? _GEN_88 : req_cache_15_scratchpadAddress; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_145 = 2'h1 == mem_tx_state ? _GEN_89 : req_cache_0_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_146 = 2'h1 == mem_tx_state ? _GEN_90 : req_cache_1_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_147 = 2'h1 == mem_tx_state ? _GEN_91 : req_cache_2_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_148 = 2'h1 == mem_tx_state ? _GEN_92 : req_cache_3_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_149 = 2'h1 == mem_tx_state ? _GEN_93 : req_cache_4_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_150 = 2'h1 == mem_tx_state ? _GEN_94 : req_cache_5_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_151 = 2'h1 == mem_tx_state ? _GEN_95 : req_cache_6_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_152 = 2'h1 == mem_tx_state ? _GEN_96 : req_cache_7_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_153 = 2'h1 == mem_tx_state ? _GEN_97 : req_cache_8_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_154 = 2'h1 == mem_tx_state ? _GEN_98 : req_cache_9_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_155 = 2'h1 == mem_tx_state ? _GEN_99 : req_cache_10_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_156 = 2'h1 == mem_tx_state ? _GEN_100 : req_cache_11_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_157 = 2'h1 == mem_tx_state ? _GEN_101 : req_cache_12_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_158 = 2'h1 == mem_tx_state ? _GEN_102 : req_cache_13_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_159 = 2'h1 == mem_tx_state ? _GEN_103 : req_cache_14_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_160 = 2'h1 == mem_tx_state ? _GEN_104 : req_cache_15_memoryLength; // @[CScratchpad.scala 138:24 114:30]
+  wire  _GEN_171 = 2'h0 == mem_tx_state ? reqIdleBits_0 : _GEN_113; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_172 = 2'h0 == mem_tx_state ? reqIdleBits_1 : _GEN_114; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_173 = 2'h0 == mem_tx_state ? reqIdleBits_2 : _GEN_115; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_174 = 2'h0 == mem_tx_state ? reqIdleBits_3 : _GEN_116; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_175 = 2'h0 == mem_tx_state ? reqIdleBits_4 : _GEN_117; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_176 = 2'h0 == mem_tx_state ? reqIdleBits_5 : _GEN_118; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_177 = 2'h0 == mem_tx_state ? reqIdleBits_6 : _GEN_119; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_178 = 2'h0 == mem_tx_state ? reqIdleBits_7 : _GEN_120; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_179 = 2'h0 == mem_tx_state ? reqIdleBits_8 : _GEN_121; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_180 = 2'h0 == mem_tx_state ? reqIdleBits_9 : _GEN_122; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_181 = 2'h0 == mem_tx_state ? reqIdleBits_10 : _GEN_123; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_182 = 2'h0 == mem_tx_state ? reqIdleBits_11 : _GEN_124; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_183 = 2'h0 == mem_tx_state ? reqIdleBits_12 : _GEN_125; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_184 = 2'h0 == mem_tx_state ? reqIdleBits_13 : _GEN_126; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_185 = 2'h0 == mem_tx_state ? reqIdleBits_14 : _GEN_127; // @[CScratchpad.scala 138:24 110:36]
+  wire  _GEN_186 = 2'h0 == mem_tx_state ? reqIdleBits_15 : _GEN_128; // @[CScratchpad.scala 138:24 110:36]
+  wire [8:0] _GEN_187 = 2'h0 == mem_tx_state ? req_cache_0_scratchpadAddress : _GEN_129; // @[CScratchpad.scala 138:24 114:30]
+  wire [8:0] _GEN_188 = 2'h0 == mem_tx_state ? req_cache_1_scratchpadAddress : _GEN_130; // @[CScratchpad.scala 138:24 114:30]
+  wire [8:0] _GEN_189 = 2'h0 == mem_tx_state ? req_cache_2_scratchpadAddress : _GEN_131; // @[CScratchpad.scala 138:24 114:30]
+  wire [8:0] _GEN_190 = 2'h0 == mem_tx_state ? req_cache_3_scratchpadAddress : _GEN_132; // @[CScratchpad.scala 138:24 114:30]
+  wire [8:0] _GEN_191 = 2'h0 == mem_tx_state ? req_cache_4_scratchpadAddress : _GEN_133; // @[CScratchpad.scala 138:24 114:30]
+  wire [8:0] _GEN_192 = 2'h0 == mem_tx_state ? req_cache_5_scratchpadAddress : _GEN_134; // @[CScratchpad.scala 138:24 114:30]
+  wire [8:0] _GEN_193 = 2'h0 == mem_tx_state ? req_cache_6_scratchpadAddress : _GEN_135; // @[CScratchpad.scala 138:24 114:30]
+  wire [8:0] _GEN_194 = 2'h0 == mem_tx_state ? req_cache_7_scratchpadAddress : _GEN_136; // @[CScratchpad.scala 138:24 114:30]
+  wire [8:0] _GEN_195 = 2'h0 == mem_tx_state ? req_cache_8_scratchpadAddress : _GEN_137; // @[CScratchpad.scala 138:24 114:30]
+  wire [8:0] _GEN_196 = 2'h0 == mem_tx_state ? req_cache_9_scratchpadAddress : _GEN_138; // @[CScratchpad.scala 138:24 114:30]
+  wire [8:0] _GEN_197 = 2'h0 == mem_tx_state ? req_cache_10_scratchpadAddress : _GEN_139; // @[CScratchpad.scala 138:24 114:30]
+  wire [8:0] _GEN_198 = 2'h0 == mem_tx_state ? req_cache_11_scratchpadAddress : _GEN_140; // @[CScratchpad.scala 138:24 114:30]
+  wire [8:0] _GEN_199 = 2'h0 == mem_tx_state ? req_cache_12_scratchpadAddress : _GEN_141; // @[CScratchpad.scala 138:24 114:30]
+  wire [8:0] _GEN_200 = 2'h0 == mem_tx_state ? req_cache_13_scratchpadAddress : _GEN_142; // @[CScratchpad.scala 138:24 114:30]
+  wire [8:0] _GEN_201 = 2'h0 == mem_tx_state ? req_cache_14_scratchpadAddress : _GEN_143; // @[CScratchpad.scala 138:24 114:30]
+  wire [8:0] _GEN_202 = 2'h0 == mem_tx_state ? req_cache_15_scratchpadAddress : _GEN_144; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_203 = 2'h0 == mem_tx_state ? req_cache_0_memoryLength : _GEN_145; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_204 = 2'h0 == mem_tx_state ? req_cache_1_memoryLength : _GEN_146; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_205 = 2'h0 == mem_tx_state ? req_cache_2_memoryLength : _GEN_147; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_206 = 2'h0 == mem_tx_state ? req_cache_3_memoryLength : _GEN_148; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_207 = 2'h0 == mem_tx_state ? req_cache_4_memoryLength : _GEN_149; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_208 = 2'h0 == mem_tx_state ? req_cache_5_memoryLength : _GEN_150; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_209 = 2'h0 == mem_tx_state ? req_cache_6_memoryLength : _GEN_151; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_210 = 2'h0 == mem_tx_state ? req_cache_7_memoryLength : _GEN_152; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_211 = 2'h0 == mem_tx_state ? req_cache_8_memoryLength : _GEN_153; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_212 = 2'h0 == mem_tx_state ? req_cache_9_memoryLength : _GEN_154; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_213 = 2'h0 == mem_tx_state ? req_cache_10_memoryLength : _GEN_155; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_214 = 2'h0 == mem_tx_state ? req_cache_11_memoryLength : _GEN_156; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_215 = 2'h0 == mem_tx_state ? req_cache_12_memoryLength : _GEN_157; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_216 = 2'h0 == mem_tx_state ? req_cache_13_memoryLength : _GEN_158; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_217 = 2'h0 == mem_tx_state ? req_cache_14_memoryLength : _GEN_159; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_218 = 2'h0 == mem_tx_state ? req_cache_15_memoryLength : _GEN_160; // @[CScratchpad.scala 138:24 114:30]
+  wire [15:0] _GEN_220 = 4'h1 == auto_mem_out_d_bits_source ? req_cache_1_memoryLength : req_cache_0_memoryLength; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_221 = 4'h2 == auto_mem_out_d_bits_source ? req_cache_2_memoryLength : _GEN_220; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_222 = 4'h3 == auto_mem_out_d_bits_source ? req_cache_3_memoryLength : _GEN_221; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_223 = 4'h4 == auto_mem_out_d_bits_source ? req_cache_4_memoryLength : _GEN_222; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_224 = 4'h5 == auto_mem_out_d_bits_source ? req_cache_5_memoryLength : _GEN_223; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_225 = 4'h6 == auto_mem_out_d_bits_source ? req_cache_6_memoryLength : _GEN_224; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_226 = 4'h7 == auto_mem_out_d_bits_source ? req_cache_7_memoryLength : _GEN_225; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_227 = 4'h8 == auto_mem_out_d_bits_source ? req_cache_8_memoryLength : _GEN_226; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_228 = 4'h9 == auto_mem_out_d_bits_source ? req_cache_9_memoryLength : _GEN_227; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_229 = 4'ha == auto_mem_out_d_bits_source ? req_cache_10_memoryLength : _GEN_228; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_230 = 4'hb == auto_mem_out_d_bits_source ? req_cache_11_memoryLength : _GEN_229; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_231 = 4'hc == auto_mem_out_d_bits_source ? req_cache_12_memoryLength : _GEN_230; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_232 = 4'hd == auto_mem_out_d_bits_source ? req_cache_13_memoryLength : _GEN_231; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_233 = 4'he == auto_mem_out_d_bits_source ? req_cache_14_memoryLength : _GEN_232; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_234 = 4'hf == auto_mem_out_d_bits_source ? req_cache_15_memoryLength : _GEN_233; // @[CScratchpad.scala 174:{40,40}]
+  wire [15:0] _GEN_235 = _GEN_234 >= 16'h40 ? 16'h40 : _GEN_234; // @[CScratchpad.scala 174:55 175:39 177:39]
+  wire [8:0] _GEN_237 = 4'h1 == auto_mem_out_d_bits_source ? req_cache_1_scratchpadAddress :
+    req_cache_0_scratchpadAddress; // @[CScratchpad.scala 179:{41,41}]
+  wire [8:0] _GEN_238 = 4'h2 == auto_mem_out_d_bits_source ? req_cache_2_scratchpadAddress : _GEN_237; // @[CScratchpad.scala 179:{41,41}]
+  wire [8:0] _GEN_239 = 4'h3 == auto_mem_out_d_bits_source ? req_cache_3_scratchpadAddress : _GEN_238; // @[CScratchpad.scala 179:{41,41}]
+  wire [8:0] _GEN_240 = 4'h4 == auto_mem_out_d_bits_source ? req_cache_4_scratchpadAddress : _GEN_239; // @[CScratchpad.scala 179:{41,41}]
+  wire [8:0] _GEN_241 = 4'h5 == auto_mem_out_d_bits_source ? req_cache_5_scratchpadAddress : _GEN_240; // @[CScratchpad.scala 179:{41,41}]
+  wire [8:0] _GEN_242 = 4'h6 == auto_mem_out_d_bits_source ? req_cache_6_scratchpadAddress : _GEN_241; // @[CScratchpad.scala 179:{41,41}]
+  wire [8:0] _GEN_243 = 4'h7 == auto_mem_out_d_bits_source ? req_cache_7_scratchpadAddress : _GEN_242; // @[CScratchpad.scala 179:{41,41}]
+  wire [8:0] _GEN_244 = 4'h8 == auto_mem_out_d_bits_source ? req_cache_8_scratchpadAddress : _GEN_243; // @[CScratchpad.scala 179:{41,41}]
+  wire [8:0] _GEN_245 = 4'h9 == auto_mem_out_d_bits_source ? req_cache_9_scratchpadAddress : _GEN_244; // @[CScratchpad.scala 179:{41,41}]
+  wire [8:0] _GEN_246 = 4'ha == auto_mem_out_d_bits_source ? req_cache_10_scratchpadAddress : _GEN_245; // @[CScratchpad.scala 179:{41,41}]
+  wire [8:0] _GEN_247 = 4'hb == auto_mem_out_d_bits_source ? req_cache_11_scratchpadAddress : _GEN_246; // @[CScratchpad.scala 179:{41,41}]
+  wire [8:0] _GEN_248 = 4'hc == auto_mem_out_d_bits_source ? req_cache_12_scratchpadAddress : _GEN_247; // @[CScratchpad.scala 179:{41,41}]
+  wire [8:0] _GEN_249 = 4'hd == auto_mem_out_d_bits_source ? req_cache_13_scratchpadAddress : _GEN_248; // @[CScratchpad.scala 179:{41,41}]
+  wire [8:0] _GEN_250 = 4'he == auto_mem_out_d_bits_source ? req_cache_14_scratchpadAddress : _GEN_249; // @[CScratchpad.scala 179:{41,41}]
+  wire [8:0] _GEN_251 = 4'hf == auto_mem_out_d_bits_source ? req_cache_15_scratchpadAddress : _GEN_250; // @[CScratchpad.scala 179:{41,41}]
+  wire  _T_31 = loader_io_cache_block_in_ready & loader_io_cache_block_in_valid; // @[Decoupled.scala 51:35]
+  wire [8:0] _req_cache_scratchpadAddress_T_1 = _GEN_251 + 9'h2; // @[CScratchpad.scala 183:82]
+  wire  mem_out_d_ready = loader_io_cache_block_in_ready; // @[Nodes.scala 1212:84 CScratchpad.scala 180:19]
+  wire  _T_36 = mem_out_d_ready & auto_mem_out_d_valid; // @[Decoupled.scala 51:35]
+  wire [15:0] _req_cache_memoryLength_T_2 = _GEN_234 - 16'h40; // @[CScratchpad.scala 210:72]
+  wire  _GEN_445 = 4'h0 == auto_mem_out_d_bits_source | _GEN_171; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_446 = 4'h1 == auto_mem_out_d_bits_source | _GEN_172; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_447 = 4'h2 == auto_mem_out_d_bits_source | _GEN_173; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_448 = 4'h3 == auto_mem_out_d_bits_source | _GEN_174; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_449 = 4'h4 == auto_mem_out_d_bits_source | _GEN_175; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_450 = 4'h5 == auto_mem_out_d_bits_source | _GEN_176; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_451 = 4'h6 == auto_mem_out_d_bits_source | _GEN_177; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_452 = 4'h7 == auto_mem_out_d_bits_source | _GEN_178; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_453 = 4'h8 == auto_mem_out_d_bits_source | _GEN_179; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_454 = 4'h9 == auto_mem_out_d_bits_source | _GEN_180; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_455 = 4'ha == auto_mem_out_d_bits_source | _GEN_181; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_456 = 4'hb == auto_mem_out_d_bits_source | _GEN_182; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_457 = 4'hc == auto_mem_out_d_bits_source | _GEN_183; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_458 = 4'hd == auto_mem_out_d_bits_source | _GEN_184; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_459 = 4'he == auto_mem_out_d_bits_source | _GEN_185; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_460 = 4'hf == auto_mem_out_d_bits_source | _GEN_186; // @[CScratchpad.scala 213:{28,28}]
+  wire  _GEN_461 = _GEN_234 <= 16'h40 ? _GEN_445 : _GEN_171; // @[CScratchpad.scala 212:57]
+  wire  _GEN_462 = _GEN_234 <= 16'h40 ? _GEN_446 : _GEN_172; // @[CScratchpad.scala 212:57]
+  wire  _GEN_463 = _GEN_234 <= 16'h40 ? _GEN_447 : _GEN_173; // @[CScratchpad.scala 212:57]
+  wire  _GEN_464 = _GEN_234 <= 16'h40 ? _GEN_448 : _GEN_174; // @[CScratchpad.scala 212:57]
+  wire  _GEN_465 = _GEN_234 <= 16'h40 ? _GEN_449 : _GEN_175; // @[CScratchpad.scala 212:57]
+  wire  _GEN_466 = _GEN_234 <= 16'h40 ? _GEN_450 : _GEN_176; // @[CScratchpad.scala 212:57]
+  wire  _GEN_467 = _GEN_234 <= 16'h40 ? _GEN_451 : _GEN_177; // @[CScratchpad.scala 212:57]
+  wire  _GEN_468 = _GEN_234 <= 16'h40 ? _GEN_452 : _GEN_178; // @[CScratchpad.scala 212:57]
+  wire  _GEN_469 = _GEN_234 <= 16'h40 ? _GEN_453 : _GEN_179; // @[CScratchpad.scala 212:57]
+  wire  _GEN_470 = _GEN_234 <= 16'h40 ? _GEN_454 : _GEN_180; // @[CScratchpad.scala 212:57]
+  wire  _GEN_471 = _GEN_234 <= 16'h40 ? _GEN_455 : _GEN_181; // @[CScratchpad.scala 212:57]
+  wire  _GEN_472 = _GEN_234 <= 16'h40 ? _GEN_456 : _GEN_182; // @[CScratchpad.scala 212:57]
+  wire  _GEN_473 = _GEN_234 <= 16'h40 ? _GEN_457 : _GEN_183; // @[CScratchpad.scala 212:57]
+  wire  _GEN_474 = _GEN_234 <= 16'h40 ? _GEN_458 : _GEN_184; // @[CScratchpad.scala 212:57]
+  wire  _GEN_475 = _GEN_234 <= 16'h40 ? _GEN_459 : _GEN_185; // @[CScratchpad.scala 212:57]
+  wire  _GEN_476 = _GEN_234 <= 16'h40 ? _GEN_460 : _GEN_186; // @[CScratchpad.scala 212:57]
+  wire  _GEN_494 = _T_36 ? _GEN_461 : _GEN_171; // @[CScratchpad.scala 209:24]
+  wire  _GEN_495 = _T_36 ? _GEN_462 : _GEN_172; // @[CScratchpad.scala 209:24]
+  wire  _GEN_496 = _T_36 ? _GEN_463 : _GEN_173; // @[CScratchpad.scala 209:24]
+  wire  _GEN_497 = _T_36 ? _GEN_464 : _GEN_174; // @[CScratchpad.scala 209:24]
+  wire  _GEN_498 = _T_36 ? _GEN_465 : _GEN_175; // @[CScratchpad.scala 209:24]
+  wire  _GEN_499 = _T_36 ? _GEN_466 : _GEN_176; // @[CScratchpad.scala 209:24]
+  wire  _GEN_500 = _T_36 ? _GEN_467 : _GEN_177; // @[CScratchpad.scala 209:24]
+  wire  _GEN_501 = _T_36 ? _GEN_468 : _GEN_178; // @[CScratchpad.scala 209:24]
+  wire  _GEN_502 = _T_36 ? _GEN_469 : _GEN_179; // @[CScratchpad.scala 209:24]
+  wire  _GEN_503 = _T_36 ? _GEN_470 : _GEN_180; // @[CScratchpad.scala 209:24]
+  wire  _GEN_504 = _T_36 ? _GEN_471 : _GEN_181; // @[CScratchpad.scala 209:24]
+  wire  _GEN_505 = _T_36 ? _GEN_472 : _GEN_182; // @[CScratchpad.scala 209:24]
+  wire  _GEN_506 = _T_36 ? _GEN_473 : _GEN_183; // @[CScratchpad.scala 209:24]
+  wire  _GEN_507 = _T_36 ? _GEN_474 : _GEN_184; // @[CScratchpad.scala 209:24]
+  wire  _GEN_508 = _T_36 ? _GEN_475 : _GEN_185; // @[CScratchpad.scala 209:24]
+  wire  _GEN_509 = _T_36 ? _GEN_476 : _GEN_186; // @[CScratchpad.scala 209:24]
+  CScratchpadPackedSubwordLoader_2 loader ( // @[CScratchpad.scala 94:30]
+    .clock(loader_clock),
+    .reset(loader_reset),
+    .io_cache_block_in_ready(loader_io_cache_block_in_ready),
+    .io_cache_block_in_valid(loader_io_cache_block_in_valid),
+    .io_cache_block_in_bits_dat(loader_io_cache_block_in_bits_dat),
+    .io_cache_block_in_bits_len(loader_io_cache_block_in_bits_len),
+    .io_cache_block_in_bits_idxBase(loader_io_cache_block_in_bits_idxBase),
+    .io_sp_write_out_valid(loader_io_sp_write_out_valid),
+    .io_sp_write_out_bits_dat(loader_io_sp_write_out_bits_dat),
+    .io_sp_write_out_bits_idx(loader_io_sp_write_out_bits_idx)
+  );
+  assign mem_rval_en = mem_rval_en_pipe_0;
+  assign mem_rval_addr = mem_rval_addr_pipe_0;
+  assign mem_rval_data = mem[mem_rval_addr]; // @[CScratchpad.scala 92:24]
+  assign mem_MPORT_data = loader_io_sp_write_out_bits_dat;
+  assign mem_MPORT_addr = loader_io_sp_write_out_bits_idx;
+  assign mem_MPORT_mask = 1'h1;
+  assign mem_MPORT_en = loader_io_sp_write_out_valid;
+  assign mem_MPORT_1_data = 256'h0;
+  assign mem_MPORT_1_addr = 9'h0;
+  assign mem_MPORT_1_mask = 1'h1;
+  assign mem_MPORT_1_en = 1'h0;
+  assign auto_mem_out_a_valid = 2'h0 == mem_tx_state ? mem_tx_state == 2'h1 : _GEN_112; // @[CScratchpad.scala 136:19 138:24]
+  assign auto_mem_out_a_bits_size = txEmitLengthLg[2:0]; // @[Edges.scala 447:17 450:15]
+  assign auto_mem_out_a_bits_source = reqIdleBits_0 ? 4'h0 : _reqChosen_T_13; // @[Mux.scala 47:70]
+  assign auto_mem_out_a_bits_address = totalTx_memoryAddress; // @[Edges.scala 447:17 452:15]
+  assign auto_mem_out_a_bits_mask = {x1_a_bits_a_mask_hi,x1_a_bits_a_mask_lo}; // @[Cat.scala 33:92]
+  assign auto_mem_out_d_ready = loader_io_cache_block_in_ready; // @[Nodes.scala 1212:84 CScratchpad.scala 180:19]
+  assign access_readRes_valid = access_readRes_valid_REG; // @[CScratchpad.scala 103:24]
+  assign access_readRes_bits = mem_rval_data; // @[CScratchpad.scala 105:23]
+  assign loader_clock = clock;
+  assign loader_reset = reset;
+  assign loader_io_cache_block_in_valid = auto_mem_out_d_valid; // @[Nodes.scala 1212:84 LazyModule.scala 368:12]
+  assign loader_io_cache_block_in_bits_dat = auto_mem_out_d_bits_data; // @[Nodes.scala 1212:84 LazyModule.scala 368:12]
+  assign loader_io_cache_block_in_bits_len = _GEN_235[6:0];
+  assign loader_io_cache_block_in_bits_idxBase = 4'hf == auto_mem_out_d_bits_source ? req_cache_15_scratchpadAddress :
+    _GEN_250; // @[CScratchpad.scala 179:{41,41}]
+  always @(posedge clock) begin
+    if (mem_MPORT_en & mem_MPORT_mask) begin
+      mem[mem_MPORT_addr] <= mem_MPORT_data; // @[CScratchpad.scala 92:24]
+    end
+    if (mem_MPORT_1_en & mem_MPORT_1_mask) begin
+      mem[mem_MPORT_1_addr] <= mem_MPORT_1_data; // @[CScratchpad.scala 92:24]
+    end
+    mem_rval_en_pipe_0 <= access_readReq_valid;
+    if (access_readReq_valid) begin
+      mem_rval_addr_pipe_0 <= 9'h0;
+    end
+    if (reset) begin // @[CScratchpad.scala 102:37]
+      mem_tx_state <= 2'h0; // @[CScratchpad.scala 102:37]
+    end else if (!(2'h0 == mem_tx_state)) begin // @[CScratchpad.scala 138:24]
+      if (2'h1 == mem_tx_state) begin // @[CScratchpad.scala 138:24]
+        if (_T_13) begin // @[CScratchpad.scala 152:28]
+          mem_tx_state <= _GEN_56;
+        end
+      end else if (2'h2 == mem_tx_state) begin // @[CScratchpad.scala 138:24]
+        mem_tx_state <= _GEN_109;
+      end
+    end
+    access_readRes_valid_REG <= access_readReq_valid; // @[CScratchpad.scala 85:30]
+    reqIdleBits_0 <= reset | _GEN_494; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_1 <= reset | _GEN_495; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_2 <= reset | _GEN_496; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_3 <= reset | _GEN_497; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_4 <= reset | _GEN_498; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_5 <= reset | _GEN_499; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_6 <= reset | _GEN_500; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_7 <= reset | _GEN_501; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_8 <= reset | _GEN_502; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_9 <= reset | _GEN_503; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_10 <= reset | _GEN_504; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_11 <= reset | _GEN_505; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_12 <= reset | _GEN_506; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_13 <= reset | _GEN_507; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_14 <= reset | _GEN_508; // @[CScratchpad.scala 110:{36,36}]
+    reqIdleBits_15 <= reset | _GEN_509; // @[CScratchpad.scala 110:{36,36}]
+    if (_T_31) begin // @[CScratchpad.scala 182:39]
+      if (4'h0 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 183:42]
+        req_cache_0_scratchpadAddress <= _req_cache_scratchpadAddress_T_1; // @[CScratchpad.scala 183:42]
+      end else begin
+        req_cache_0_scratchpadAddress <= _GEN_187;
+      end
+    end else begin
+      req_cache_0_scratchpadAddress <= _GEN_187;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'h0 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_0_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_0_memoryLength <= _GEN_203;
+      end
+    end else begin
+      req_cache_0_memoryLength <= _GEN_203;
+    end
+    if (_T_31) begin // @[CScratchpad.scala 182:39]
+      if (4'h1 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 183:42]
+        req_cache_1_scratchpadAddress <= _req_cache_scratchpadAddress_T_1; // @[CScratchpad.scala 183:42]
+      end else begin
+        req_cache_1_scratchpadAddress <= _GEN_188;
+      end
+    end else begin
+      req_cache_1_scratchpadAddress <= _GEN_188;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'h1 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_1_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_1_memoryLength <= _GEN_204;
+      end
+    end else begin
+      req_cache_1_memoryLength <= _GEN_204;
+    end
+    if (_T_31) begin // @[CScratchpad.scala 182:39]
+      if (4'h2 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 183:42]
+        req_cache_2_scratchpadAddress <= _req_cache_scratchpadAddress_T_1; // @[CScratchpad.scala 183:42]
+      end else begin
+        req_cache_2_scratchpadAddress <= _GEN_189;
+      end
+    end else begin
+      req_cache_2_scratchpadAddress <= _GEN_189;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'h2 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_2_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_2_memoryLength <= _GEN_205;
+      end
+    end else begin
+      req_cache_2_memoryLength <= _GEN_205;
+    end
+    if (_T_31) begin // @[CScratchpad.scala 182:39]
+      if (4'h3 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 183:42]
+        req_cache_3_scratchpadAddress <= _req_cache_scratchpadAddress_T_1; // @[CScratchpad.scala 183:42]
+      end else begin
+        req_cache_3_scratchpadAddress <= _GEN_190;
+      end
+    end else begin
+      req_cache_3_scratchpadAddress <= _GEN_190;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'h3 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_3_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_3_memoryLength <= _GEN_206;
+      end
+    end else begin
+      req_cache_3_memoryLength <= _GEN_206;
+    end
+    if (_T_31) begin // @[CScratchpad.scala 182:39]
+      if (4'h4 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 183:42]
+        req_cache_4_scratchpadAddress <= _req_cache_scratchpadAddress_T_1; // @[CScratchpad.scala 183:42]
+      end else begin
+        req_cache_4_scratchpadAddress <= _GEN_191;
+      end
+    end else begin
+      req_cache_4_scratchpadAddress <= _GEN_191;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'h4 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_4_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_4_memoryLength <= _GEN_207;
+      end
+    end else begin
+      req_cache_4_memoryLength <= _GEN_207;
+    end
+    if (_T_31) begin // @[CScratchpad.scala 182:39]
+      if (4'h5 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 183:42]
+        req_cache_5_scratchpadAddress <= _req_cache_scratchpadAddress_T_1; // @[CScratchpad.scala 183:42]
+      end else begin
+        req_cache_5_scratchpadAddress <= _GEN_192;
+      end
+    end else begin
+      req_cache_5_scratchpadAddress <= _GEN_192;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'h5 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_5_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_5_memoryLength <= _GEN_208;
+      end
+    end else begin
+      req_cache_5_memoryLength <= _GEN_208;
+    end
+    if (_T_31) begin // @[CScratchpad.scala 182:39]
+      if (4'h6 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 183:42]
+        req_cache_6_scratchpadAddress <= _req_cache_scratchpadAddress_T_1; // @[CScratchpad.scala 183:42]
+      end else begin
+        req_cache_6_scratchpadAddress <= _GEN_193;
+      end
+    end else begin
+      req_cache_6_scratchpadAddress <= _GEN_193;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'h6 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_6_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_6_memoryLength <= _GEN_209;
+      end
+    end else begin
+      req_cache_6_memoryLength <= _GEN_209;
+    end
+    if (_T_31) begin // @[CScratchpad.scala 182:39]
+      if (4'h7 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 183:42]
+        req_cache_7_scratchpadAddress <= _req_cache_scratchpadAddress_T_1; // @[CScratchpad.scala 183:42]
+      end else begin
+        req_cache_7_scratchpadAddress <= _GEN_194;
+      end
+    end else begin
+      req_cache_7_scratchpadAddress <= _GEN_194;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'h7 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_7_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_7_memoryLength <= _GEN_210;
+      end
+    end else begin
+      req_cache_7_memoryLength <= _GEN_210;
+    end
+    if (_T_31) begin // @[CScratchpad.scala 182:39]
+      if (4'h8 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 183:42]
+        req_cache_8_scratchpadAddress <= _req_cache_scratchpadAddress_T_1; // @[CScratchpad.scala 183:42]
+      end else begin
+        req_cache_8_scratchpadAddress <= _GEN_195;
+      end
+    end else begin
+      req_cache_8_scratchpadAddress <= _GEN_195;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'h8 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_8_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_8_memoryLength <= _GEN_211;
+      end
+    end else begin
+      req_cache_8_memoryLength <= _GEN_211;
+    end
+    if (_T_31) begin // @[CScratchpad.scala 182:39]
+      if (4'h9 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 183:42]
+        req_cache_9_scratchpadAddress <= _req_cache_scratchpadAddress_T_1; // @[CScratchpad.scala 183:42]
+      end else begin
+        req_cache_9_scratchpadAddress <= _GEN_196;
+      end
+    end else begin
+      req_cache_9_scratchpadAddress <= _GEN_196;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'h9 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_9_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_9_memoryLength <= _GEN_212;
+      end
+    end else begin
+      req_cache_9_memoryLength <= _GEN_212;
+    end
+    if (_T_31) begin // @[CScratchpad.scala 182:39]
+      if (4'ha == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 183:42]
+        req_cache_10_scratchpadAddress <= _req_cache_scratchpadAddress_T_1; // @[CScratchpad.scala 183:42]
+      end else begin
+        req_cache_10_scratchpadAddress <= _GEN_197;
+      end
+    end else begin
+      req_cache_10_scratchpadAddress <= _GEN_197;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'ha == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_10_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_10_memoryLength <= _GEN_213;
+      end
+    end else begin
+      req_cache_10_memoryLength <= _GEN_213;
+    end
+    if (_T_31) begin // @[CScratchpad.scala 182:39]
+      if (4'hb == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 183:42]
+        req_cache_11_scratchpadAddress <= _req_cache_scratchpadAddress_T_1; // @[CScratchpad.scala 183:42]
+      end else begin
+        req_cache_11_scratchpadAddress <= _GEN_198;
+      end
+    end else begin
+      req_cache_11_scratchpadAddress <= _GEN_198;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'hb == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_11_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_11_memoryLength <= _GEN_214;
+      end
+    end else begin
+      req_cache_11_memoryLength <= _GEN_214;
+    end
+    if (_T_31) begin // @[CScratchpad.scala 182:39]
+      if (4'hc == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 183:42]
+        req_cache_12_scratchpadAddress <= _req_cache_scratchpadAddress_T_1; // @[CScratchpad.scala 183:42]
+      end else begin
+        req_cache_12_scratchpadAddress <= _GEN_199;
+      end
+    end else begin
+      req_cache_12_scratchpadAddress <= _GEN_199;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'hc == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_12_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_12_memoryLength <= _GEN_215;
+      end
+    end else begin
+      req_cache_12_memoryLength <= _GEN_215;
+    end
+    if (_T_31) begin // @[CScratchpad.scala 182:39]
+      if (4'hd == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 183:42]
+        req_cache_13_scratchpadAddress <= _req_cache_scratchpadAddress_T_1; // @[CScratchpad.scala 183:42]
+      end else begin
+        req_cache_13_scratchpadAddress <= _GEN_200;
+      end
+    end else begin
+      req_cache_13_scratchpadAddress <= _GEN_200;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'hd == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_13_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_13_memoryLength <= _GEN_216;
+      end
+    end else begin
+      req_cache_13_memoryLength <= _GEN_216;
+    end
+    if (_T_31) begin // @[CScratchpad.scala 182:39]
+      if (4'he == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 183:42]
+        req_cache_14_scratchpadAddress <= _req_cache_scratchpadAddress_T_1; // @[CScratchpad.scala 183:42]
+      end else begin
+        req_cache_14_scratchpadAddress <= _GEN_201;
+      end
+    end else begin
+      req_cache_14_scratchpadAddress <= _GEN_201;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'he == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_14_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_14_memoryLength <= _GEN_217;
+      end
+    end else begin
+      req_cache_14_memoryLength <= _GEN_217;
+    end
+    if (_T_31) begin // @[CScratchpad.scala 182:39]
+      if (4'hf == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 183:42]
+        req_cache_15_scratchpadAddress <= _req_cache_scratchpadAddress_T_1; // @[CScratchpad.scala 183:42]
+      end else begin
+        req_cache_15_scratchpadAddress <= _GEN_202;
+      end
+    end else begin
+      req_cache_15_scratchpadAddress <= _GEN_202;
+    end
+    if (_T_36) begin // @[CScratchpad.scala 209:24]
+      if (4'hf == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
+        req_cache_15_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
+      end else begin
+        req_cache_15_memoryLength <= _GEN_218;
+      end
+    end else begin
+      req_cache_15_memoryLength <= _GEN_218;
+    end
+    if (!(2'h0 == mem_tx_state)) begin // @[CScratchpad.scala 138:24]
+      if (2'h1 == mem_tx_state) begin // @[CScratchpad.scala 138:24]
+        if (_T_13) begin // @[CScratchpad.scala 152:28]
+          totalTx_memoryAddress <= _totalTx_memoryAddress_T_1; // @[CScratchpad.scala 158:31]
+        end
+      end
+    end
+    if (!(2'h0 == mem_tx_state)) begin // @[CScratchpad.scala 138:24]
+      if (2'h1 == mem_tx_state) begin // @[CScratchpad.scala 138:24]
+        if (_T_13) begin // @[CScratchpad.scala 152:28]
+          totalTx_scratchpadAddress <= _totalTx_scratchpadAddress_T_1; // @[CScratchpad.scala 157:35]
+        end
+      end
+    end
+    if (!(2'h0 == mem_tx_state)) begin // @[CScratchpad.scala 138:24]
+      if (2'h1 == mem_tx_state) begin // @[CScratchpad.scala 138:24]
+        if (_T_13) begin // @[CScratchpad.scala 152:28]
+          totalTx_memoryLength <= _totalTx_memoryLength_T_1; // @[CScratchpad.scala 156:30]
+        end
+      end
+    end
+  end
+endmodule
+module CScratchpadPackedSubwordLoader_3(
+  input          clock,
+  input          reset,
+  output         io_cache_block_in_ready,
+  input          io_cache_block_in_valid,
+  input  [511:0] io_cache_block_in_bits_dat,
+  input  [6:0]   io_cache_block_in_bits_len,
+  input  [5:0]   io_cache_block_in_bits_idxBase,
+  output         io_sp_write_out_valid,
+  output [255:0] io_sp_write_out_bits_dat,
+  output [5:0]   io_sp_write_out_bits_idx
+);
+  reg [511:0] beat; // @[CScratchpadPackedSubwordLoader.scala 16:17]
+  reg [5:0] idxBase; // @[CScratchpadPackedSubwordLoader.scala 17:20]
+  reg [6:0] lenRemainingFromReq; // @[CScratchpadPackedSubwordLoader.scala 18:32]
+  reg  state; // @[CScratchpadPackedSubwordLoader.scala 21:22]
+  wire  _io_cache_block_in_ready_T = ~state; // @[CScratchpadPackedSubwordLoader.scala 22:36]
+  wire  _T_1 = io_cache_block_in_ready & io_cache_block_in_valid; // @[Decoupled.scala 51:35]
+  wire  _GEN_0 = _T_1 | state; // @[CScratchpadPackedSubwordLoader.scala 34:36 35:15 21:22]
+  wire [5:0] _idxBase_T_1 = idxBase + 6'h1; // @[CScratchpadPackedSubwordLoader.scala 50:28]
+  wire [6:0] _lenRemainingFromReq_T_1 = lenRemainingFromReq - 7'h20; // @[CScratchpadPackedSubwordLoader.scala 53:54]
+  wire  _GEN_6 = lenRemainingFromReq == 7'h20 ? 1'h0 : state; // @[CScratchpadPackedSubwordLoader.scala 54:60 55:19 21:22]
+  wire [511:0] _GEN_10 = {{256'd0}, beat[511:256]}; // @[CScratchpadPackedSubwordLoader.scala 51:59 57:16 16:17]
+  assign io_cache_block_in_ready = ~state; // @[CScratchpadPackedSubwordLoader.scala 22:36]
+  assign io_sp_write_out_valid = _io_cache_block_in_ready_T ? 1'h0 : state; // @[CScratchpadPackedSubwordLoader.scala 32:17 24:25]
+  assign io_sp_write_out_bits_dat = beat[255:0]; // @[CScratchpadPackedSubwordLoader.scala 29:9]
+  assign io_sp_write_out_bits_idx = idxBase; // @[CScratchpadPackedSubwordLoader.scala 32:17 47:32]
+  always @(posedge clock) begin
+    if (_io_cache_block_in_ready_T) begin // @[CScratchpadPackedSubwordLoader.scala 32:17]
+      if (_T_1) begin // @[CScratchpadPackedSubwordLoader.scala 34:36]
+        beat <= io_cache_block_in_bits_dat; // @[CScratchpadPackedSubwordLoader.scala 36:14]
+      end
+    end else if (state) begin // @[CScratchpadPackedSubwordLoader.scala 32:17]
+      if (io_sp_write_out_valid) begin // @[CScratchpadPackedSubwordLoader.scala 48:34]
+        beat <= _GEN_10;
+      end
+    end
+    if (_io_cache_block_in_ready_T) begin // @[CScratchpadPackedSubwordLoader.scala 32:17]
+      if (_T_1) begin // @[CScratchpadPackedSubwordLoader.scala 34:36]
+        idxBase <= io_cache_block_in_bits_idxBase; // @[CScratchpadPackedSubwordLoader.scala 37:17]
+      end
+    end else if (state) begin // @[CScratchpadPackedSubwordLoader.scala 32:17]
+      if (io_sp_write_out_valid) begin // @[CScratchpadPackedSubwordLoader.scala 48:34]
+        idxBase <= _idxBase_T_1; // @[CScratchpadPackedSubwordLoader.scala 50:17]
+      end
+    end
+    if (_io_cache_block_in_ready_T) begin // @[CScratchpadPackedSubwordLoader.scala 32:17]
+      if (_T_1) begin // @[CScratchpadPackedSubwordLoader.scala 34:36]
+        lenRemainingFromReq <= io_cache_block_in_bits_len; // @[CScratchpadPackedSubwordLoader.scala 38:29]
+      end
+    end else if (state) begin // @[CScratchpadPackedSubwordLoader.scala 32:17]
+      if (io_sp_write_out_valid) begin // @[CScratchpadPackedSubwordLoader.scala 48:34]
+        lenRemainingFromReq <= _lenRemainingFromReq_T_1;
+      end
+    end
+    if (reset) begin // @[CScratchpadPackedSubwordLoader.scala 21:22]
+      state <= 1'h0; // @[CScratchpadPackedSubwordLoader.scala 21:22]
+    end else if (_io_cache_block_in_ready_T) begin // @[CScratchpadPackedSubwordLoader.scala 32:17]
+      state <= _GEN_0;
+    end else if (state) begin // @[CScratchpadPackedSubwordLoader.scala 32:17]
+      if (io_sp_write_out_valid) begin // @[CScratchpadPackedSubwordLoader.scala 48:34]
+        state <= _GEN_6;
+      end
+    end
+  end
+endmodule
+module CScratchpad_3(
+  input          clock,
+  input          reset,
+  input          auto_mem_out_a_ready,
+  output         auto_mem_out_a_valid,
+  output [2:0]   auto_mem_out_a_bits_size,
+  output [3:0]   auto_mem_out_a_bits_source,
+  output [33:0]  auto_mem_out_a_bits_address,
+  output [63:0]  auto_mem_out_a_bits_mask,
+  output         auto_mem_out_d_ready,
+  input          auto_mem_out_d_valid,
+  input  [3:0]   auto_mem_out_d_bits_source,
+  input  [511:0] auto_mem_out_d_bits_data,
+  input          access_readReq_valid,
+  output         access_readRes_valid,
+  output [255:0] access_readRes_bits
+);
+  reg [255:0] mem [0:63]; // @[CScratchpad.scala 92:24]
   wire  mem_rval_en; // @[CScratchpad.scala 92:24]
   wire [5:0] mem_rval_addr; // @[CScratchpad.scala 92:24]
-  wire [127:0] mem_rval_data; // @[CScratchpad.scala 92:24]
-  wire [127:0] mem_MPORT_data; // @[CScratchpad.scala 92:24]
+  wire [255:0] mem_rval_data; // @[CScratchpad.scala 92:24]
+  wire [255:0] mem_MPORT_data; // @[CScratchpad.scala 92:24]
   wire [5:0] mem_MPORT_addr; // @[CScratchpad.scala 92:24]
   wire  mem_MPORT_mask; // @[CScratchpad.scala 92:24]
   wire  mem_MPORT_en; // @[CScratchpad.scala 92:24]
-  wire [127:0] mem_MPORT_1_data; // @[CScratchpad.scala 92:24]
+  wire [255:0] mem_MPORT_1_data; // @[CScratchpad.scala 92:24]
   wire [5:0] mem_MPORT_1_addr; // @[CScratchpad.scala 92:24]
   wire  mem_MPORT_1_mask; // @[CScratchpad.scala 92:24]
   wire  mem_MPORT_1_en; // @[CScratchpad.scala 92:24]
@@ -103,7 +3307,7 @@ module CScratchpad(
   wire [6:0] loader_io_cache_block_in_bits_len; // @[CScratchpad.scala 94:30]
   wire [5:0] loader_io_cache_block_in_bits_idxBase; // @[CScratchpad.scala 94:30]
   wire  loader_io_sp_write_out_valid; // @[CScratchpad.scala 94:30]
-  wire [127:0] loader_io_sp_write_out_bits_dat; // @[CScratchpad.scala 94:30]
+  wire [255:0] loader_io_sp_write_out_bits_dat; // @[CScratchpad.scala 94:30]
   wire [5:0] loader_io_sp_write_out_bits_idx; // @[CScratchpad.scala 94:30]
   reg [1:0] mem_tx_state; // @[CScratchpad.scala 102:37]
   reg  access_readRes_valid_REG; // @[CScratchpad.scala 85:30]
@@ -554,7 +3758,7 @@ module CScratchpad(
   wire [15:0] _GEN_54 = 4'he == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_14_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
   wire [15:0] _GEN_55 = 4'hf == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_15_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
   wire [33:0] _totalTx_memoryLength_T_1 = totalTx_memoryLength - 34'h40; // @[CScratchpad.scala 156:54]
-  wire [5:0] _totalTx_scratchpadAddress_T_1 = totalTx_scratchpadAddress + 6'h4; // @[CScratchpad.scala 157:64]
+  wire [5:0] _totalTx_scratchpadAddress_T_1 = totalTx_scratchpadAddress + 6'h2; // @[CScratchpad.scala 157:64]
   wire [33:0] _totalTx_memoryAddress_T_1 = totalTx_memoryAddress + 34'h40; // @[CScratchpad.scala 158:56]
   wire [1:0] _GEN_56 = isBelowLimit ? 2'h2 : mem_tx_state; // @[CScratchpad.scala 159:28 160:24 102:37]
   wire  _GEN_57 = _T_13 ? _GEN_8 : reqIdleBits_0; // @[CScratchpad.scala 152:28 110:36]
@@ -737,7 +3941,7 @@ module CScratchpad(
   wire [5:0] _GEN_250 = 4'he == auto_mem_out_d_bits_source ? req_cache_14_scratchpadAddress : _GEN_249; // @[CScratchpad.scala 179:{41,41}]
   wire [5:0] _GEN_251 = 4'hf == auto_mem_out_d_bits_source ? req_cache_15_scratchpadAddress : _GEN_250; // @[CScratchpad.scala 179:{41,41}]
   wire  _T_31 = loader_io_cache_block_in_ready & loader_io_cache_block_in_valid; // @[Decoupled.scala 51:35]
-  wire [5:0] _req_cache_scratchpadAddress_T_1 = _GEN_251 + 6'h4; // @[CScratchpad.scala 183:82]
+  wire [5:0] _req_cache_scratchpadAddress_T_1 = _GEN_251 + 6'h2; // @[CScratchpad.scala 183:82]
   wire  mem_out_d_ready = loader_io_cache_block_in_ready; // @[Nodes.scala 1212:84 CScratchpad.scala 180:19]
   wire  _T_36 = mem_out_d_ready & auto_mem_out_d_valid; // @[Decoupled.scala 51:35]
   wire [15:0] _req_cache_memoryLength_T_2 = _GEN_234 - 16'h40; // @[CScratchpad.scala 210:72]
@@ -789,7 +3993,7 @@ module CScratchpad(
   wire  _GEN_507 = _T_36 ? _GEN_474 : _GEN_184; // @[CScratchpad.scala 209:24]
   wire  _GEN_508 = _T_36 ? _GEN_475 : _GEN_185; // @[CScratchpad.scala 209:24]
   wire  _GEN_509 = _T_36 ? _GEN_476 : _GEN_186; // @[CScratchpad.scala 209:24]
-  CScratchpadPackedSubwordLoader loader ( // @[CScratchpad.scala 94:30]
+  CScratchpadPackedSubwordLoader_3 loader ( // @[CScratchpad.scala 94:30]
     .clock(loader_clock),
     .reset(loader_reset),
     .io_cache_block_in_ready(loader_io_cache_block_in_ready),
@@ -808,7 +4012,7 @@ module CScratchpad(
   assign mem_MPORT_addr = loader_io_sp_write_out_bits_idx;
   assign mem_MPORT_mask = 1'h1;
   assign mem_MPORT_en = loader_io_sp_write_out_valid;
-  assign mem_MPORT_1_data = 128'h0;
+  assign mem_MPORT_1_data = 256'h0;
   assign mem_MPORT_1_addr = 6'h0;
   assign mem_MPORT_1_mask = 1'h1;
   assign mem_MPORT_1_en = 1'h0;
@@ -1165,2544 +4369,6 @@ module CScratchpad(
       if (2'h1 == mem_tx_state) begin // @[CScratchpad.scala 138:24]
         if (_T_13) begin // @[CScratchpad.scala 152:28]
           totalTx_scratchpadAddress <= _totalTx_scratchpadAddress_T_1; // @[CScratchpad.scala 157:35]
-        end
-      end
-    end
-    if (!(2'h0 == mem_tx_state)) begin // @[CScratchpad.scala 138:24]
-      if (2'h1 == mem_tx_state) begin // @[CScratchpad.scala 138:24]
-        if (_T_13) begin // @[CScratchpad.scala 152:28]
-          totalTx_memoryLength <= _totalTx_memoryLength_T_1; // @[CScratchpad.scala 156:30]
-        end
-      end
-    end
-  end
-endmodule
-module CScratchpadPackedSubwordLoader_1(
-  input        clock,
-  input        reset,
-  output       io_cache_block_in_ready,
-  input        io_cache_block_in_valid,
-  input  [6:0] io_cache_block_in_bits_len,
-  output       io_sp_write_out_valid
-);
-  reg [6:0] lenRemainingFromReq; // @[CScratchpadPackedSubwordLoader.scala 18:32]
-  reg  state; // @[CScratchpadPackedSubwordLoader.scala 21:22]
-  wire  _io_cache_block_in_ready_T = ~state; // @[CScratchpadPackedSubwordLoader.scala 22:36]
-  wire  _T_1 = io_cache_block_in_ready & io_cache_block_in_valid; // @[Decoupled.scala 51:35]
-  wire  _GEN_0 = _T_1 | state; // @[CScratchpadPackedSubwordLoader.scala 34:36 35:15 21:22]
-  wire [6:0] _lenRemainingFromReq_T_1 = lenRemainingFromReq - 7'h20; // @[CScratchpadPackedSubwordLoader.scala 53:54]
-  wire  _GEN_6 = lenRemainingFromReq == 7'h20 ? 1'h0 : state; // @[CScratchpadPackedSubwordLoader.scala 54:60 55:19 21:22]
-  assign io_cache_block_in_ready = ~state; // @[CScratchpadPackedSubwordLoader.scala 22:36]
-  assign io_sp_write_out_valid = _io_cache_block_in_ready_T ? 1'h0 : state; // @[CScratchpadPackedSubwordLoader.scala 32:17 24:25]
-  always @(posedge clock) begin
-    if (_io_cache_block_in_ready_T) begin // @[CScratchpadPackedSubwordLoader.scala 32:17]
-      if (_T_1) begin // @[CScratchpadPackedSubwordLoader.scala 34:36]
-        lenRemainingFromReq <= io_cache_block_in_bits_len; // @[CScratchpadPackedSubwordLoader.scala 38:29]
-      end
-    end else if (state) begin // @[CScratchpadPackedSubwordLoader.scala 32:17]
-      if (io_sp_write_out_valid) begin // @[CScratchpadPackedSubwordLoader.scala 48:34]
-        lenRemainingFromReq <= _lenRemainingFromReq_T_1;
-      end
-    end
-    if (reset) begin // @[CScratchpadPackedSubwordLoader.scala 21:22]
-      state <= 1'h0; // @[CScratchpadPackedSubwordLoader.scala 21:22]
-    end else if (_io_cache_block_in_ready_T) begin // @[CScratchpadPackedSubwordLoader.scala 32:17]
-      state <= _GEN_0;
-    end else if (state) begin // @[CScratchpadPackedSubwordLoader.scala 32:17]
-      if (io_sp_write_out_valid) begin // @[CScratchpadPackedSubwordLoader.scala 48:34]
-        state <= _GEN_6;
-      end
-    end
-  end
-endmodule
-module CScratchpad_1(
-  input         clock,
-  input         reset,
-  input         auto_mem_out_a_ready,
-  output        auto_mem_out_a_valid,
-  output [2:0]  auto_mem_out_a_bits_size,
-  output [3:0]  auto_mem_out_a_bits_source,
-  output [33:0] auto_mem_out_a_bits_address,
-  output [63:0] auto_mem_out_a_bits_mask,
-  output        auto_mem_out_d_ready,
-  input         auto_mem_out_d_valid,
-  input  [3:0]  auto_mem_out_d_bits_source
-);
-  wire  loader_clock; // @[CScratchpad.scala 94:30]
-  wire  loader_reset; // @[CScratchpad.scala 94:30]
-  wire  loader_io_cache_block_in_ready; // @[CScratchpad.scala 94:30]
-  wire  loader_io_cache_block_in_valid; // @[CScratchpad.scala 94:30]
-  wire [6:0] loader_io_cache_block_in_bits_len; // @[CScratchpad.scala 94:30]
-  wire  loader_io_sp_write_out_valid; // @[CScratchpad.scala 94:30]
-  reg [1:0] mem_tx_state; // @[CScratchpad.scala 102:37]
-  reg  reqIdleBits_0; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_1; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_2; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_3; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_4; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_5; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_6; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_7; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_8; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_9; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_10; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_11; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_12; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_13; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_14; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_15; // @[CScratchpad.scala 110:36]
-  wire  reqAvailable = reqIdleBits_0 | reqIdleBits_1 | reqIdleBits_2 | reqIdleBits_3 | reqIdleBits_4 | reqIdleBits_5 |
-    reqIdleBits_6 | reqIdleBits_7 | reqIdleBits_8 | reqIdleBits_9 | reqIdleBits_10 | reqIdleBits_11 | reqIdleBits_12 |
-    reqIdleBits_13 | reqIdleBits_14 | reqIdleBits_15; // @[CScratchpad.scala 111:51]
-  wire [3:0] _reqChosen_T = reqIdleBits_14 ? 4'he : 4'hf; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_1 = reqIdleBits_13 ? 4'hd : _reqChosen_T; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_2 = reqIdleBits_12 ? 4'hc : _reqChosen_T_1; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_3 = reqIdleBits_11 ? 4'hb : _reqChosen_T_2; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_4 = reqIdleBits_10 ? 4'ha : _reqChosen_T_3; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_5 = reqIdleBits_9 ? 4'h9 : _reqChosen_T_4; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_6 = reqIdleBits_8 ? 4'h8 : _reqChosen_T_5; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_7 = reqIdleBits_7 ? 4'h7 : _reqChosen_T_6; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_8 = reqIdleBits_6 ? 4'h6 : _reqChosen_T_7; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_9 = reqIdleBits_5 ? 4'h5 : _reqChosen_T_8; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_10 = reqIdleBits_4 ? 4'h4 : _reqChosen_T_9; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_11 = reqIdleBits_3 ? 4'h3 : _reqChosen_T_10; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_12 = reqIdleBits_2 ? 4'h2 : _reqChosen_T_11; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_13 = reqIdleBits_1 ? 4'h1 : _reqChosen_T_12; // @[Mux.scala 47:70]
-  wire [3:0] reqChosen = reqIdleBits_0 ? 4'h0 : _reqChosen_T_13; // @[Mux.scala 47:70]
-  reg [15:0] req_cache_0_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_1_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_2_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_3_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_4_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_5_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_6_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_7_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_8_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_9_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_10_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_11_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_12_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_13_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_14_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_15_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [33:0] totalTx_memoryAddress; // @[CScratchpad.scala 124:28]
-  reg [33:0] totalTx_memoryLength; // @[CScratchpad.scala 124:28]
-  wire  isBelowLimit = totalTx_memoryLength <= 34'h40; // @[CScratchpad.scala 149:47]
-  wire [1:0] txEmitLengthLg_hi = totalTx_memoryLength[33:32]; // @[OneHot.scala 30:18]
-  wire  _txEmitLengthLg_T = |txEmitLengthLg_hi; // @[OneHot.scala 32:14]
-  wire [31:0] txEmitLengthLg_lo = totalTx_memoryLength[31:0]; // @[OneHot.scala 31:18]
-  wire [31:0] _GEN_569 = {{30'd0}, txEmitLengthLg_hi}; // @[OneHot.scala 32:28]
-  wire [31:0] _txEmitLengthLg_T_1 = _GEN_569 | txEmitLengthLg_lo; // @[OneHot.scala 32:28]
-  wire [15:0] txEmitLengthLg_hi_1 = _txEmitLengthLg_T_1[31:16]; // @[OneHot.scala 30:18]
-  wire  _txEmitLengthLg_T_2 = |txEmitLengthLg_hi_1; // @[OneHot.scala 32:14]
-  wire [15:0] txEmitLengthLg_lo_1 = _txEmitLengthLg_T_1[15:0]; // @[OneHot.scala 31:18]
-  wire [15:0] _txEmitLengthLg_T_3 = txEmitLengthLg_hi_1 | txEmitLengthLg_lo_1; // @[OneHot.scala 32:28]
-  wire [7:0] txEmitLengthLg_hi_2 = _txEmitLengthLg_T_3[15:8]; // @[OneHot.scala 30:18]
-  wire  _txEmitLengthLg_T_4 = |txEmitLengthLg_hi_2; // @[OneHot.scala 32:14]
-  wire [7:0] txEmitLengthLg_lo_2 = _txEmitLengthLg_T_3[7:0]; // @[OneHot.scala 31:18]
-  wire [7:0] _txEmitLengthLg_T_5 = txEmitLengthLg_hi_2 | txEmitLengthLg_lo_2; // @[OneHot.scala 32:28]
-  wire [3:0] txEmitLengthLg_hi_3 = _txEmitLengthLg_T_5[7:4]; // @[OneHot.scala 30:18]
-  wire  _txEmitLengthLg_T_6 = |txEmitLengthLg_hi_3; // @[OneHot.scala 32:14]
-  wire [3:0] txEmitLengthLg_lo_3 = _txEmitLengthLg_T_5[3:0]; // @[OneHot.scala 31:18]
-  wire [3:0] _txEmitLengthLg_T_7 = txEmitLengthLg_hi_3 | txEmitLengthLg_lo_3; // @[OneHot.scala 32:28]
-  wire [1:0] txEmitLengthLg_hi_4 = _txEmitLengthLg_T_7[3:2]; // @[OneHot.scala 30:18]
-  wire  _txEmitLengthLg_T_8 = |txEmitLengthLg_hi_4; // @[OneHot.scala 32:14]
-  wire [1:0] txEmitLengthLg_lo_4 = _txEmitLengthLg_T_7[1:0]; // @[OneHot.scala 31:18]
-  wire [1:0] _txEmitLengthLg_T_9 = txEmitLengthLg_hi_4 | txEmitLengthLg_lo_4; // @[OneHot.scala 32:28]
-  wire [5:0] _txEmitLengthLg_T_15 = {_txEmitLengthLg_T,_txEmitLengthLg_T_2,_txEmitLengthLg_T_4,_txEmitLengthLg_T_6,
-    _txEmitLengthLg_T_8,_txEmitLengthLg_T_9[1]}; // @[Cat.scala 33:92]
-  wire [5:0] _txEmitLengthLg_T_16 = isBelowLimit ? _txEmitLengthLg_T_15 : 6'h6; // @[CScratchpad.scala 150:28]
-  wire [5:0] _GEN_111 = 2'h1 == mem_tx_state ? _txEmitLengthLg_T_16 : 6'h0; // @[CScratchpad.scala 131:18 138:24 150:22]
-  wire [5:0] _GEN_169 = 2'h0 == mem_tx_state ? 6'h0 : _GEN_111; // @[CScratchpad.scala 131:18 138:24]
-  wire [3:0] txEmitLengthLg = _GEN_169[3:0]; // @[CScratchpad.scala 130:36]
-  wire [5:0] _x1_a_bits_a_mask_sizeOH_T = {{2'd0}, txEmitLengthLg}; // @[Misc.scala 201:34]
-  wire [2:0] x1_a_bits_a_mask_sizeOH_shiftAmount = _x1_a_bits_a_mask_sizeOH_T[2:0]; // @[OneHot.scala 63:49]
-  wire [7:0] _x1_a_bits_a_mask_sizeOH_T_1 = 8'h1 << x1_a_bits_a_mask_sizeOH_shiftAmount; // @[OneHot.scala 64:12]
-  wire [5:0] x1_a_bits_a_mask_sizeOH = _x1_a_bits_a_mask_sizeOH_T_1[5:0] | 6'h1; // @[Misc.scala 201:81]
-  wire  _x1_a_bits_a_mask_T = txEmitLengthLg >= 4'h6; // @[Misc.scala 205:21]
-  wire  x1_a_bits_a_mask_size = x1_a_bits_a_mask_sizeOH[5]; // @[Misc.scala 208:26]
-  wire  x1_a_bits_a_mask_bit = totalTx_memoryAddress[5]; // @[Misc.scala 209:26]
-  wire  x1_a_bits_a_mask_nbit = ~x1_a_bits_a_mask_bit; // @[Misc.scala 210:20]
-  wire  x1_a_bits_a_mask_acc = _x1_a_bits_a_mask_T | x1_a_bits_a_mask_size & x1_a_bits_a_mask_nbit; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_acc_1 = _x1_a_bits_a_mask_T | x1_a_bits_a_mask_size & x1_a_bits_a_mask_bit; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_size_1 = x1_a_bits_a_mask_sizeOH[4]; // @[Misc.scala 208:26]
-  wire  x1_a_bits_a_mask_bit_1 = totalTx_memoryAddress[4]; // @[Misc.scala 209:26]
-  wire  x1_a_bits_a_mask_nbit_1 = ~x1_a_bits_a_mask_bit_1; // @[Misc.scala 210:20]
-  wire  x1_a_bits_a_mask_eq_2 = x1_a_bits_a_mask_nbit & x1_a_bits_a_mask_nbit_1; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_2 = x1_a_bits_a_mask_acc | x1_a_bits_a_mask_size_1 & x1_a_bits_a_mask_eq_2; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_3 = x1_a_bits_a_mask_nbit & x1_a_bits_a_mask_bit_1; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_3 = x1_a_bits_a_mask_acc | x1_a_bits_a_mask_size_1 & x1_a_bits_a_mask_eq_3; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_4 = x1_a_bits_a_mask_bit & x1_a_bits_a_mask_nbit_1; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_4 = x1_a_bits_a_mask_acc_1 | x1_a_bits_a_mask_size_1 & x1_a_bits_a_mask_eq_4; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_5 = x1_a_bits_a_mask_bit & x1_a_bits_a_mask_bit_1; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_5 = x1_a_bits_a_mask_acc_1 | x1_a_bits_a_mask_size_1 & x1_a_bits_a_mask_eq_5; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_size_2 = x1_a_bits_a_mask_sizeOH[3]; // @[Misc.scala 208:26]
-  wire  x1_a_bits_a_mask_bit_2 = totalTx_memoryAddress[3]; // @[Misc.scala 209:26]
-  wire  x1_a_bits_a_mask_nbit_2 = ~x1_a_bits_a_mask_bit_2; // @[Misc.scala 210:20]
-  wire  x1_a_bits_a_mask_eq_6 = x1_a_bits_a_mask_eq_2 & x1_a_bits_a_mask_nbit_2; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_6 = x1_a_bits_a_mask_acc_2 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_6; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_7 = x1_a_bits_a_mask_eq_2 & x1_a_bits_a_mask_bit_2; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_7 = x1_a_bits_a_mask_acc_2 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_7; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_8 = x1_a_bits_a_mask_eq_3 & x1_a_bits_a_mask_nbit_2; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_8 = x1_a_bits_a_mask_acc_3 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_8; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_9 = x1_a_bits_a_mask_eq_3 & x1_a_bits_a_mask_bit_2; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_9 = x1_a_bits_a_mask_acc_3 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_9; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_10 = x1_a_bits_a_mask_eq_4 & x1_a_bits_a_mask_nbit_2; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_10 = x1_a_bits_a_mask_acc_4 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_10; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_11 = x1_a_bits_a_mask_eq_4 & x1_a_bits_a_mask_bit_2; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_11 = x1_a_bits_a_mask_acc_4 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_11; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_12 = x1_a_bits_a_mask_eq_5 & x1_a_bits_a_mask_nbit_2; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_12 = x1_a_bits_a_mask_acc_5 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_12; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_13 = x1_a_bits_a_mask_eq_5 & x1_a_bits_a_mask_bit_2; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_13 = x1_a_bits_a_mask_acc_5 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_13; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_size_3 = x1_a_bits_a_mask_sizeOH[2]; // @[Misc.scala 208:26]
-  wire  x1_a_bits_a_mask_bit_3 = totalTx_memoryAddress[2]; // @[Misc.scala 209:26]
-  wire  x1_a_bits_a_mask_nbit_3 = ~x1_a_bits_a_mask_bit_3; // @[Misc.scala 210:20]
-  wire  x1_a_bits_a_mask_eq_14 = x1_a_bits_a_mask_eq_6 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_14 = x1_a_bits_a_mask_acc_6 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_14; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_15 = x1_a_bits_a_mask_eq_6 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_15 = x1_a_bits_a_mask_acc_6 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_15; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_16 = x1_a_bits_a_mask_eq_7 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_16 = x1_a_bits_a_mask_acc_7 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_16; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_17 = x1_a_bits_a_mask_eq_7 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_17 = x1_a_bits_a_mask_acc_7 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_17; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_18 = x1_a_bits_a_mask_eq_8 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_18 = x1_a_bits_a_mask_acc_8 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_18; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_19 = x1_a_bits_a_mask_eq_8 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_19 = x1_a_bits_a_mask_acc_8 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_19; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_20 = x1_a_bits_a_mask_eq_9 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_20 = x1_a_bits_a_mask_acc_9 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_20; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_21 = x1_a_bits_a_mask_eq_9 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_21 = x1_a_bits_a_mask_acc_9 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_21; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_22 = x1_a_bits_a_mask_eq_10 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_22 = x1_a_bits_a_mask_acc_10 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_22; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_23 = x1_a_bits_a_mask_eq_10 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_23 = x1_a_bits_a_mask_acc_10 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_23; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_24 = x1_a_bits_a_mask_eq_11 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_24 = x1_a_bits_a_mask_acc_11 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_24; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_25 = x1_a_bits_a_mask_eq_11 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_25 = x1_a_bits_a_mask_acc_11 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_25; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_26 = x1_a_bits_a_mask_eq_12 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_26 = x1_a_bits_a_mask_acc_12 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_26; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_27 = x1_a_bits_a_mask_eq_12 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_27 = x1_a_bits_a_mask_acc_12 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_27; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_28 = x1_a_bits_a_mask_eq_13 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_28 = x1_a_bits_a_mask_acc_13 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_28; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_29 = x1_a_bits_a_mask_eq_13 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_29 = x1_a_bits_a_mask_acc_13 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_29; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_size_4 = x1_a_bits_a_mask_sizeOH[1]; // @[Misc.scala 208:26]
-  wire  x1_a_bits_a_mask_bit_4 = totalTx_memoryAddress[1]; // @[Misc.scala 209:26]
-  wire  x1_a_bits_a_mask_nbit_4 = ~x1_a_bits_a_mask_bit_4; // @[Misc.scala 210:20]
-  wire  x1_a_bits_a_mask_eq_30 = x1_a_bits_a_mask_eq_14 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_30 = x1_a_bits_a_mask_acc_14 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_30; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_31 = x1_a_bits_a_mask_eq_14 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_31 = x1_a_bits_a_mask_acc_14 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_31; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_32 = x1_a_bits_a_mask_eq_15 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_32 = x1_a_bits_a_mask_acc_15 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_32; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_33 = x1_a_bits_a_mask_eq_15 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_33 = x1_a_bits_a_mask_acc_15 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_33; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_34 = x1_a_bits_a_mask_eq_16 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_34 = x1_a_bits_a_mask_acc_16 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_34; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_35 = x1_a_bits_a_mask_eq_16 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_35 = x1_a_bits_a_mask_acc_16 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_35; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_36 = x1_a_bits_a_mask_eq_17 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_36 = x1_a_bits_a_mask_acc_17 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_36; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_37 = x1_a_bits_a_mask_eq_17 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_37 = x1_a_bits_a_mask_acc_17 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_37; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_38 = x1_a_bits_a_mask_eq_18 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_38 = x1_a_bits_a_mask_acc_18 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_38; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_39 = x1_a_bits_a_mask_eq_18 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_39 = x1_a_bits_a_mask_acc_18 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_39; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_40 = x1_a_bits_a_mask_eq_19 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_40 = x1_a_bits_a_mask_acc_19 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_40; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_41 = x1_a_bits_a_mask_eq_19 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_41 = x1_a_bits_a_mask_acc_19 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_41; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_42 = x1_a_bits_a_mask_eq_20 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_42 = x1_a_bits_a_mask_acc_20 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_42; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_43 = x1_a_bits_a_mask_eq_20 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_43 = x1_a_bits_a_mask_acc_20 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_43; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_44 = x1_a_bits_a_mask_eq_21 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_44 = x1_a_bits_a_mask_acc_21 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_44; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_45 = x1_a_bits_a_mask_eq_21 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_45 = x1_a_bits_a_mask_acc_21 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_45; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_46 = x1_a_bits_a_mask_eq_22 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_46 = x1_a_bits_a_mask_acc_22 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_46; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_47 = x1_a_bits_a_mask_eq_22 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_47 = x1_a_bits_a_mask_acc_22 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_47; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_48 = x1_a_bits_a_mask_eq_23 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_48 = x1_a_bits_a_mask_acc_23 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_48; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_49 = x1_a_bits_a_mask_eq_23 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_49 = x1_a_bits_a_mask_acc_23 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_49; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_50 = x1_a_bits_a_mask_eq_24 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_50 = x1_a_bits_a_mask_acc_24 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_50; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_51 = x1_a_bits_a_mask_eq_24 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_51 = x1_a_bits_a_mask_acc_24 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_51; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_52 = x1_a_bits_a_mask_eq_25 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_52 = x1_a_bits_a_mask_acc_25 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_52; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_53 = x1_a_bits_a_mask_eq_25 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_53 = x1_a_bits_a_mask_acc_25 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_53; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_54 = x1_a_bits_a_mask_eq_26 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_54 = x1_a_bits_a_mask_acc_26 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_54; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_55 = x1_a_bits_a_mask_eq_26 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_55 = x1_a_bits_a_mask_acc_26 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_55; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_56 = x1_a_bits_a_mask_eq_27 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_56 = x1_a_bits_a_mask_acc_27 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_56; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_57 = x1_a_bits_a_mask_eq_27 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_57 = x1_a_bits_a_mask_acc_27 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_57; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_58 = x1_a_bits_a_mask_eq_28 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_58 = x1_a_bits_a_mask_acc_28 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_58; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_59 = x1_a_bits_a_mask_eq_28 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_59 = x1_a_bits_a_mask_acc_28 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_59; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_60 = x1_a_bits_a_mask_eq_29 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_60 = x1_a_bits_a_mask_acc_29 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_60; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_61 = x1_a_bits_a_mask_eq_29 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_61 = x1_a_bits_a_mask_acc_29 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_61; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_size_5 = x1_a_bits_a_mask_sizeOH[0]; // @[Misc.scala 208:26]
-  wire  x1_a_bits_a_mask_bit_5 = totalTx_memoryAddress[0]; // @[Misc.scala 209:26]
-  wire  x1_a_bits_a_mask_nbit_5 = ~x1_a_bits_a_mask_bit_5; // @[Misc.scala 210:20]
-  wire  x1_a_bits_a_mask_eq_62 = x1_a_bits_a_mask_eq_30 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_62 = x1_a_bits_a_mask_acc_30 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_62; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_63 = x1_a_bits_a_mask_eq_30 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_63 = x1_a_bits_a_mask_acc_30 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_63; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_64 = x1_a_bits_a_mask_eq_31 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_64 = x1_a_bits_a_mask_acc_31 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_64; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_65 = x1_a_bits_a_mask_eq_31 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_65 = x1_a_bits_a_mask_acc_31 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_65; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_66 = x1_a_bits_a_mask_eq_32 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_66 = x1_a_bits_a_mask_acc_32 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_66; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_67 = x1_a_bits_a_mask_eq_32 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_67 = x1_a_bits_a_mask_acc_32 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_67; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_68 = x1_a_bits_a_mask_eq_33 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_68 = x1_a_bits_a_mask_acc_33 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_68; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_69 = x1_a_bits_a_mask_eq_33 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_69 = x1_a_bits_a_mask_acc_33 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_69; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_70 = x1_a_bits_a_mask_eq_34 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_70 = x1_a_bits_a_mask_acc_34 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_70; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_71 = x1_a_bits_a_mask_eq_34 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_71 = x1_a_bits_a_mask_acc_34 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_71; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_72 = x1_a_bits_a_mask_eq_35 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_72 = x1_a_bits_a_mask_acc_35 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_72; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_73 = x1_a_bits_a_mask_eq_35 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_73 = x1_a_bits_a_mask_acc_35 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_73; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_74 = x1_a_bits_a_mask_eq_36 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_74 = x1_a_bits_a_mask_acc_36 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_74; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_75 = x1_a_bits_a_mask_eq_36 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_75 = x1_a_bits_a_mask_acc_36 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_75; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_76 = x1_a_bits_a_mask_eq_37 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_76 = x1_a_bits_a_mask_acc_37 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_76; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_77 = x1_a_bits_a_mask_eq_37 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_77 = x1_a_bits_a_mask_acc_37 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_77; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_78 = x1_a_bits_a_mask_eq_38 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_78 = x1_a_bits_a_mask_acc_38 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_78; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_79 = x1_a_bits_a_mask_eq_38 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_79 = x1_a_bits_a_mask_acc_38 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_79; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_80 = x1_a_bits_a_mask_eq_39 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_80 = x1_a_bits_a_mask_acc_39 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_80; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_81 = x1_a_bits_a_mask_eq_39 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_81 = x1_a_bits_a_mask_acc_39 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_81; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_82 = x1_a_bits_a_mask_eq_40 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_82 = x1_a_bits_a_mask_acc_40 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_82; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_83 = x1_a_bits_a_mask_eq_40 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_83 = x1_a_bits_a_mask_acc_40 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_83; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_84 = x1_a_bits_a_mask_eq_41 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_84 = x1_a_bits_a_mask_acc_41 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_84; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_85 = x1_a_bits_a_mask_eq_41 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_85 = x1_a_bits_a_mask_acc_41 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_85; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_86 = x1_a_bits_a_mask_eq_42 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_86 = x1_a_bits_a_mask_acc_42 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_86; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_87 = x1_a_bits_a_mask_eq_42 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_87 = x1_a_bits_a_mask_acc_42 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_87; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_88 = x1_a_bits_a_mask_eq_43 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_88 = x1_a_bits_a_mask_acc_43 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_88; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_89 = x1_a_bits_a_mask_eq_43 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_89 = x1_a_bits_a_mask_acc_43 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_89; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_90 = x1_a_bits_a_mask_eq_44 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_90 = x1_a_bits_a_mask_acc_44 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_90; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_91 = x1_a_bits_a_mask_eq_44 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_91 = x1_a_bits_a_mask_acc_44 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_91; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_92 = x1_a_bits_a_mask_eq_45 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_92 = x1_a_bits_a_mask_acc_45 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_92; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_93 = x1_a_bits_a_mask_eq_45 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_93 = x1_a_bits_a_mask_acc_45 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_93; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_94 = x1_a_bits_a_mask_eq_46 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_94 = x1_a_bits_a_mask_acc_46 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_94; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_95 = x1_a_bits_a_mask_eq_46 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_95 = x1_a_bits_a_mask_acc_46 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_95; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_96 = x1_a_bits_a_mask_eq_47 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_96 = x1_a_bits_a_mask_acc_47 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_96; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_97 = x1_a_bits_a_mask_eq_47 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_97 = x1_a_bits_a_mask_acc_47 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_97; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_98 = x1_a_bits_a_mask_eq_48 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_98 = x1_a_bits_a_mask_acc_48 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_98; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_99 = x1_a_bits_a_mask_eq_48 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_99 = x1_a_bits_a_mask_acc_48 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_99; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_100 = x1_a_bits_a_mask_eq_49 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_100 = x1_a_bits_a_mask_acc_49 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_100; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_101 = x1_a_bits_a_mask_eq_49 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_101 = x1_a_bits_a_mask_acc_49 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_101; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_102 = x1_a_bits_a_mask_eq_50 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_102 = x1_a_bits_a_mask_acc_50 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_102; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_103 = x1_a_bits_a_mask_eq_50 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_103 = x1_a_bits_a_mask_acc_50 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_103; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_104 = x1_a_bits_a_mask_eq_51 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_104 = x1_a_bits_a_mask_acc_51 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_104; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_105 = x1_a_bits_a_mask_eq_51 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_105 = x1_a_bits_a_mask_acc_51 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_105; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_106 = x1_a_bits_a_mask_eq_52 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_106 = x1_a_bits_a_mask_acc_52 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_106; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_107 = x1_a_bits_a_mask_eq_52 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_107 = x1_a_bits_a_mask_acc_52 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_107; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_108 = x1_a_bits_a_mask_eq_53 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_108 = x1_a_bits_a_mask_acc_53 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_108; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_109 = x1_a_bits_a_mask_eq_53 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_109 = x1_a_bits_a_mask_acc_53 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_109; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_110 = x1_a_bits_a_mask_eq_54 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_110 = x1_a_bits_a_mask_acc_54 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_110; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_111 = x1_a_bits_a_mask_eq_54 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_111 = x1_a_bits_a_mask_acc_54 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_111; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_112 = x1_a_bits_a_mask_eq_55 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_112 = x1_a_bits_a_mask_acc_55 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_112; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_113 = x1_a_bits_a_mask_eq_55 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_113 = x1_a_bits_a_mask_acc_55 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_113; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_114 = x1_a_bits_a_mask_eq_56 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_114 = x1_a_bits_a_mask_acc_56 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_114; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_115 = x1_a_bits_a_mask_eq_56 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_115 = x1_a_bits_a_mask_acc_56 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_115; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_116 = x1_a_bits_a_mask_eq_57 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_116 = x1_a_bits_a_mask_acc_57 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_116; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_117 = x1_a_bits_a_mask_eq_57 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_117 = x1_a_bits_a_mask_acc_57 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_117; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_118 = x1_a_bits_a_mask_eq_58 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_118 = x1_a_bits_a_mask_acc_58 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_118; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_119 = x1_a_bits_a_mask_eq_58 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_119 = x1_a_bits_a_mask_acc_58 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_119; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_120 = x1_a_bits_a_mask_eq_59 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_120 = x1_a_bits_a_mask_acc_59 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_120; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_121 = x1_a_bits_a_mask_eq_59 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_121 = x1_a_bits_a_mask_acc_59 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_121; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_122 = x1_a_bits_a_mask_eq_60 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_122 = x1_a_bits_a_mask_acc_60 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_122; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_123 = x1_a_bits_a_mask_eq_60 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_123 = x1_a_bits_a_mask_acc_60 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_123; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_124 = x1_a_bits_a_mask_eq_61 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_124 = x1_a_bits_a_mask_acc_61 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_124; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_125 = x1_a_bits_a_mask_eq_61 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_125 = x1_a_bits_a_mask_acc_61 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_125; // @[Misc.scala 214:29]
-  wire [7:0] x1_a_bits_a_mask_lo_lo_lo = {x1_a_bits_a_mask_acc_69,x1_a_bits_a_mask_acc_68,x1_a_bits_a_mask_acc_67,
-    x1_a_bits_a_mask_acc_66,x1_a_bits_a_mask_acc_65,x1_a_bits_a_mask_acc_64,x1_a_bits_a_mask_acc_63,
-    x1_a_bits_a_mask_acc_62}; // @[Cat.scala 33:92]
-  wire [15:0] x1_a_bits_a_mask_lo_lo = {x1_a_bits_a_mask_acc_77,x1_a_bits_a_mask_acc_76,x1_a_bits_a_mask_acc_75,
-    x1_a_bits_a_mask_acc_74,x1_a_bits_a_mask_acc_73,x1_a_bits_a_mask_acc_72,x1_a_bits_a_mask_acc_71,
-    x1_a_bits_a_mask_acc_70,x1_a_bits_a_mask_lo_lo_lo}; // @[Cat.scala 33:92]
-  wire [7:0] x1_a_bits_a_mask_lo_hi_lo = {x1_a_bits_a_mask_acc_85,x1_a_bits_a_mask_acc_84,x1_a_bits_a_mask_acc_83,
-    x1_a_bits_a_mask_acc_82,x1_a_bits_a_mask_acc_81,x1_a_bits_a_mask_acc_80,x1_a_bits_a_mask_acc_79,
-    x1_a_bits_a_mask_acc_78}; // @[Cat.scala 33:92]
-  wire [31:0] x1_a_bits_a_mask_lo = {x1_a_bits_a_mask_acc_93,x1_a_bits_a_mask_acc_92,x1_a_bits_a_mask_acc_91,
-    x1_a_bits_a_mask_acc_90,x1_a_bits_a_mask_acc_89,x1_a_bits_a_mask_acc_88,x1_a_bits_a_mask_acc_87,
-    x1_a_bits_a_mask_acc_86,x1_a_bits_a_mask_lo_hi_lo,x1_a_bits_a_mask_lo_lo}; // @[Cat.scala 33:92]
-  wire [7:0] x1_a_bits_a_mask_hi_lo_lo = {x1_a_bits_a_mask_acc_101,x1_a_bits_a_mask_acc_100,x1_a_bits_a_mask_acc_99,
-    x1_a_bits_a_mask_acc_98,x1_a_bits_a_mask_acc_97,x1_a_bits_a_mask_acc_96,x1_a_bits_a_mask_acc_95,
-    x1_a_bits_a_mask_acc_94}; // @[Cat.scala 33:92]
-  wire [15:0] x1_a_bits_a_mask_hi_lo = {x1_a_bits_a_mask_acc_109,x1_a_bits_a_mask_acc_108,x1_a_bits_a_mask_acc_107,
-    x1_a_bits_a_mask_acc_106,x1_a_bits_a_mask_acc_105,x1_a_bits_a_mask_acc_104,x1_a_bits_a_mask_acc_103,
-    x1_a_bits_a_mask_acc_102,x1_a_bits_a_mask_hi_lo_lo}; // @[Cat.scala 33:92]
-  wire [7:0] x1_a_bits_a_mask_hi_hi_lo = {x1_a_bits_a_mask_acc_117,x1_a_bits_a_mask_acc_116,x1_a_bits_a_mask_acc_115,
-    x1_a_bits_a_mask_acc_114,x1_a_bits_a_mask_acc_113,x1_a_bits_a_mask_acc_112,x1_a_bits_a_mask_acc_111,
-    x1_a_bits_a_mask_acc_110}; // @[Cat.scala 33:92]
-  wire [31:0] x1_a_bits_a_mask_hi = {x1_a_bits_a_mask_acc_125,x1_a_bits_a_mask_acc_124,x1_a_bits_a_mask_acc_123,
-    x1_a_bits_a_mask_acc_122,x1_a_bits_a_mask_acc_121,x1_a_bits_a_mask_acc_120,x1_a_bits_a_mask_acc_119,
-    x1_a_bits_a_mask_acc_118,x1_a_bits_a_mask_hi_hi_lo,x1_a_bits_a_mask_hi_lo}; // @[Cat.scala 33:92]
-  wire  _GEN_112 = 2'h1 == mem_tx_state ? reqAvailable : mem_tx_state == 2'h1; // @[CScratchpad.scala 136:19 138:24 151:23]
-  wire  mem_out_a_valid = 2'h0 == mem_tx_state ? mem_tx_state == 2'h1 : _GEN_112; // @[CScratchpad.scala 136:19 138:24]
-  wire  _T_13 = auto_mem_out_a_ready & mem_out_a_valid; // @[Decoupled.scala 51:35]
-  wire  _GEN_8 = 4'h0 == reqChosen ? 1'h0 : reqIdleBits_0; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_9 = 4'h1 == reqChosen ? 1'h0 : reqIdleBits_1; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_10 = 4'h2 == reqChosen ? 1'h0 : reqIdleBits_2; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_11 = 4'h3 == reqChosen ? 1'h0 : reqIdleBits_3; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_12 = 4'h4 == reqChosen ? 1'h0 : reqIdleBits_4; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_13 = 4'h5 == reqChosen ? 1'h0 : reqIdleBits_5; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_14 = 4'h6 == reqChosen ? 1'h0 : reqIdleBits_6; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_15 = 4'h7 == reqChosen ? 1'h0 : reqIdleBits_7; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_16 = 4'h8 == reqChosen ? 1'h0 : reqIdleBits_8; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_17 = 4'h9 == reqChosen ? 1'h0 : reqIdleBits_9; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_18 = 4'ha == reqChosen ? 1'h0 : reqIdleBits_10; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_19 = 4'hb == reqChosen ? 1'h0 : reqIdleBits_11; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_20 = 4'hc == reqChosen ? 1'h0 : reqIdleBits_12; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_21 = 4'hd == reqChosen ? 1'h0 : reqIdleBits_13; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_22 = 4'he == reqChosen ? 1'h0 : reqIdleBits_14; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_23 = 4'hf == reqChosen ? 1'h0 : reqIdleBits_15; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire [33:0] _req_cache_memoryLength_T = isBelowLimit ? totalTx_memoryLength : 34'h40; // @[CScratchpad.scala 155:49]
-  wire [15:0] _GEN_40 = 4'h0 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_0_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_41 = 4'h1 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_1_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_42 = 4'h2 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_2_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_43 = 4'h3 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_3_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_44 = 4'h4 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_4_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_45 = 4'h5 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_5_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_46 = 4'h6 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_6_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_47 = 4'h7 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_7_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_48 = 4'h8 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_8_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_49 = 4'h9 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_9_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_50 = 4'ha == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_10_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_51 = 4'hb == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_11_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_52 = 4'hc == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_12_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_53 = 4'hd == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_13_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_54 = 4'he == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_14_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_55 = 4'hf == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_15_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [33:0] _totalTx_memoryLength_T_1 = totalTx_memoryLength - 34'h40; // @[CScratchpad.scala 156:54]
-  wire [33:0] _totalTx_memoryAddress_T_1 = totalTx_memoryAddress + 34'h40; // @[CScratchpad.scala 158:56]
-  wire [1:0] _GEN_56 = isBelowLimit ? 2'h2 : mem_tx_state; // @[CScratchpad.scala 159:28 160:24 102:37]
-  wire  _GEN_57 = _T_13 ? _GEN_8 : reqIdleBits_0; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_58 = _T_13 ? _GEN_9 : reqIdleBits_1; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_59 = _T_13 ? _GEN_10 : reqIdleBits_2; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_60 = _T_13 ? _GEN_11 : reqIdleBits_3; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_61 = _T_13 ? _GEN_12 : reqIdleBits_4; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_62 = _T_13 ? _GEN_13 : reqIdleBits_5; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_63 = _T_13 ? _GEN_14 : reqIdleBits_6; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_64 = _T_13 ? _GEN_15 : reqIdleBits_7; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_65 = _T_13 ? _GEN_16 : reqIdleBits_8; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_66 = _T_13 ? _GEN_17 : reqIdleBits_9; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_67 = _T_13 ? _GEN_18 : reqIdleBits_10; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_68 = _T_13 ? _GEN_19 : reqIdleBits_11; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_69 = _T_13 ? _GEN_20 : reqIdleBits_12; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_70 = _T_13 ? _GEN_21 : reqIdleBits_13; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_71 = _T_13 ? _GEN_22 : reqIdleBits_14; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_72 = _T_13 ? _GEN_23 : reqIdleBits_15; // @[CScratchpad.scala 152:28 110:36]
-  wire [15:0] _GEN_89 = _T_13 ? _GEN_40 : req_cache_0_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_90 = _T_13 ? _GEN_41 : req_cache_1_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_91 = _T_13 ? _GEN_42 : req_cache_2_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_92 = _T_13 ? _GEN_43 : req_cache_3_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_93 = _T_13 ? _GEN_44 : req_cache_4_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_94 = _T_13 ? _GEN_45 : req_cache_5_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_95 = _T_13 ? _GEN_46 : req_cache_6_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_96 = _T_13 ? _GEN_47 : req_cache_7_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_97 = _T_13 ? _GEN_48 : req_cache_8_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_98 = _T_13 ? _GEN_49 : req_cache_9_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_99 = _T_13 ? _GEN_50 : req_cache_10_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_100 = _T_13 ? _GEN_51 : req_cache_11_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_101 = _T_13 ? _GEN_52 : req_cache_12_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_102 = _T_13 ? _GEN_53 : req_cache_13_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_103 = _T_13 ? _GEN_54 : req_cache_14_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_104 = _T_13 ? _GEN_55 : req_cache_15_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [1:0] _GEN_109 = reqIdleBits_0 & reqIdleBits_1 & reqIdleBits_2 & reqIdleBits_3 & reqIdleBits_4 & reqIdleBits_5 &
-    reqIdleBits_6 & reqIdleBits_7 & reqIdleBits_8 & reqIdleBits_9 & reqIdleBits_10 & reqIdleBits_11 & reqIdleBits_12 &
-    reqIdleBits_13 & reqIdleBits_14 & reqIdleBits_15 ? 2'h0 : mem_tx_state; // @[CScratchpad.scala 166:40 167:22 102:37]
-  wire  _GEN_113 = 2'h1 == mem_tx_state ? _GEN_57 : reqIdleBits_0; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_114 = 2'h1 == mem_tx_state ? _GEN_58 : reqIdleBits_1; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_115 = 2'h1 == mem_tx_state ? _GEN_59 : reqIdleBits_2; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_116 = 2'h1 == mem_tx_state ? _GEN_60 : reqIdleBits_3; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_117 = 2'h1 == mem_tx_state ? _GEN_61 : reqIdleBits_4; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_118 = 2'h1 == mem_tx_state ? _GEN_62 : reqIdleBits_5; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_119 = 2'h1 == mem_tx_state ? _GEN_63 : reqIdleBits_6; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_120 = 2'h1 == mem_tx_state ? _GEN_64 : reqIdleBits_7; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_121 = 2'h1 == mem_tx_state ? _GEN_65 : reqIdleBits_8; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_122 = 2'h1 == mem_tx_state ? _GEN_66 : reqIdleBits_9; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_123 = 2'h1 == mem_tx_state ? _GEN_67 : reqIdleBits_10; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_124 = 2'h1 == mem_tx_state ? _GEN_68 : reqIdleBits_11; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_125 = 2'h1 == mem_tx_state ? _GEN_69 : reqIdleBits_12; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_126 = 2'h1 == mem_tx_state ? _GEN_70 : reqIdleBits_13; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_127 = 2'h1 == mem_tx_state ? _GEN_71 : reqIdleBits_14; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_128 = 2'h1 == mem_tx_state ? _GEN_72 : reqIdleBits_15; // @[CScratchpad.scala 138:24 110:36]
-  wire [15:0] _GEN_145 = 2'h1 == mem_tx_state ? _GEN_89 : req_cache_0_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_146 = 2'h1 == mem_tx_state ? _GEN_90 : req_cache_1_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_147 = 2'h1 == mem_tx_state ? _GEN_91 : req_cache_2_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_148 = 2'h1 == mem_tx_state ? _GEN_92 : req_cache_3_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_149 = 2'h1 == mem_tx_state ? _GEN_93 : req_cache_4_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_150 = 2'h1 == mem_tx_state ? _GEN_94 : req_cache_5_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_151 = 2'h1 == mem_tx_state ? _GEN_95 : req_cache_6_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_152 = 2'h1 == mem_tx_state ? _GEN_96 : req_cache_7_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_153 = 2'h1 == mem_tx_state ? _GEN_97 : req_cache_8_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_154 = 2'h1 == mem_tx_state ? _GEN_98 : req_cache_9_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_155 = 2'h1 == mem_tx_state ? _GEN_99 : req_cache_10_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_156 = 2'h1 == mem_tx_state ? _GEN_100 : req_cache_11_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_157 = 2'h1 == mem_tx_state ? _GEN_101 : req_cache_12_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_158 = 2'h1 == mem_tx_state ? _GEN_102 : req_cache_13_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_159 = 2'h1 == mem_tx_state ? _GEN_103 : req_cache_14_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_160 = 2'h1 == mem_tx_state ? _GEN_104 : req_cache_15_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire  _GEN_171 = 2'h0 == mem_tx_state ? reqIdleBits_0 : _GEN_113; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_172 = 2'h0 == mem_tx_state ? reqIdleBits_1 : _GEN_114; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_173 = 2'h0 == mem_tx_state ? reqIdleBits_2 : _GEN_115; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_174 = 2'h0 == mem_tx_state ? reqIdleBits_3 : _GEN_116; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_175 = 2'h0 == mem_tx_state ? reqIdleBits_4 : _GEN_117; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_176 = 2'h0 == mem_tx_state ? reqIdleBits_5 : _GEN_118; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_177 = 2'h0 == mem_tx_state ? reqIdleBits_6 : _GEN_119; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_178 = 2'h0 == mem_tx_state ? reqIdleBits_7 : _GEN_120; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_179 = 2'h0 == mem_tx_state ? reqIdleBits_8 : _GEN_121; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_180 = 2'h0 == mem_tx_state ? reqIdleBits_9 : _GEN_122; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_181 = 2'h0 == mem_tx_state ? reqIdleBits_10 : _GEN_123; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_182 = 2'h0 == mem_tx_state ? reqIdleBits_11 : _GEN_124; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_183 = 2'h0 == mem_tx_state ? reqIdleBits_12 : _GEN_125; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_184 = 2'h0 == mem_tx_state ? reqIdleBits_13 : _GEN_126; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_185 = 2'h0 == mem_tx_state ? reqIdleBits_14 : _GEN_127; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_186 = 2'h0 == mem_tx_state ? reqIdleBits_15 : _GEN_128; // @[CScratchpad.scala 138:24 110:36]
-  wire [15:0] _GEN_203 = 2'h0 == mem_tx_state ? req_cache_0_memoryLength : _GEN_145; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_204 = 2'h0 == mem_tx_state ? req_cache_1_memoryLength : _GEN_146; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_205 = 2'h0 == mem_tx_state ? req_cache_2_memoryLength : _GEN_147; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_206 = 2'h0 == mem_tx_state ? req_cache_3_memoryLength : _GEN_148; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_207 = 2'h0 == mem_tx_state ? req_cache_4_memoryLength : _GEN_149; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_208 = 2'h0 == mem_tx_state ? req_cache_5_memoryLength : _GEN_150; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_209 = 2'h0 == mem_tx_state ? req_cache_6_memoryLength : _GEN_151; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_210 = 2'h0 == mem_tx_state ? req_cache_7_memoryLength : _GEN_152; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_211 = 2'h0 == mem_tx_state ? req_cache_8_memoryLength : _GEN_153; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_212 = 2'h0 == mem_tx_state ? req_cache_9_memoryLength : _GEN_154; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_213 = 2'h0 == mem_tx_state ? req_cache_10_memoryLength : _GEN_155; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_214 = 2'h0 == mem_tx_state ? req_cache_11_memoryLength : _GEN_156; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_215 = 2'h0 == mem_tx_state ? req_cache_12_memoryLength : _GEN_157; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_216 = 2'h0 == mem_tx_state ? req_cache_13_memoryLength : _GEN_158; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_217 = 2'h0 == mem_tx_state ? req_cache_14_memoryLength : _GEN_159; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_218 = 2'h0 == mem_tx_state ? req_cache_15_memoryLength : _GEN_160; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_220 = 4'h1 == auto_mem_out_d_bits_source ? req_cache_1_memoryLength : req_cache_0_memoryLength; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_221 = 4'h2 == auto_mem_out_d_bits_source ? req_cache_2_memoryLength : _GEN_220; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_222 = 4'h3 == auto_mem_out_d_bits_source ? req_cache_3_memoryLength : _GEN_221; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_223 = 4'h4 == auto_mem_out_d_bits_source ? req_cache_4_memoryLength : _GEN_222; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_224 = 4'h5 == auto_mem_out_d_bits_source ? req_cache_5_memoryLength : _GEN_223; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_225 = 4'h6 == auto_mem_out_d_bits_source ? req_cache_6_memoryLength : _GEN_224; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_226 = 4'h7 == auto_mem_out_d_bits_source ? req_cache_7_memoryLength : _GEN_225; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_227 = 4'h8 == auto_mem_out_d_bits_source ? req_cache_8_memoryLength : _GEN_226; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_228 = 4'h9 == auto_mem_out_d_bits_source ? req_cache_9_memoryLength : _GEN_227; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_229 = 4'ha == auto_mem_out_d_bits_source ? req_cache_10_memoryLength : _GEN_228; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_230 = 4'hb == auto_mem_out_d_bits_source ? req_cache_11_memoryLength : _GEN_229; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_231 = 4'hc == auto_mem_out_d_bits_source ? req_cache_12_memoryLength : _GEN_230; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_232 = 4'hd == auto_mem_out_d_bits_source ? req_cache_13_memoryLength : _GEN_231; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_233 = 4'he == auto_mem_out_d_bits_source ? req_cache_14_memoryLength : _GEN_232; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_234 = 4'hf == auto_mem_out_d_bits_source ? req_cache_15_memoryLength : _GEN_233; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_235 = _GEN_234 >= 16'h40 ? 16'h40 : _GEN_234; // @[CScratchpad.scala 174:55 175:39 177:39]
-  wire  mem_out_d_ready = loader_io_cache_block_in_ready; // @[Nodes.scala 1212:84 CScratchpad.scala 180:19]
-  wire  _T_36 = mem_out_d_ready & auto_mem_out_d_valid; // @[Decoupled.scala 51:35]
-  wire [15:0] _req_cache_memoryLength_T_2 = _GEN_234 - 16'h40; // @[CScratchpad.scala 210:72]
-  wire  _GEN_445 = 4'h0 == auto_mem_out_d_bits_source | _GEN_171; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_446 = 4'h1 == auto_mem_out_d_bits_source | _GEN_172; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_447 = 4'h2 == auto_mem_out_d_bits_source | _GEN_173; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_448 = 4'h3 == auto_mem_out_d_bits_source | _GEN_174; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_449 = 4'h4 == auto_mem_out_d_bits_source | _GEN_175; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_450 = 4'h5 == auto_mem_out_d_bits_source | _GEN_176; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_451 = 4'h6 == auto_mem_out_d_bits_source | _GEN_177; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_452 = 4'h7 == auto_mem_out_d_bits_source | _GEN_178; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_453 = 4'h8 == auto_mem_out_d_bits_source | _GEN_179; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_454 = 4'h9 == auto_mem_out_d_bits_source | _GEN_180; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_455 = 4'ha == auto_mem_out_d_bits_source | _GEN_181; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_456 = 4'hb == auto_mem_out_d_bits_source | _GEN_182; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_457 = 4'hc == auto_mem_out_d_bits_source | _GEN_183; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_458 = 4'hd == auto_mem_out_d_bits_source | _GEN_184; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_459 = 4'he == auto_mem_out_d_bits_source | _GEN_185; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_460 = 4'hf == auto_mem_out_d_bits_source | _GEN_186; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_461 = _GEN_234 <= 16'h40 ? _GEN_445 : _GEN_171; // @[CScratchpad.scala 212:57]
-  wire  _GEN_462 = _GEN_234 <= 16'h40 ? _GEN_446 : _GEN_172; // @[CScratchpad.scala 212:57]
-  wire  _GEN_463 = _GEN_234 <= 16'h40 ? _GEN_447 : _GEN_173; // @[CScratchpad.scala 212:57]
-  wire  _GEN_464 = _GEN_234 <= 16'h40 ? _GEN_448 : _GEN_174; // @[CScratchpad.scala 212:57]
-  wire  _GEN_465 = _GEN_234 <= 16'h40 ? _GEN_449 : _GEN_175; // @[CScratchpad.scala 212:57]
-  wire  _GEN_466 = _GEN_234 <= 16'h40 ? _GEN_450 : _GEN_176; // @[CScratchpad.scala 212:57]
-  wire  _GEN_467 = _GEN_234 <= 16'h40 ? _GEN_451 : _GEN_177; // @[CScratchpad.scala 212:57]
-  wire  _GEN_468 = _GEN_234 <= 16'h40 ? _GEN_452 : _GEN_178; // @[CScratchpad.scala 212:57]
-  wire  _GEN_469 = _GEN_234 <= 16'h40 ? _GEN_453 : _GEN_179; // @[CScratchpad.scala 212:57]
-  wire  _GEN_470 = _GEN_234 <= 16'h40 ? _GEN_454 : _GEN_180; // @[CScratchpad.scala 212:57]
-  wire  _GEN_471 = _GEN_234 <= 16'h40 ? _GEN_455 : _GEN_181; // @[CScratchpad.scala 212:57]
-  wire  _GEN_472 = _GEN_234 <= 16'h40 ? _GEN_456 : _GEN_182; // @[CScratchpad.scala 212:57]
-  wire  _GEN_473 = _GEN_234 <= 16'h40 ? _GEN_457 : _GEN_183; // @[CScratchpad.scala 212:57]
-  wire  _GEN_474 = _GEN_234 <= 16'h40 ? _GEN_458 : _GEN_184; // @[CScratchpad.scala 212:57]
-  wire  _GEN_475 = _GEN_234 <= 16'h40 ? _GEN_459 : _GEN_185; // @[CScratchpad.scala 212:57]
-  wire  _GEN_476 = _GEN_234 <= 16'h40 ? _GEN_460 : _GEN_186; // @[CScratchpad.scala 212:57]
-  wire  _GEN_494 = _T_36 ? _GEN_461 : _GEN_171; // @[CScratchpad.scala 209:24]
-  wire  _GEN_495 = _T_36 ? _GEN_462 : _GEN_172; // @[CScratchpad.scala 209:24]
-  wire  _GEN_496 = _T_36 ? _GEN_463 : _GEN_173; // @[CScratchpad.scala 209:24]
-  wire  _GEN_497 = _T_36 ? _GEN_464 : _GEN_174; // @[CScratchpad.scala 209:24]
-  wire  _GEN_498 = _T_36 ? _GEN_465 : _GEN_175; // @[CScratchpad.scala 209:24]
-  wire  _GEN_499 = _T_36 ? _GEN_466 : _GEN_176; // @[CScratchpad.scala 209:24]
-  wire  _GEN_500 = _T_36 ? _GEN_467 : _GEN_177; // @[CScratchpad.scala 209:24]
-  wire  _GEN_501 = _T_36 ? _GEN_468 : _GEN_178; // @[CScratchpad.scala 209:24]
-  wire  _GEN_502 = _T_36 ? _GEN_469 : _GEN_179; // @[CScratchpad.scala 209:24]
-  wire  _GEN_503 = _T_36 ? _GEN_470 : _GEN_180; // @[CScratchpad.scala 209:24]
-  wire  _GEN_504 = _T_36 ? _GEN_471 : _GEN_181; // @[CScratchpad.scala 209:24]
-  wire  _GEN_505 = _T_36 ? _GEN_472 : _GEN_182; // @[CScratchpad.scala 209:24]
-  wire  _GEN_506 = _T_36 ? _GEN_473 : _GEN_183; // @[CScratchpad.scala 209:24]
-  wire  _GEN_507 = _T_36 ? _GEN_474 : _GEN_184; // @[CScratchpad.scala 209:24]
-  wire  _GEN_508 = _T_36 ? _GEN_475 : _GEN_185; // @[CScratchpad.scala 209:24]
-  wire  _GEN_509 = _T_36 ? _GEN_476 : _GEN_186; // @[CScratchpad.scala 209:24]
-  CScratchpadPackedSubwordLoader_1 loader ( // @[CScratchpad.scala 94:30]
-    .clock(loader_clock),
-    .reset(loader_reset),
-    .io_cache_block_in_ready(loader_io_cache_block_in_ready),
-    .io_cache_block_in_valid(loader_io_cache_block_in_valid),
-    .io_cache_block_in_bits_len(loader_io_cache_block_in_bits_len),
-    .io_sp_write_out_valid(loader_io_sp_write_out_valid)
-  );
-  assign auto_mem_out_a_valid = 2'h0 == mem_tx_state ? mem_tx_state == 2'h1 : _GEN_112; // @[CScratchpad.scala 136:19 138:24]
-  assign auto_mem_out_a_bits_size = txEmitLengthLg[2:0]; // @[Edges.scala 447:17 450:15]
-  assign auto_mem_out_a_bits_source = reqIdleBits_0 ? 4'h0 : _reqChosen_T_13; // @[Mux.scala 47:70]
-  assign auto_mem_out_a_bits_address = totalTx_memoryAddress; // @[Edges.scala 447:17 452:15]
-  assign auto_mem_out_a_bits_mask = {x1_a_bits_a_mask_hi,x1_a_bits_a_mask_lo}; // @[Cat.scala 33:92]
-  assign auto_mem_out_d_ready = loader_io_cache_block_in_ready; // @[Nodes.scala 1212:84 CScratchpad.scala 180:19]
-  assign loader_clock = clock;
-  assign loader_reset = reset;
-  assign loader_io_cache_block_in_valid = auto_mem_out_d_valid; // @[Nodes.scala 1212:84 LazyModule.scala 368:12]
-  assign loader_io_cache_block_in_bits_len = _GEN_235[6:0];
-  always @(posedge clock) begin
-    if (reset) begin // @[CScratchpad.scala 102:37]
-      mem_tx_state <= 2'h0; // @[CScratchpad.scala 102:37]
-    end else if (!(2'h0 == mem_tx_state)) begin // @[CScratchpad.scala 138:24]
-      if (2'h1 == mem_tx_state) begin // @[CScratchpad.scala 138:24]
-        if (_T_13) begin // @[CScratchpad.scala 152:28]
-          mem_tx_state <= _GEN_56;
-        end
-      end else if (2'h2 == mem_tx_state) begin // @[CScratchpad.scala 138:24]
-        mem_tx_state <= _GEN_109;
-      end
-    end
-    reqIdleBits_0 <= reset | _GEN_494; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_1 <= reset | _GEN_495; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_2 <= reset | _GEN_496; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_3 <= reset | _GEN_497; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_4 <= reset | _GEN_498; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_5 <= reset | _GEN_499; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_6 <= reset | _GEN_500; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_7 <= reset | _GEN_501; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_8 <= reset | _GEN_502; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_9 <= reset | _GEN_503; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_10 <= reset | _GEN_504; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_11 <= reset | _GEN_505; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_12 <= reset | _GEN_506; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_13 <= reset | _GEN_507; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_14 <= reset | _GEN_508; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_15 <= reset | _GEN_509; // @[CScratchpad.scala 110:{36,36}]
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'h0 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_0_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_0_memoryLength <= _GEN_203;
-      end
-    end else begin
-      req_cache_0_memoryLength <= _GEN_203;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'h1 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_1_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_1_memoryLength <= _GEN_204;
-      end
-    end else begin
-      req_cache_1_memoryLength <= _GEN_204;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'h2 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_2_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_2_memoryLength <= _GEN_205;
-      end
-    end else begin
-      req_cache_2_memoryLength <= _GEN_205;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'h3 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_3_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_3_memoryLength <= _GEN_206;
-      end
-    end else begin
-      req_cache_3_memoryLength <= _GEN_206;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'h4 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_4_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_4_memoryLength <= _GEN_207;
-      end
-    end else begin
-      req_cache_4_memoryLength <= _GEN_207;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'h5 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_5_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_5_memoryLength <= _GEN_208;
-      end
-    end else begin
-      req_cache_5_memoryLength <= _GEN_208;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'h6 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_6_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_6_memoryLength <= _GEN_209;
-      end
-    end else begin
-      req_cache_6_memoryLength <= _GEN_209;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'h7 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_7_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_7_memoryLength <= _GEN_210;
-      end
-    end else begin
-      req_cache_7_memoryLength <= _GEN_210;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'h8 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_8_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_8_memoryLength <= _GEN_211;
-      end
-    end else begin
-      req_cache_8_memoryLength <= _GEN_211;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'h9 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_9_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_9_memoryLength <= _GEN_212;
-      end
-    end else begin
-      req_cache_9_memoryLength <= _GEN_212;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'ha == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_10_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_10_memoryLength <= _GEN_213;
-      end
-    end else begin
-      req_cache_10_memoryLength <= _GEN_213;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'hb == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_11_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_11_memoryLength <= _GEN_214;
-      end
-    end else begin
-      req_cache_11_memoryLength <= _GEN_214;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'hc == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_12_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_12_memoryLength <= _GEN_215;
-      end
-    end else begin
-      req_cache_12_memoryLength <= _GEN_215;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'hd == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_13_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_13_memoryLength <= _GEN_216;
-      end
-    end else begin
-      req_cache_13_memoryLength <= _GEN_216;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'he == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_14_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_14_memoryLength <= _GEN_217;
-      end
-    end else begin
-      req_cache_14_memoryLength <= _GEN_217;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'hf == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_15_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_15_memoryLength <= _GEN_218;
-      end
-    end else begin
-      req_cache_15_memoryLength <= _GEN_218;
-    end
-    if (!(2'h0 == mem_tx_state)) begin // @[CScratchpad.scala 138:24]
-      if (2'h1 == mem_tx_state) begin // @[CScratchpad.scala 138:24]
-        if (_T_13) begin // @[CScratchpad.scala 152:28]
-          totalTx_memoryAddress <= _totalTx_memoryAddress_T_1; // @[CScratchpad.scala 158:31]
-        end
-      end
-    end
-    if (!(2'h0 == mem_tx_state)) begin // @[CScratchpad.scala 138:24]
-      if (2'h1 == mem_tx_state) begin // @[CScratchpad.scala 138:24]
-        if (_T_13) begin // @[CScratchpad.scala 152:28]
-          totalTx_memoryLength <= _totalTx_memoryLength_T_1; // @[CScratchpad.scala 156:30]
-        end
-      end
-    end
-  end
-endmodule
-module CScratchpadPackedSubwordLoader_2(
-  input        clock,
-  input        reset,
-  output       io_cache_block_in_ready,
-  input        io_cache_block_in_valid,
-  input  [6:0] io_cache_block_in_bits_len,
-  output       io_sp_write_out_valid
-);
-  reg [6:0] lenRemainingFromReq; // @[CScratchpadPackedSubwordLoader.scala 18:32]
-  reg  state; // @[CScratchpadPackedSubwordLoader.scala 21:22]
-  wire  _io_cache_block_in_ready_T = ~state; // @[CScratchpadPackedSubwordLoader.scala 22:36]
-  wire  _T_1 = io_cache_block_in_ready & io_cache_block_in_valid; // @[Decoupled.scala 51:35]
-  wire  _GEN_0 = _T_1 | state; // @[CScratchpadPackedSubwordLoader.scala 34:36 35:15 21:22]
-  wire [6:0] _lenRemainingFromReq_T_1 = lenRemainingFromReq - 7'h20; // @[CScratchpadPackedSubwordLoader.scala 53:54]
-  wire  _GEN_6 = lenRemainingFromReq == 7'h20 ? 1'h0 : state; // @[CScratchpadPackedSubwordLoader.scala 54:60 55:19 21:22]
-  assign io_cache_block_in_ready = ~state; // @[CScratchpadPackedSubwordLoader.scala 22:36]
-  assign io_sp_write_out_valid = _io_cache_block_in_ready_T ? 1'h0 : state; // @[CScratchpadPackedSubwordLoader.scala 32:17 24:25]
-  always @(posedge clock) begin
-    if (_io_cache_block_in_ready_T) begin // @[CScratchpadPackedSubwordLoader.scala 32:17]
-      if (_T_1) begin // @[CScratchpadPackedSubwordLoader.scala 34:36]
-        lenRemainingFromReq <= io_cache_block_in_bits_len; // @[CScratchpadPackedSubwordLoader.scala 38:29]
-      end
-    end else if (state) begin // @[CScratchpadPackedSubwordLoader.scala 32:17]
-      if (io_sp_write_out_valid) begin // @[CScratchpadPackedSubwordLoader.scala 48:34]
-        lenRemainingFromReq <= _lenRemainingFromReq_T_1;
-      end
-    end
-    if (reset) begin // @[CScratchpadPackedSubwordLoader.scala 21:22]
-      state <= 1'h0; // @[CScratchpadPackedSubwordLoader.scala 21:22]
-    end else if (_io_cache_block_in_ready_T) begin // @[CScratchpadPackedSubwordLoader.scala 32:17]
-      state <= _GEN_0;
-    end else if (state) begin // @[CScratchpadPackedSubwordLoader.scala 32:17]
-      if (io_sp_write_out_valid) begin // @[CScratchpadPackedSubwordLoader.scala 48:34]
-        state <= _GEN_6;
-      end
-    end
-  end
-endmodule
-module CScratchpad_2(
-  input         clock,
-  input         reset,
-  input         auto_mem_out_a_ready,
-  output        auto_mem_out_a_valid,
-  output [2:0]  auto_mem_out_a_bits_size,
-  output [3:0]  auto_mem_out_a_bits_source,
-  output [33:0] auto_mem_out_a_bits_address,
-  output [63:0] auto_mem_out_a_bits_mask,
-  output        auto_mem_out_d_ready,
-  input         auto_mem_out_d_valid,
-  input  [3:0]  auto_mem_out_d_bits_source
-);
-  wire  loader_clock; // @[CScratchpad.scala 94:30]
-  wire  loader_reset; // @[CScratchpad.scala 94:30]
-  wire  loader_io_cache_block_in_ready; // @[CScratchpad.scala 94:30]
-  wire  loader_io_cache_block_in_valid; // @[CScratchpad.scala 94:30]
-  wire [6:0] loader_io_cache_block_in_bits_len; // @[CScratchpad.scala 94:30]
-  wire  loader_io_sp_write_out_valid; // @[CScratchpad.scala 94:30]
-  reg [1:0] mem_tx_state; // @[CScratchpad.scala 102:37]
-  reg  reqIdleBits_0; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_1; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_2; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_3; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_4; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_5; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_6; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_7; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_8; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_9; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_10; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_11; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_12; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_13; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_14; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_15; // @[CScratchpad.scala 110:36]
-  wire  reqAvailable = reqIdleBits_0 | reqIdleBits_1 | reqIdleBits_2 | reqIdleBits_3 | reqIdleBits_4 | reqIdleBits_5 |
-    reqIdleBits_6 | reqIdleBits_7 | reqIdleBits_8 | reqIdleBits_9 | reqIdleBits_10 | reqIdleBits_11 | reqIdleBits_12 |
-    reqIdleBits_13 | reqIdleBits_14 | reqIdleBits_15; // @[CScratchpad.scala 111:51]
-  wire [3:0] _reqChosen_T = reqIdleBits_14 ? 4'he : 4'hf; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_1 = reqIdleBits_13 ? 4'hd : _reqChosen_T; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_2 = reqIdleBits_12 ? 4'hc : _reqChosen_T_1; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_3 = reqIdleBits_11 ? 4'hb : _reqChosen_T_2; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_4 = reqIdleBits_10 ? 4'ha : _reqChosen_T_3; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_5 = reqIdleBits_9 ? 4'h9 : _reqChosen_T_4; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_6 = reqIdleBits_8 ? 4'h8 : _reqChosen_T_5; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_7 = reqIdleBits_7 ? 4'h7 : _reqChosen_T_6; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_8 = reqIdleBits_6 ? 4'h6 : _reqChosen_T_7; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_9 = reqIdleBits_5 ? 4'h5 : _reqChosen_T_8; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_10 = reqIdleBits_4 ? 4'h4 : _reqChosen_T_9; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_11 = reqIdleBits_3 ? 4'h3 : _reqChosen_T_10; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_12 = reqIdleBits_2 ? 4'h2 : _reqChosen_T_11; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_13 = reqIdleBits_1 ? 4'h1 : _reqChosen_T_12; // @[Mux.scala 47:70]
-  wire [3:0] reqChosen = reqIdleBits_0 ? 4'h0 : _reqChosen_T_13; // @[Mux.scala 47:70]
-  reg [15:0] req_cache_0_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_1_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_2_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_3_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_4_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_5_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_6_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_7_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_8_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_9_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_10_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_11_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_12_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_13_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_14_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_15_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [33:0] totalTx_memoryAddress; // @[CScratchpad.scala 124:28]
-  reg [33:0] totalTx_memoryLength; // @[CScratchpad.scala 124:28]
-  wire  isBelowLimit = totalTx_memoryLength <= 34'h40; // @[CScratchpad.scala 149:47]
-  wire [1:0] txEmitLengthLg_hi = totalTx_memoryLength[33:32]; // @[OneHot.scala 30:18]
-  wire  _txEmitLengthLg_T = |txEmitLengthLg_hi; // @[OneHot.scala 32:14]
-  wire [31:0] txEmitLengthLg_lo = totalTx_memoryLength[31:0]; // @[OneHot.scala 31:18]
-  wire [31:0] _GEN_569 = {{30'd0}, txEmitLengthLg_hi}; // @[OneHot.scala 32:28]
-  wire [31:0] _txEmitLengthLg_T_1 = _GEN_569 | txEmitLengthLg_lo; // @[OneHot.scala 32:28]
-  wire [15:0] txEmitLengthLg_hi_1 = _txEmitLengthLg_T_1[31:16]; // @[OneHot.scala 30:18]
-  wire  _txEmitLengthLg_T_2 = |txEmitLengthLg_hi_1; // @[OneHot.scala 32:14]
-  wire [15:0] txEmitLengthLg_lo_1 = _txEmitLengthLg_T_1[15:0]; // @[OneHot.scala 31:18]
-  wire [15:0] _txEmitLengthLg_T_3 = txEmitLengthLg_hi_1 | txEmitLengthLg_lo_1; // @[OneHot.scala 32:28]
-  wire [7:0] txEmitLengthLg_hi_2 = _txEmitLengthLg_T_3[15:8]; // @[OneHot.scala 30:18]
-  wire  _txEmitLengthLg_T_4 = |txEmitLengthLg_hi_2; // @[OneHot.scala 32:14]
-  wire [7:0] txEmitLengthLg_lo_2 = _txEmitLengthLg_T_3[7:0]; // @[OneHot.scala 31:18]
-  wire [7:0] _txEmitLengthLg_T_5 = txEmitLengthLg_hi_2 | txEmitLengthLg_lo_2; // @[OneHot.scala 32:28]
-  wire [3:0] txEmitLengthLg_hi_3 = _txEmitLengthLg_T_5[7:4]; // @[OneHot.scala 30:18]
-  wire  _txEmitLengthLg_T_6 = |txEmitLengthLg_hi_3; // @[OneHot.scala 32:14]
-  wire [3:0] txEmitLengthLg_lo_3 = _txEmitLengthLg_T_5[3:0]; // @[OneHot.scala 31:18]
-  wire [3:0] _txEmitLengthLg_T_7 = txEmitLengthLg_hi_3 | txEmitLengthLg_lo_3; // @[OneHot.scala 32:28]
-  wire [1:0] txEmitLengthLg_hi_4 = _txEmitLengthLg_T_7[3:2]; // @[OneHot.scala 30:18]
-  wire  _txEmitLengthLg_T_8 = |txEmitLengthLg_hi_4; // @[OneHot.scala 32:14]
-  wire [1:0] txEmitLengthLg_lo_4 = _txEmitLengthLg_T_7[1:0]; // @[OneHot.scala 31:18]
-  wire [1:0] _txEmitLengthLg_T_9 = txEmitLengthLg_hi_4 | txEmitLengthLg_lo_4; // @[OneHot.scala 32:28]
-  wire [5:0] _txEmitLengthLg_T_15 = {_txEmitLengthLg_T,_txEmitLengthLg_T_2,_txEmitLengthLg_T_4,_txEmitLengthLg_T_6,
-    _txEmitLengthLg_T_8,_txEmitLengthLg_T_9[1]}; // @[Cat.scala 33:92]
-  wire [5:0] _txEmitLengthLg_T_16 = isBelowLimit ? _txEmitLengthLg_T_15 : 6'h6; // @[CScratchpad.scala 150:28]
-  wire [5:0] _GEN_111 = 2'h1 == mem_tx_state ? _txEmitLengthLg_T_16 : 6'h0; // @[CScratchpad.scala 131:18 138:24 150:22]
-  wire [5:0] _GEN_169 = 2'h0 == mem_tx_state ? 6'h0 : _GEN_111; // @[CScratchpad.scala 131:18 138:24]
-  wire [3:0] txEmitLengthLg = _GEN_169[3:0]; // @[CScratchpad.scala 130:36]
-  wire [5:0] _x1_a_bits_a_mask_sizeOH_T = {{2'd0}, txEmitLengthLg}; // @[Misc.scala 201:34]
-  wire [2:0] x1_a_bits_a_mask_sizeOH_shiftAmount = _x1_a_bits_a_mask_sizeOH_T[2:0]; // @[OneHot.scala 63:49]
-  wire [7:0] _x1_a_bits_a_mask_sizeOH_T_1 = 8'h1 << x1_a_bits_a_mask_sizeOH_shiftAmount; // @[OneHot.scala 64:12]
-  wire [5:0] x1_a_bits_a_mask_sizeOH = _x1_a_bits_a_mask_sizeOH_T_1[5:0] | 6'h1; // @[Misc.scala 201:81]
-  wire  _x1_a_bits_a_mask_T = txEmitLengthLg >= 4'h6; // @[Misc.scala 205:21]
-  wire  x1_a_bits_a_mask_size = x1_a_bits_a_mask_sizeOH[5]; // @[Misc.scala 208:26]
-  wire  x1_a_bits_a_mask_bit = totalTx_memoryAddress[5]; // @[Misc.scala 209:26]
-  wire  x1_a_bits_a_mask_nbit = ~x1_a_bits_a_mask_bit; // @[Misc.scala 210:20]
-  wire  x1_a_bits_a_mask_acc = _x1_a_bits_a_mask_T | x1_a_bits_a_mask_size & x1_a_bits_a_mask_nbit; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_acc_1 = _x1_a_bits_a_mask_T | x1_a_bits_a_mask_size & x1_a_bits_a_mask_bit; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_size_1 = x1_a_bits_a_mask_sizeOH[4]; // @[Misc.scala 208:26]
-  wire  x1_a_bits_a_mask_bit_1 = totalTx_memoryAddress[4]; // @[Misc.scala 209:26]
-  wire  x1_a_bits_a_mask_nbit_1 = ~x1_a_bits_a_mask_bit_1; // @[Misc.scala 210:20]
-  wire  x1_a_bits_a_mask_eq_2 = x1_a_bits_a_mask_nbit & x1_a_bits_a_mask_nbit_1; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_2 = x1_a_bits_a_mask_acc | x1_a_bits_a_mask_size_1 & x1_a_bits_a_mask_eq_2; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_3 = x1_a_bits_a_mask_nbit & x1_a_bits_a_mask_bit_1; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_3 = x1_a_bits_a_mask_acc | x1_a_bits_a_mask_size_1 & x1_a_bits_a_mask_eq_3; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_4 = x1_a_bits_a_mask_bit & x1_a_bits_a_mask_nbit_1; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_4 = x1_a_bits_a_mask_acc_1 | x1_a_bits_a_mask_size_1 & x1_a_bits_a_mask_eq_4; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_5 = x1_a_bits_a_mask_bit & x1_a_bits_a_mask_bit_1; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_5 = x1_a_bits_a_mask_acc_1 | x1_a_bits_a_mask_size_1 & x1_a_bits_a_mask_eq_5; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_size_2 = x1_a_bits_a_mask_sizeOH[3]; // @[Misc.scala 208:26]
-  wire  x1_a_bits_a_mask_bit_2 = totalTx_memoryAddress[3]; // @[Misc.scala 209:26]
-  wire  x1_a_bits_a_mask_nbit_2 = ~x1_a_bits_a_mask_bit_2; // @[Misc.scala 210:20]
-  wire  x1_a_bits_a_mask_eq_6 = x1_a_bits_a_mask_eq_2 & x1_a_bits_a_mask_nbit_2; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_6 = x1_a_bits_a_mask_acc_2 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_6; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_7 = x1_a_bits_a_mask_eq_2 & x1_a_bits_a_mask_bit_2; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_7 = x1_a_bits_a_mask_acc_2 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_7; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_8 = x1_a_bits_a_mask_eq_3 & x1_a_bits_a_mask_nbit_2; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_8 = x1_a_bits_a_mask_acc_3 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_8; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_9 = x1_a_bits_a_mask_eq_3 & x1_a_bits_a_mask_bit_2; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_9 = x1_a_bits_a_mask_acc_3 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_9; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_10 = x1_a_bits_a_mask_eq_4 & x1_a_bits_a_mask_nbit_2; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_10 = x1_a_bits_a_mask_acc_4 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_10; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_11 = x1_a_bits_a_mask_eq_4 & x1_a_bits_a_mask_bit_2; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_11 = x1_a_bits_a_mask_acc_4 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_11; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_12 = x1_a_bits_a_mask_eq_5 & x1_a_bits_a_mask_nbit_2; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_12 = x1_a_bits_a_mask_acc_5 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_12; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_13 = x1_a_bits_a_mask_eq_5 & x1_a_bits_a_mask_bit_2; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_13 = x1_a_bits_a_mask_acc_5 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_13; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_size_3 = x1_a_bits_a_mask_sizeOH[2]; // @[Misc.scala 208:26]
-  wire  x1_a_bits_a_mask_bit_3 = totalTx_memoryAddress[2]; // @[Misc.scala 209:26]
-  wire  x1_a_bits_a_mask_nbit_3 = ~x1_a_bits_a_mask_bit_3; // @[Misc.scala 210:20]
-  wire  x1_a_bits_a_mask_eq_14 = x1_a_bits_a_mask_eq_6 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_14 = x1_a_bits_a_mask_acc_6 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_14; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_15 = x1_a_bits_a_mask_eq_6 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_15 = x1_a_bits_a_mask_acc_6 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_15; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_16 = x1_a_bits_a_mask_eq_7 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_16 = x1_a_bits_a_mask_acc_7 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_16; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_17 = x1_a_bits_a_mask_eq_7 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_17 = x1_a_bits_a_mask_acc_7 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_17; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_18 = x1_a_bits_a_mask_eq_8 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_18 = x1_a_bits_a_mask_acc_8 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_18; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_19 = x1_a_bits_a_mask_eq_8 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_19 = x1_a_bits_a_mask_acc_8 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_19; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_20 = x1_a_bits_a_mask_eq_9 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_20 = x1_a_bits_a_mask_acc_9 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_20; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_21 = x1_a_bits_a_mask_eq_9 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_21 = x1_a_bits_a_mask_acc_9 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_21; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_22 = x1_a_bits_a_mask_eq_10 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_22 = x1_a_bits_a_mask_acc_10 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_22; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_23 = x1_a_bits_a_mask_eq_10 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_23 = x1_a_bits_a_mask_acc_10 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_23; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_24 = x1_a_bits_a_mask_eq_11 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_24 = x1_a_bits_a_mask_acc_11 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_24; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_25 = x1_a_bits_a_mask_eq_11 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_25 = x1_a_bits_a_mask_acc_11 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_25; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_26 = x1_a_bits_a_mask_eq_12 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_26 = x1_a_bits_a_mask_acc_12 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_26; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_27 = x1_a_bits_a_mask_eq_12 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_27 = x1_a_bits_a_mask_acc_12 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_27; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_28 = x1_a_bits_a_mask_eq_13 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_28 = x1_a_bits_a_mask_acc_13 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_28; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_29 = x1_a_bits_a_mask_eq_13 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_29 = x1_a_bits_a_mask_acc_13 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_29; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_size_4 = x1_a_bits_a_mask_sizeOH[1]; // @[Misc.scala 208:26]
-  wire  x1_a_bits_a_mask_bit_4 = totalTx_memoryAddress[1]; // @[Misc.scala 209:26]
-  wire  x1_a_bits_a_mask_nbit_4 = ~x1_a_bits_a_mask_bit_4; // @[Misc.scala 210:20]
-  wire  x1_a_bits_a_mask_eq_30 = x1_a_bits_a_mask_eq_14 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_30 = x1_a_bits_a_mask_acc_14 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_30; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_31 = x1_a_bits_a_mask_eq_14 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_31 = x1_a_bits_a_mask_acc_14 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_31; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_32 = x1_a_bits_a_mask_eq_15 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_32 = x1_a_bits_a_mask_acc_15 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_32; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_33 = x1_a_bits_a_mask_eq_15 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_33 = x1_a_bits_a_mask_acc_15 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_33; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_34 = x1_a_bits_a_mask_eq_16 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_34 = x1_a_bits_a_mask_acc_16 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_34; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_35 = x1_a_bits_a_mask_eq_16 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_35 = x1_a_bits_a_mask_acc_16 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_35; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_36 = x1_a_bits_a_mask_eq_17 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_36 = x1_a_bits_a_mask_acc_17 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_36; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_37 = x1_a_bits_a_mask_eq_17 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_37 = x1_a_bits_a_mask_acc_17 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_37; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_38 = x1_a_bits_a_mask_eq_18 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_38 = x1_a_bits_a_mask_acc_18 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_38; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_39 = x1_a_bits_a_mask_eq_18 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_39 = x1_a_bits_a_mask_acc_18 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_39; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_40 = x1_a_bits_a_mask_eq_19 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_40 = x1_a_bits_a_mask_acc_19 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_40; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_41 = x1_a_bits_a_mask_eq_19 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_41 = x1_a_bits_a_mask_acc_19 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_41; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_42 = x1_a_bits_a_mask_eq_20 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_42 = x1_a_bits_a_mask_acc_20 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_42; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_43 = x1_a_bits_a_mask_eq_20 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_43 = x1_a_bits_a_mask_acc_20 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_43; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_44 = x1_a_bits_a_mask_eq_21 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_44 = x1_a_bits_a_mask_acc_21 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_44; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_45 = x1_a_bits_a_mask_eq_21 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_45 = x1_a_bits_a_mask_acc_21 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_45; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_46 = x1_a_bits_a_mask_eq_22 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_46 = x1_a_bits_a_mask_acc_22 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_46; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_47 = x1_a_bits_a_mask_eq_22 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_47 = x1_a_bits_a_mask_acc_22 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_47; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_48 = x1_a_bits_a_mask_eq_23 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_48 = x1_a_bits_a_mask_acc_23 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_48; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_49 = x1_a_bits_a_mask_eq_23 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_49 = x1_a_bits_a_mask_acc_23 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_49; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_50 = x1_a_bits_a_mask_eq_24 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_50 = x1_a_bits_a_mask_acc_24 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_50; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_51 = x1_a_bits_a_mask_eq_24 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_51 = x1_a_bits_a_mask_acc_24 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_51; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_52 = x1_a_bits_a_mask_eq_25 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_52 = x1_a_bits_a_mask_acc_25 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_52; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_53 = x1_a_bits_a_mask_eq_25 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_53 = x1_a_bits_a_mask_acc_25 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_53; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_54 = x1_a_bits_a_mask_eq_26 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_54 = x1_a_bits_a_mask_acc_26 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_54; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_55 = x1_a_bits_a_mask_eq_26 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_55 = x1_a_bits_a_mask_acc_26 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_55; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_56 = x1_a_bits_a_mask_eq_27 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_56 = x1_a_bits_a_mask_acc_27 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_56; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_57 = x1_a_bits_a_mask_eq_27 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_57 = x1_a_bits_a_mask_acc_27 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_57; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_58 = x1_a_bits_a_mask_eq_28 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_58 = x1_a_bits_a_mask_acc_28 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_58; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_59 = x1_a_bits_a_mask_eq_28 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_59 = x1_a_bits_a_mask_acc_28 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_59; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_60 = x1_a_bits_a_mask_eq_29 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_60 = x1_a_bits_a_mask_acc_29 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_60; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_61 = x1_a_bits_a_mask_eq_29 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_61 = x1_a_bits_a_mask_acc_29 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_61; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_size_5 = x1_a_bits_a_mask_sizeOH[0]; // @[Misc.scala 208:26]
-  wire  x1_a_bits_a_mask_bit_5 = totalTx_memoryAddress[0]; // @[Misc.scala 209:26]
-  wire  x1_a_bits_a_mask_nbit_5 = ~x1_a_bits_a_mask_bit_5; // @[Misc.scala 210:20]
-  wire  x1_a_bits_a_mask_eq_62 = x1_a_bits_a_mask_eq_30 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_62 = x1_a_bits_a_mask_acc_30 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_62; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_63 = x1_a_bits_a_mask_eq_30 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_63 = x1_a_bits_a_mask_acc_30 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_63; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_64 = x1_a_bits_a_mask_eq_31 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_64 = x1_a_bits_a_mask_acc_31 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_64; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_65 = x1_a_bits_a_mask_eq_31 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_65 = x1_a_bits_a_mask_acc_31 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_65; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_66 = x1_a_bits_a_mask_eq_32 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_66 = x1_a_bits_a_mask_acc_32 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_66; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_67 = x1_a_bits_a_mask_eq_32 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_67 = x1_a_bits_a_mask_acc_32 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_67; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_68 = x1_a_bits_a_mask_eq_33 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_68 = x1_a_bits_a_mask_acc_33 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_68; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_69 = x1_a_bits_a_mask_eq_33 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_69 = x1_a_bits_a_mask_acc_33 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_69; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_70 = x1_a_bits_a_mask_eq_34 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_70 = x1_a_bits_a_mask_acc_34 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_70; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_71 = x1_a_bits_a_mask_eq_34 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_71 = x1_a_bits_a_mask_acc_34 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_71; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_72 = x1_a_bits_a_mask_eq_35 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_72 = x1_a_bits_a_mask_acc_35 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_72; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_73 = x1_a_bits_a_mask_eq_35 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_73 = x1_a_bits_a_mask_acc_35 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_73; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_74 = x1_a_bits_a_mask_eq_36 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_74 = x1_a_bits_a_mask_acc_36 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_74; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_75 = x1_a_bits_a_mask_eq_36 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_75 = x1_a_bits_a_mask_acc_36 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_75; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_76 = x1_a_bits_a_mask_eq_37 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_76 = x1_a_bits_a_mask_acc_37 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_76; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_77 = x1_a_bits_a_mask_eq_37 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_77 = x1_a_bits_a_mask_acc_37 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_77; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_78 = x1_a_bits_a_mask_eq_38 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_78 = x1_a_bits_a_mask_acc_38 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_78; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_79 = x1_a_bits_a_mask_eq_38 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_79 = x1_a_bits_a_mask_acc_38 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_79; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_80 = x1_a_bits_a_mask_eq_39 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_80 = x1_a_bits_a_mask_acc_39 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_80; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_81 = x1_a_bits_a_mask_eq_39 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_81 = x1_a_bits_a_mask_acc_39 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_81; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_82 = x1_a_bits_a_mask_eq_40 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_82 = x1_a_bits_a_mask_acc_40 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_82; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_83 = x1_a_bits_a_mask_eq_40 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_83 = x1_a_bits_a_mask_acc_40 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_83; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_84 = x1_a_bits_a_mask_eq_41 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_84 = x1_a_bits_a_mask_acc_41 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_84; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_85 = x1_a_bits_a_mask_eq_41 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_85 = x1_a_bits_a_mask_acc_41 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_85; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_86 = x1_a_bits_a_mask_eq_42 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_86 = x1_a_bits_a_mask_acc_42 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_86; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_87 = x1_a_bits_a_mask_eq_42 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_87 = x1_a_bits_a_mask_acc_42 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_87; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_88 = x1_a_bits_a_mask_eq_43 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_88 = x1_a_bits_a_mask_acc_43 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_88; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_89 = x1_a_bits_a_mask_eq_43 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_89 = x1_a_bits_a_mask_acc_43 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_89; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_90 = x1_a_bits_a_mask_eq_44 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_90 = x1_a_bits_a_mask_acc_44 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_90; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_91 = x1_a_bits_a_mask_eq_44 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_91 = x1_a_bits_a_mask_acc_44 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_91; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_92 = x1_a_bits_a_mask_eq_45 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_92 = x1_a_bits_a_mask_acc_45 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_92; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_93 = x1_a_bits_a_mask_eq_45 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_93 = x1_a_bits_a_mask_acc_45 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_93; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_94 = x1_a_bits_a_mask_eq_46 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_94 = x1_a_bits_a_mask_acc_46 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_94; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_95 = x1_a_bits_a_mask_eq_46 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_95 = x1_a_bits_a_mask_acc_46 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_95; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_96 = x1_a_bits_a_mask_eq_47 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_96 = x1_a_bits_a_mask_acc_47 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_96; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_97 = x1_a_bits_a_mask_eq_47 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_97 = x1_a_bits_a_mask_acc_47 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_97; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_98 = x1_a_bits_a_mask_eq_48 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_98 = x1_a_bits_a_mask_acc_48 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_98; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_99 = x1_a_bits_a_mask_eq_48 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_99 = x1_a_bits_a_mask_acc_48 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_99; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_100 = x1_a_bits_a_mask_eq_49 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_100 = x1_a_bits_a_mask_acc_49 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_100; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_101 = x1_a_bits_a_mask_eq_49 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_101 = x1_a_bits_a_mask_acc_49 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_101; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_102 = x1_a_bits_a_mask_eq_50 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_102 = x1_a_bits_a_mask_acc_50 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_102; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_103 = x1_a_bits_a_mask_eq_50 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_103 = x1_a_bits_a_mask_acc_50 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_103; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_104 = x1_a_bits_a_mask_eq_51 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_104 = x1_a_bits_a_mask_acc_51 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_104; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_105 = x1_a_bits_a_mask_eq_51 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_105 = x1_a_bits_a_mask_acc_51 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_105; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_106 = x1_a_bits_a_mask_eq_52 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_106 = x1_a_bits_a_mask_acc_52 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_106; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_107 = x1_a_bits_a_mask_eq_52 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_107 = x1_a_bits_a_mask_acc_52 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_107; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_108 = x1_a_bits_a_mask_eq_53 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_108 = x1_a_bits_a_mask_acc_53 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_108; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_109 = x1_a_bits_a_mask_eq_53 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_109 = x1_a_bits_a_mask_acc_53 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_109; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_110 = x1_a_bits_a_mask_eq_54 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_110 = x1_a_bits_a_mask_acc_54 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_110; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_111 = x1_a_bits_a_mask_eq_54 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_111 = x1_a_bits_a_mask_acc_54 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_111; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_112 = x1_a_bits_a_mask_eq_55 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_112 = x1_a_bits_a_mask_acc_55 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_112; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_113 = x1_a_bits_a_mask_eq_55 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_113 = x1_a_bits_a_mask_acc_55 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_113; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_114 = x1_a_bits_a_mask_eq_56 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_114 = x1_a_bits_a_mask_acc_56 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_114; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_115 = x1_a_bits_a_mask_eq_56 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_115 = x1_a_bits_a_mask_acc_56 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_115; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_116 = x1_a_bits_a_mask_eq_57 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_116 = x1_a_bits_a_mask_acc_57 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_116; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_117 = x1_a_bits_a_mask_eq_57 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_117 = x1_a_bits_a_mask_acc_57 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_117; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_118 = x1_a_bits_a_mask_eq_58 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_118 = x1_a_bits_a_mask_acc_58 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_118; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_119 = x1_a_bits_a_mask_eq_58 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_119 = x1_a_bits_a_mask_acc_58 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_119; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_120 = x1_a_bits_a_mask_eq_59 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_120 = x1_a_bits_a_mask_acc_59 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_120; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_121 = x1_a_bits_a_mask_eq_59 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_121 = x1_a_bits_a_mask_acc_59 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_121; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_122 = x1_a_bits_a_mask_eq_60 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_122 = x1_a_bits_a_mask_acc_60 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_122; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_123 = x1_a_bits_a_mask_eq_60 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_123 = x1_a_bits_a_mask_acc_60 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_123; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_124 = x1_a_bits_a_mask_eq_61 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_124 = x1_a_bits_a_mask_acc_61 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_124; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_125 = x1_a_bits_a_mask_eq_61 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_125 = x1_a_bits_a_mask_acc_61 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_125; // @[Misc.scala 214:29]
-  wire [7:0] x1_a_bits_a_mask_lo_lo_lo = {x1_a_bits_a_mask_acc_69,x1_a_bits_a_mask_acc_68,x1_a_bits_a_mask_acc_67,
-    x1_a_bits_a_mask_acc_66,x1_a_bits_a_mask_acc_65,x1_a_bits_a_mask_acc_64,x1_a_bits_a_mask_acc_63,
-    x1_a_bits_a_mask_acc_62}; // @[Cat.scala 33:92]
-  wire [15:0] x1_a_bits_a_mask_lo_lo = {x1_a_bits_a_mask_acc_77,x1_a_bits_a_mask_acc_76,x1_a_bits_a_mask_acc_75,
-    x1_a_bits_a_mask_acc_74,x1_a_bits_a_mask_acc_73,x1_a_bits_a_mask_acc_72,x1_a_bits_a_mask_acc_71,
-    x1_a_bits_a_mask_acc_70,x1_a_bits_a_mask_lo_lo_lo}; // @[Cat.scala 33:92]
-  wire [7:0] x1_a_bits_a_mask_lo_hi_lo = {x1_a_bits_a_mask_acc_85,x1_a_bits_a_mask_acc_84,x1_a_bits_a_mask_acc_83,
-    x1_a_bits_a_mask_acc_82,x1_a_bits_a_mask_acc_81,x1_a_bits_a_mask_acc_80,x1_a_bits_a_mask_acc_79,
-    x1_a_bits_a_mask_acc_78}; // @[Cat.scala 33:92]
-  wire [31:0] x1_a_bits_a_mask_lo = {x1_a_bits_a_mask_acc_93,x1_a_bits_a_mask_acc_92,x1_a_bits_a_mask_acc_91,
-    x1_a_bits_a_mask_acc_90,x1_a_bits_a_mask_acc_89,x1_a_bits_a_mask_acc_88,x1_a_bits_a_mask_acc_87,
-    x1_a_bits_a_mask_acc_86,x1_a_bits_a_mask_lo_hi_lo,x1_a_bits_a_mask_lo_lo}; // @[Cat.scala 33:92]
-  wire [7:0] x1_a_bits_a_mask_hi_lo_lo = {x1_a_bits_a_mask_acc_101,x1_a_bits_a_mask_acc_100,x1_a_bits_a_mask_acc_99,
-    x1_a_bits_a_mask_acc_98,x1_a_bits_a_mask_acc_97,x1_a_bits_a_mask_acc_96,x1_a_bits_a_mask_acc_95,
-    x1_a_bits_a_mask_acc_94}; // @[Cat.scala 33:92]
-  wire [15:0] x1_a_bits_a_mask_hi_lo = {x1_a_bits_a_mask_acc_109,x1_a_bits_a_mask_acc_108,x1_a_bits_a_mask_acc_107,
-    x1_a_bits_a_mask_acc_106,x1_a_bits_a_mask_acc_105,x1_a_bits_a_mask_acc_104,x1_a_bits_a_mask_acc_103,
-    x1_a_bits_a_mask_acc_102,x1_a_bits_a_mask_hi_lo_lo}; // @[Cat.scala 33:92]
-  wire [7:0] x1_a_bits_a_mask_hi_hi_lo = {x1_a_bits_a_mask_acc_117,x1_a_bits_a_mask_acc_116,x1_a_bits_a_mask_acc_115,
-    x1_a_bits_a_mask_acc_114,x1_a_bits_a_mask_acc_113,x1_a_bits_a_mask_acc_112,x1_a_bits_a_mask_acc_111,
-    x1_a_bits_a_mask_acc_110}; // @[Cat.scala 33:92]
-  wire [31:0] x1_a_bits_a_mask_hi = {x1_a_bits_a_mask_acc_125,x1_a_bits_a_mask_acc_124,x1_a_bits_a_mask_acc_123,
-    x1_a_bits_a_mask_acc_122,x1_a_bits_a_mask_acc_121,x1_a_bits_a_mask_acc_120,x1_a_bits_a_mask_acc_119,
-    x1_a_bits_a_mask_acc_118,x1_a_bits_a_mask_hi_hi_lo,x1_a_bits_a_mask_hi_lo}; // @[Cat.scala 33:92]
-  wire  _GEN_112 = 2'h1 == mem_tx_state ? reqAvailable : mem_tx_state == 2'h1; // @[CScratchpad.scala 136:19 138:24 151:23]
-  wire  mem_out_a_valid = 2'h0 == mem_tx_state ? mem_tx_state == 2'h1 : _GEN_112; // @[CScratchpad.scala 136:19 138:24]
-  wire  _T_13 = auto_mem_out_a_ready & mem_out_a_valid; // @[Decoupled.scala 51:35]
-  wire  _GEN_8 = 4'h0 == reqChosen ? 1'h0 : reqIdleBits_0; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_9 = 4'h1 == reqChosen ? 1'h0 : reqIdleBits_1; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_10 = 4'h2 == reqChosen ? 1'h0 : reqIdleBits_2; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_11 = 4'h3 == reqChosen ? 1'h0 : reqIdleBits_3; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_12 = 4'h4 == reqChosen ? 1'h0 : reqIdleBits_4; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_13 = 4'h5 == reqChosen ? 1'h0 : reqIdleBits_5; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_14 = 4'h6 == reqChosen ? 1'h0 : reqIdleBits_6; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_15 = 4'h7 == reqChosen ? 1'h0 : reqIdleBits_7; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_16 = 4'h8 == reqChosen ? 1'h0 : reqIdleBits_8; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_17 = 4'h9 == reqChosen ? 1'h0 : reqIdleBits_9; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_18 = 4'ha == reqChosen ? 1'h0 : reqIdleBits_10; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_19 = 4'hb == reqChosen ? 1'h0 : reqIdleBits_11; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_20 = 4'hc == reqChosen ? 1'h0 : reqIdleBits_12; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_21 = 4'hd == reqChosen ? 1'h0 : reqIdleBits_13; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_22 = 4'he == reqChosen ? 1'h0 : reqIdleBits_14; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_23 = 4'hf == reqChosen ? 1'h0 : reqIdleBits_15; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire [33:0] _req_cache_memoryLength_T = isBelowLimit ? totalTx_memoryLength : 34'h40; // @[CScratchpad.scala 155:49]
-  wire [15:0] _GEN_40 = 4'h0 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_0_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_41 = 4'h1 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_1_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_42 = 4'h2 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_2_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_43 = 4'h3 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_3_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_44 = 4'h4 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_4_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_45 = 4'h5 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_5_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_46 = 4'h6 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_6_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_47 = 4'h7 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_7_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_48 = 4'h8 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_8_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_49 = 4'h9 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_9_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_50 = 4'ha == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_10_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_51 = 4'hb == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_11_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_52 = 4'hc == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_12_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_53 = 4'hd == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_13_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_54 = 4'he == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_14_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_55 = 4'hf == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_15_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [33:0] _totalTx_memoryLength_T_1 = totalTx_memoryLength - 34'h40; // @[CScratchpad.scala 156:54]
-  wire [33:0] _totalTx_memoryAddress_T_1 = totalTx_memoryAddress + 34'h40; // @[CScratchpad.scala 158:56]
-  wire [1:0] _GEN_56 = isBelowLimit ? 2'h2 : mem_tx_state; // @[CScratchpad.scala 159:28 160:24 102:37]
-  wire  _GEN_57 = _T_13 ? _GEN_8 : reqIdleBits_0; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_58 = _T_13 ? _GEN_9 : reqIdleBits_1; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_59 = _T_13 ? _GEN_10 : reqIdleBits_2; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_60 = _T_13 ? _GEN_11 : reqIdleBits_3; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_61 = _T_13 ? _GEN_12 : reqIdleBits_4; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_62 = _T_13 ? _GEN_13 : reqIdleBits_5; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_63 = _T_13 ? _GEN_14 : reqIdleBits_6; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_64 = _T_13 ? _GEN_15 : reqIdleBits_7; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_65 = _T_13 ? _GEN_16 : reqIdleBits_8; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_66 = _T_13 ? _GEN_17 : reqIdleBits_9; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_67 = _T_13 ? _GEN_18 : reqIdleBits_10; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_68 = _T_13 ? _GEN_19 : reqIdleBits_11; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_69 = _T_13 ? _GEN_20 : reqIdleBits_12; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_70 = _T_13 ? _GEN_21 : reqIdleBits_13; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_71 = _T_13 ? _GEN_22 : reqIdleBits_14; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_72 = _T_13 ? _GEN_23 : reqIdleBits_15; // @[CScratchpad.scala 152:28 110:36]
-  wire [15:0] _GEN_89 = _T_13 ? _GEN_40 : req_cache_0_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_90 = _T_13 ? _GEN_41 : req_cache_1_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_91 = _T_13 ? _GEN_42 : req_cache_2_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_92 = _T_13 ? _GEN_43 : req_cache_3_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_93 = _T_13 ? _GEN_44 : req_cache_4_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_94 = _T_13 ? _GEN_45 : req_cache_5_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_95 = _T_13 ? _GEN_46 : req_cache_6_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_96 = _T_13 ? _GEN_47 : req_cache_7_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_97 = _T_13 ? _GEN_48 : req_cache_8_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_98 = _T_13 ? _GEN_49 : req_cache_9_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_99 = _T_13 ? _GEN_50 : req_cache_10_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_100 = _T_13 ? _GEN_51 : req_cache_11_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_101 = _T_13 ? _GEN_52 : req_cache_12_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_102 = _T_13 ? _GEN_53 : req_cache_13_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_103 = _T_13 ? _GEN_54 : req_cache_14_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_104 = _T_13 ? _GEN_55 : req_cache_15_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [1:0] _GEN_109 = reqIdleBits_0 & reqIdleBits_1 & reqIdleBits_2 & reqIdleBits_3 & reqIdleBits_4 & reqIdleBits_5 &
-    reqIdleBits_6 & reqIdleBits_7 & reqIdleBits_8 & reqIdleBits_9 & reqIdleBits_10 & reqIdleBits_11 & reqIdleBits_12 &
-    reqIdleBits_13 & reqIdleBits_14 & reqIdleBits_15 ? 2'h0 : mem_tx_state; // @[CScratchpad.scala 166:40 167:22 102:37]
-  wire  _GEN_113 = 2'h1 == mem_tx_state ? _GEN_57 : reqIdleBits_0; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_114 = 2'h1 == mem_tx_state ? _GEN_58 : reqIdleBits_1; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_115 = 2'h1 == mem_tx_state ? _GEN_59 : reqIdleBits_2; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_116 = 2'h1 == mem_tx_state ? _GEN_60 : reqIdleBits_3; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_117 = 2'h1 == mem_tx_state ? _GEN_61 : reqIdleBits_4; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_118 = 2'h1 == mem_tx_state ? _GEN_62 : reqIdleBits_5; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_119 = 2'h1 == mem_tx_state ? _GEN_63 : reqIdleBits_6; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_120 = 2'h1 == mem_tx_state ? _GEN_64 : reqIdleBits_7; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_121 = 2'h1 == mem_tx_state ? _GEN_65 : reqIdleBits_8; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_122 = 2'h1 == mem_tx_state ? _GEN_66 : reqIdleBits_9; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_123 = 2'h1 == mem_tx_state ? _GEN_67 : reqIdleBits_10; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_124 = 2'h1 == mem_tx_state ? _GEN_68 : reqIdleBits_11; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_125 = 2'h1 == mem_tx_state ? _GEN_69 : reqIdleBits_12; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_126 = 2'h1 == mem_tx_state ? _GEN_70 : reqIdleBits_13; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_127 = 2'h1 == mem_tx_state ? _GEN_71 : reqIdleBits_14; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_128 = 2'h1 == mem_tx_state ? _GEN_72 : reqIdleBits_15; // @[CScratchpad.scala 138:24 110:36]
-  wire [15:0] _GEN_145 = 2'h1 == mem_tx_state ? _GEN_89 : req_cache_0_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_146 = 2'h1 == mem_tx_state ? _GEN_90 : req_cache_1_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_147 = 2'h1 == mem_tx_state ? _GEN_91 : req_cache_2_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_148 = 2'h1 == mem_tx_state ? _GEN_92 : req_cache_3_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_149 = 2'h1 == mem_tx_state ? _GEN_93 : req_cache_4_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_150 = 2'h1 == mem_tx_state ? _GEN_94 : req_cache_5_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_151 = 2'h1 == mem_tx_state ? _GEN_95 : req_cache_6_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_152 = 2'h1 == mem_tx_state ? _GEN_96 : req_cache_7_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_153 = 2'h1 == mem_tx_state ? _GEN_97 : req_cache_8_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_154 = 2'h1 == mem_tx_state ? _GEN_98 : req_cache_9_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_155 = 2'h1 == mem_tx_state ? _GEN_99 : req_cache_10_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_156 = 2'h1 == mem_tx_state ? _GEN_100 : req_cache_11_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_157 = 2'h1 == mem_tx_state ? _GEN_101 : req_cache_12_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_158 = 2'h1 == mem_tx_state ? _GEN_102 : req_cache_13_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_159 = 2'h1 == mem_tx_state ? _GEN_103 : req_cache_14_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_160 = 2'h1 == mem_tx_state ? _GEN_104 : req_cache_15_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire  _GEN_171 = 2'h0 == mem_tx_state ? reqIdleBits_0 : _GEN_113; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_172 = 2'h0 == mem_tx_state ? reqIdleBits_1 : _GEN_114; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_173 = 2'h0 == mem_tx_state ? reqIdleBits_2 : _GEN_115; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_174 = 2'h0 == mem_tx_state ? reqIdleBits_3 : _GEN_116; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_175 = 2'h0 == mem_tx_state ? reqIdleBits_4 : _GEN_117; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_176 = 2'h0 == mem_tx_state ? reqIdleBits_5 : _GEN_118; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_177 = 2'h0 == mem_tx_state ? reqIdleBits_6 : _GEN_119; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_178 = 2'h0 == mem_tx_state ? reqIdleBits_7 : _GEN_120; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_179 = 2'h0 == mem_tx_state ? reqIdleBits_8 : _GEN_121; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_180 = 2'h0 == mem_tx_state ? reqIdleBits_9 : _GEN_122; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_181 = 2'h0 == mem_tx_state ? reqIdleBits_10 : _GEN_123; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_182 = 2'h0 == mem_tx_state ? reqIdleBits_11 : _GEN_124; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_183 = 2'h0 == mem_tx_state ? reqIdleBits_12 : _GEN_125; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_184 = 2'h0 == mem_tx_state ? reqIdleBits_13 : _GEN_126; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_185 = 2'h0 == mem_tx_state ? reqIdleBits_14 : _GEN_127; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_186 = 2'h0 == mem_tx_state ? reqIdleBits_15 : _GEN_128; // @[CScratchpad.scala 138:24 110:36]
-  wire [15:0] _GEN_203 = 2'h0 == mem_tx_state ? req_cache_0_memoryLength : _GEN_145; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_204 = 2'h0 == mem_tx_state ? req_cache_1_memoryLength : _GEN_146; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_205 = 2'h0 == mem_tx_state ? req_cache_2_memoryLength : _GEN_147; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_206 = 2'h0 == mem_tx_state ? req_cache_3_memoryLength : _GEN_148; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_207 = 2'h0 == mem_tx_state ? req_cache_4_memoryLength : _GEN_149; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_208 = 2'h0 == mem_tx_state ? req_cache_5_memoryLength : _GEN_150; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_209 = 2'h0 == mem_tx_state ? req_cache_6_memoryLength : _GEN_151; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_210 = 2'h0 == mem_tx_state ? req_cache_7_memoryLength : _GEN_152; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_211 = 2'h0 == mem_tx_state ? req_cache_8_memoryLength : _GEN_153; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_212 = 2'h0 == mem_tx_state ? req_cache_9_memoryLength : _GEN_154; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_213 = 2'h0 == mem_tx_state ? req_cache_10_memoryLength : _GEN_155; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_214 = 2'h0 == mem_tx_state ? req_cache_11_memoryLength : _GEN_156; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_215 = 2'h0 == mem_tx_state ? req_cache_12_memoryLength : _GEN_157; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_216 = 2'h0 == mem_tx_state ? req_cache_13_memoryLength : _GEN_158; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_217 = 2'h0 == mem_tx_state ? req_cache_14_memoryLength : _GEN_159; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_218 = 2'h0 == mem_tx_state ? req_cache_15_memoryLength : _GEN_160; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_220 = 4'h1 == auto_mem_out_d_bits_source ? req_cache_1_memoryLength : req_cache_0_memoryLength; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_221 = 4'h2 == auto_mem_out_d_bits_source ? req_cache_2_memoryLength : _GEN_220; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_222 = 4'h3 == auto_mem_out_d_bits_source ? req_cache_3_memoryLength : _GEN_221; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_223 = 4'h4 == auto_mem_out_d_bits_source ? req_cache_4_memoryLength : _GEN_222; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_224 = 4'h5 == auto_mem_out_d_bits_source ? req_cache_5_memoryLength : _GEN_223; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_225 = 4'h6 == auto_mem_out_d_bits_source ? req_cache_6_memoryLength : _GEN_224; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_226 = 4'h7 == auto_mem_out_d_bits_source ? req_cache_7_memoryLength : _GEN_225; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_227 = 4'h8 == auto_mem_out_d_bits_source ? req_cache_8_memoryLength : _GEN_226; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_228 = 4'h9 == auto_mem_out_d_bits_source ? req_cache_9_memoryLength : _GEN_227; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_229 = 4'ha == auto_mem_out_d_bits_source ? req_cache_10_memoryLength : _GEN_228; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_230 = 4'hb == auto_mem_out_d_bits_source ? req_cache_11_memoryLength : _GEN_229; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_231 = 4'hc == auto_mem_out_d_bits_source ? req_cache_12_memoryLength : _GEN_230; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_232 = 4'hd == auto_mem_out_d_bits_source ? req_cache_13_memoryLength : _GEN_231; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_233 = 4'he == auto_mem_out_d_bits_source ? req_cache_14_memoryLength : _GEN_232; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_234 = 4'hf == auto_mem_out_d_bits_source ? req_cache_15_memoryLength : _GEN_233; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_235 = _GEN_234 >= 16'h40 ? 16'h40 : _GEN_234; // @[CScratchpad.scala 174:55 175:39 177:39]
-  wire  mem_out_d_ready = loader_io_cache_block_in_ready; // @[Nodes.scala 1212:84 CScratchpad.scala 180:19]
-  wire  _T_36 = mem_out_d_ready & auto_mem_out_d_valid; // @[Decoupled.scala 51:35]
-  wire [15:0] _req_cache_memoryLength_T_2 = _GEN_234 - 16'h40; // @[CScratchpad.scala 210:72]
-  wire  _GEN_445 = 4'h0 == auto_mem_out_d_bits_source | _GEN_171; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_446 = 4'h1 == auto_mem_out_d_bits_source | _GEN_172; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_447 = 4'h2 == auto_mem_out_d_bits_source | _GEN_173; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_448 = 4'h3 == auto_mem_out_d_bits_source | _GEN_174; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_449 = 4'h4 == auto_mem_out_d_bits_source | _GEN_175; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_450 = 4'h5 == auto_mem_out_d_bits_source | _GEN_176; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_451 = 4'h6 == auto_mem_out_d_bits_source | _GEN_177; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_452 = 4'h7 == auto_mem_out_d_bits_source | _GEN_178; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_453 = 4'h8 == auto_mem_out_d_bits_source | _GEN_179; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_454 = 4'h9 == auto_mem_out_d_bits_source | _GEN_180; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_455 = 4'ha == auto_mem_out_d_bits_source | _GEN_181; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_456 = 4'hb == auto_mem_out_d_bits_source | _GEN_182; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_457 = 4'hc == auto_mem_out_d_bits_source | _GEN_183; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_458 = 4'hd == auto_mem_out_d_bits_source | _GEN_184; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_459 = 4'he == auto_mem_out_d_bits_source | _GEN_185; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_460 = 4'hf == auto_mem_out_d_bits_source | _GEN_186; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_461 = _GEN_234 <= 16'h40 ? _GEN_445 : _GEN_171; // @[CScratchpad.scala 212:57]
-  wire  _GEN_462 = _GEN_234 <= 16'h40 ? _GEN_446 : _GEN_172; // @[CScratchpad.scala 212:57]
-  wire  _GEN_463 = _GEN_234 <= 16'h40 ? _GEN_447 : _GEN_173; // @[CScratchpad.scala 212:57]
-  wire  _GEN_464 = _GEN_234 <= 16'h40 ? _GEN_448 : _GEN_174; // @[CScratchpad.scala 212:57]
-  wire  _GEN_465 = _GEN_234 <= 16'h40 ? _GEN_449 : _GEN_175; // @[CScratchpad.scala 212:57]
-  wire  _GEN_466 = _GEN_234 <= 16'h40 ? _GEN_450 : _GEN_176; // @[CScratchpad.scala 212:57]
-  wire  _GEN_467 = _GEN_234 <= 16'h40 ? _GEN_451 : _GEN_177; // @[CScratchpad.scala 212:57]
-  wire  _GEN_468 = _GEN_234 <= 16'h40 ? _GEN_452 : _GEN_178; // @[CScratchpad.scala 212:57]
-  wire  _GEN_469 = _GEN_234 <= 16'h40 ? _GEN_453 : _GEN_179; // @[CScratchpad.scala 212:57]
-  wire  _GEN_470 = _GEN_234 <= 16'h40 ? _GEN_454 : _GEN_180; // @[CScratchpad.scala 212:57]
-  wire  _GEN_471 = _GEN_234 <= 16'h40 ? _GEN_455 : _GEN_181; // @[CScratchpad.scala 212:57]
-  wire  _GEN_472 = _GEN_234 <= 16'h40 ? _GEN_456 : _GEN_182; // @[CScratchpad.scala 212:57]
-  wire  _GEN_473 = _GEN_234 <= 16'h40 ? _GEN_457 : _GEN_183; // @[CScratchpad.scala 212:57]
-  wire  _GEN_474 = _GEN_234 <= 16'h40 ? _GEN_458 : _GEN_184; // @[CScratchpad.scala 212:57]
-  wire  _GEN_475 = _GEN_234 <= 16'h40 ? _GEN_459 : _GEN_185; // @[CScratchpad.scala 212:57]
-  wire  _GEN_476 = _GEN_234 <= 16'h40 ? _GEN_460 : _GEN_186; // @[CScratchpad.scala 212:57]
-  wire  _GEN_494 = _T_36 ? _GEN_461 : _GEN_171; // @[CScratchpad.scala 209:24]
-  wire  _GEN_495 = _T_36 ? _GEN_462 : _GEN_172; // @[CScratchpad.scala 209:24]
-  wire  _GEN_496 = _T_36 ? _GEN_463 : _GEN_173; // @[CScratchpad.scala 209:24]
-  wire  _GEN_497 = _T_36 ? _GEN_464 : _GEN_174; // @[CScratchpad.scala 209:24]
-  wire  _GEN_498 = _T_36 ? _GEN_465 : _GEN_175; // @[CScratchpad.scala 209:24]
-  wire  _GEN_499 = _T_36 ? _GEN_466 : _GEN_176; // @[CScratchpad.scala 209:24]
-  wire  _GEN_500 = _T_36 ? _GEN_467 : _GEN_177; // @[CScratchpad.scala 209:24]
-  wire  _GEN_501 = _T_36 ? _GEN_468 : _GEN_178; // @[CScratchpad.scala 209:24]
-  wire  _GEN_502 = _T_36 ? _GEN_469 : _GEN_179; // @[CScratchpad.scala 209:24]
-  wire  _GEN_503 = _T_36 ? _GEN_470 : _GEN_180; // @[CScratchpad.scala 209:24]
-  wire  _GEN_504 = _T_36 ? _GEN_471 : _GEN_181; // @[CScratchpad.scala 209:24]
-  wire  _GEN_505 = _T_36 ? _GEN_472 : _GEN_182; // @[CScratchpad.scala 209:24]
-  wire  _GEN_506 = _T_36 ? _GEN_473 : _GEN_183; // @[CScratchpad.scala 209:24]
-  wire  _GEN_507 = _T_36 ? _GEN_474 : _GEN_184; // @[CScratchpad.scala 209:24]
-  wire  _GEN_508 = _T_36 ? _GEN_475 : _GEN_185; // @[CScratchpad.scala 209:24]
-  wire  _GEN_509 = _T_36 ? _GEN_476 : _GEN_186; // @[CScratchpad.scala 209:24]
-  CScratchpadPackedSubwordLoader_2 loader ( // @[CScratchpad.scala 94:30]
-    .clock(loader_clock),
-    .reset(loader_reset),
-    .io_cache_block_in_ready(loader_io_cache_block_in_ready),
-    .io_cache_block_in_valid(loader_io_cache_block_in_valid),
-    .io_cache_block_in_bits_len(loader_io_cache_block_in_bits_len),
-    .io_sp_write_out_valid(loader_io_sp_write_out_valid)
-  );
-  assign auto_mem_out_a_valid = 2'h0 == mem_tx_state ? mem_tx_state == 2'h1 : _GEN_112; // @[CScratchpad.scala 136:19 138:24]
-  assign auto_mem_out_a_bits_size = txEmitLengthLg[2:0]; // @[Edges.scala 447:17 450:15]
-  assign auto_mem_out_a_bits_source = reqIdleBits_0 ? 4'h0 : _reqChosen_T_13; // @[Mux.scala 47:70]
-  assign auto_mem_out_a_bits_address = totalTx_memoryAddress; // @[Edges.scala 447:17 452:15]
-  assign auto_mem_out_a_bits_mask = {x1_a_bits_a_mask_hi,x1_a_bits_a_mask_lo}; // @[Cat.scala 33:92]
-  assign auto_mem_out_d_ready = loader_io_cache_block_in_ready; // @[Nodes.scala 1212:84 CScratchpad.scala 180:19]
-  assign loader_clock = clock;
-  assign loader_reset = reset;
-  assign loader_io_cache_block_in_valid = auto_mem_out_d_valid; // @[Nodes.scala 1212:84 LazyModule.scala 368:12]
-  assign loader_io_cache_block_in_bits_len = _GEN_235[6:0];
-  always @(posedge clock) begin
-    if (reset) begin // @[CScratchpad.scala 102:37]
-      mem_tx_state <= 2'h0; // @[CScratchpad.scala 102:37]
-    end else if (!(2'h0 == mem_tx_state)) begin // @[CScratchpad.scala 138:24]
-      if (2'h1 == mem_tx_state) begin // @[CScratchpad.scala 138:24]
-        if (_T_13) begin // @[CScratchpad.scala 152:28]
-          mem_tx_state <= _GEN_56;
-        end
-      end else if (2'h2 == mem_tx_state) begin // @[CScratchpad.scala 138:24]
-        mem_tx_state <= _GEN_109;
-      end
-    end
-    reqIdleBits_0 <= reset | _GEN_494; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_1 <= reset | _GEN_495; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_2 <= reset | _GEN_496; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_3 <= reset | _GEN_497; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_4 <= reset | _GEN_498; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_5 <= reset | _GEN_499; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_6 <= reset | _GEN_500; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_7 <= reset | _GEN_501; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_8 <= reset | _GEN_502; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_9 <= reset | _GEN_503; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_10 <= reset | _GEN_504; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_11 <= reset | _GEN_505; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_12 <= reset | _GEN_506; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_13 <= reset | _GEN_507; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_14 <= reset | _GEN_508; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_15 <= reset | _GEN_509; // @[CScratchpad.scala 110:{36,36}]
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'h0 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_0_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_0_memoryLength <= _GEN_203;
-      end
-    end else begin
-      req_cache_0_memoryLength <= _GEN_203;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'h1 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_1_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_1_memoryLength <= _GEN_204;
-      end
-    end else begin
-      req_cache_1_memoryLength <= _GEN_204;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'h2 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_2_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_2_memoryLength <= _GEN_205;
-      end
-    end else begin
-      req_cache_2_memoryLength <= _GEN_205;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'h3 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_3_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_3_memoryLength <= _GEN_206;
-      end
-    end else begin
-      req_cache_3_memoryLength <= _GEN_206;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'h4 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_4_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_4_memoryLength <= _GEN_207;
-      end
-    end else begin
-      req_cache_4_memoryLength <= _GEN_207;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'h5 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_5_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_5_memoryLength <= _GEN_208;
-      end
-    end else begin
-      req_cache_5_memoryLength <= _GEN_208;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'h6 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_6_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_6_memoryLength <= _GEN_209;
-      end
-    end else begin
-      req_cache_6_memoryLength <= _GEN_209;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'h7 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_7_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_7_memoryLength <= _GEN_210;
-      end
-    end else begin
-      req_cache_7_memoryLength <= _GEN_210;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'h8 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_8_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_8_memoryLength <= _GEN_211;
-      end
-    end else begin
-      req_cache_8_memoryLength <= _GEN_211;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'h9 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_9_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_9_memoryLength <= _GEN_212;
-      end
-    end else begin
-      req_cache_9_memoryLength <= _GEN_212;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'ha == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_10_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_10_memoryLength <= _GEN_213;
-      end
-    end else begin
-      req_cache_10_memoryLength <= _GEN_213;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'hb == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_11_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_11_memoryLength <= _GEN_214;
-      end
-    end else begin
-      req_cache_11_memoryLength <= _GEN_214;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'hc == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_12_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_12_memoryLength <= _GEN_215;
-      end
-    end else begin
-      req_cache_12_memoryLength <= _GEN_215;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'hd == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_13_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_13_memoryLength <= _GEN_216;
-      end
-    end else begin
-      req_cache_13_memoryLength <= _GEN_216;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'he == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_14_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_14_memoryLength <= _GEN_217;
-      end
-    end else begin
-      req_cache_14_memoryLength <= _GEN_217;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'hf == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_15_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_15_memoryLength <= _GEN_218;
-      end
-    end else begin
-      req_cache_15_memoryLength <= _GEN_218;
-    end
-    if (!(2'h0 == mem_tx_state)) begin // @[CScratchpad.scala 138:24]
-      if (2'h1 == mem_tx_state) begin // @[CScratchpad.scala 138:24]
-        if (_T_13) begin // @[CScratchpad.scala 152:28]
-          totalTx_memoryAddress <= _totalTx_memoryAddress_T_1; // @[CScratchpad.scala 158:31]
-        end
-      end
-    end
-    if (!(2'h0 == mem_tx_state)) begin // @[CScratchpad.scala 138:24]
-      if (2'h1 == mem_tx_state) begin // @[CScratchpad.scala 138:24]
-        if (_T_13) begin // @[CScratchpad.scala 152:28]
-          totalTx_memoryLength <= _totalTx_memoryLength_T_1; // @[CScratchpad.scala 156:30]
-        end
-      end
-    end
-  end
-endmodule
-module CScratchpadPackedSubwordLoader_3(
-  input        clock,
-  input        reset,
-  output       io_cache_block_in_ready,
-  input        io_cache_block_in_valid,
-  input  [6:0] io_cache_block_in_bits_len,
-  output       io_sp_write_out_valid
-);
-  reg [6:0] lenRemainingFromReq; // @[CScratchpadPackedSubwordLoader.scala 18:32]
-  reg  state; // @[CScratchpadPackedSubwordLoader.scala 21:22]
-  wire  _io_cache_block_in_ready_T = ~state; // @[CScratchpadPackedSubwordLoader.scala 22:36]
-  wire  _T_1 = io_cache_block_in_ready & io_cache_block_in_valid; // @[Decoupled.scala 51:35]
-  wire  _GEN_0 = _T_1 | state; // @[CScratchpadPackedSubwordLoader.scala 34:36 35:15 21:22]
-  wire [6:0] _lenRemainingFromReq_T_1 = lenRemainingFromReq - 7'h20; // @[CScratchpadPackedSubwordLoader.scala 53:54]
-  wire  _GEN_6 = lenRemainingFromReq == 7'h20 ? 1'h0 : state; // @[CScratchpadPackedSubwordLoader.scala 54:60 55:19 21:22]
-  assign io_cache_block_in_ready = ~state; // @[CScratchpadPackedSubwordLoader.scala 22:36]
-  assign io_sp_write_out_valid = _io_cache_block_in_ready_T ? 1'h0 : state; // @[CScratchpadPackedSubwordLoader.scala 32:17 24:25]
-  always @(posedge clock) begin
-    if (_io_cache_block_in_ready_T) begin // @[CScratchpadPackedSubwordLoader.scala 32:17]
-      if (_T_1) begin // @[CScratchpadPackedSubwordLoader.scala 34:36]
-        lenRemainingFromReq <= io_cache_block_in_bits_len; // @[CScratchpadPackedSubwordLoader.scala 38:29]
-      end
-    end else if (state) begin // @[CScratchpadPackedSubwordLoader.scala 32:17]
-      if (io_sp_write_out_valid) begin // @[CScratchpadPackedSubwordLoader.scala 48:34]
-        lenRemainingFromReq <= _lenRemainingFromReq_T_1;
-      end
-    end
-    if (reset) begin // @[CScratchpadPackedSubwordLoader.scala 21:22]
-      state <= 1'h0; // @[CScratchpadPackedSubwordLoader.scala 21:22]
-    end else if (_io_cache_block_in_ready_T) begin // @[CScratchpadPackedSubwordLoader.scala 32:17]
-      state <= _GEN_0;
-    end else if (state) begin // @[CScratchpadPackedSubwordLoader.scala 32:17]
-      if (io_sp_write_out_valid) begin // @[CScratchpadPackedSubwordLoader.scala 48:34]
-        state <= _GEN_6;
-      end
-    end
-  end
-endmodule
-module CScratchpad_3(
-  input         clock,
-  input         reset,
-  input         auto_mem_out_a_ready,
-  output        auto_mem_out_a_valid,
-  output [2:0]  auto_mem_out_a_bits_size,
-  output [3:0]  auto_mem_out_a_bits_source,
-  output [33:0] auto_mem_out_a_bits_address,
-  output [63:0] auto_mem_out_a_bits_mask,
-  output        auto_mem_out_d_ready,
-  input         auto_mem_out_d_valid,
-  input  [3:0]  auto_mem_out_d_bits_source
-);
-  wire  loader_clock; // @[CScratchpad.scala 94:30]
-  wire  loader_reset; // @[CScratchpad.scala 94:30]
-  wire  loader_io_cache_block_in_ready; // @[CScratchpad.scala 94:30]
-  wire  loader_io_cache_block_in_valid; // @[CScratchpad.scala 94:30]
-  wire [6:0] loader_io_cache_block_in_bits_len; // @[CScratchpad.scala 94:30]
-  wire  loader_io_sp_write_out_valid; // @[CScratchpad.scala 94:30]
-  reg [1:0] mem_tx_state; // @[CScratchpad.scala 102:37]
-  reg  reqIdleBits_0; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_1; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_2; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_3; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_4; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_5; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_6; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_7; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_8; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_9; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_10; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_11; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_12; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_13; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_14; // @[CScratchpad.scala 110:36]
-  reg  reqIdleBits_15; // @[CScratchpad.scala 110:36]
-  wire  reqAvailable = reqIdleBits_0 | reqIdleBits_1 | reqIdleBits_2 | reqIdleBits_3 | reqIdleBits_4 | reqIdleBits_5 |
-    reqIdleBits_6 | reqIdleBits_7 | reqIdleBits_8 | reqIdleBits_9 | reqIdleBits_10 | reqIdleBits_11 | reqIdleBits_12 |
-    reqIdleBits_13 | reqIdleBits_14 | reqIdleBits_15; // @[CScratchpad.scala 111:51]
-  wire [3:0] _reqChosen_T = reqIdleBits_14 ? 4'he : 4'hf; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_1 = reqIdleBits_13 ? 4'hd : _reqChosen_T; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_2 = reqIdleBits_12 ? 4'hc : _reqChosen_T_1; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_3 = reqIdleBits_11 ? 4'hb : _reqChosen_T_2; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_4 = reqIdleBits_10 ? 4'ha : _reqChosen_T_3; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_5 = reqIdleBits_9 ? 4'h9 : _reqChosen_T_4; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_6 = reqIdleBits_8 ? 4'h8 : _reqChosen_T_5; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_7 = reqIdleBits_7 ? 4'h7 : _reqChosen_T_6; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_8 = reqIdleBits_6 ? 4'h6 : _reqChosen_T_7; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_9 = reqIdleBits_5 ? 4'h5 : _reqChosen_T_8; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_10 = reqIdleBits_4 ? 4'h4 : _reqChosen_T_9; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_11 = reqIdleBits_3 ? 4'h3 : _reqChosen_T_10; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_12 = reqIdleBits_2 ? 4'h2 : _reqChosen_T_11; // @[Mux.scala 47:70]
-  wire [3:0] _reqChosen_T_13 = reqIdleBits_1 ? 4'h1 : _reqChosen_T_12; // @[Mux.scala 47:70]
-  wire [3:0] reqChosen = reqIdleBits_0 ? 4'h0 : _reqChosen_T_13; // @[Mux.scala 47:70]
-  reg [15:0] req_cache_0_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_1_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_2_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_3_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_4_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_5_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_6_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_7_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_8_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_9_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_10_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_11_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_12_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_13_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_14_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [15:0] req_cache_15_memoryLength; // @[CScratchpad.scala 114:30]
-  reg [33:0] totalTx_memoryAddress; // @[CScratchpad.scala 124:28]
-  reg [33:0] totalTx_memoryLength; // @[CScratchpad.scala 124:28]
-  wire  isBelowLimit = totalTx_memoryLength <= 34'h40; // @[CScratchpad.scala 149:47]
-  wire [1:0] txEmitLengthLg_hi = totalTx_memoryLength[33:32]; // @[OneHot.scala 30:18]
-  wire  _txEmitLengthLg_T = |txEmitLengthLg_hi; // @[OneHot.scala 32:14]
-  wire [31:0] txEmitLengthLg_lo = totalTx_memoryLength[31:0]; // @[OneHot.scala 31:18]
-  wire [31:0] _GEN_569 = {{30'd0}, txEmitLengthLg_hi}; // @[OneHot.scala 32:28]
-  wire [31:0] _txEmitLengthLg_T_1 = _GEN_569 | txEmitLengthLg_lo; // @[OneHot.scala 32:28]
-  wire [15:0] txEmitLengthLg_hi_1 = _txEmitLengthLg_T_1[31:16]; // @[OneHot.scala 30:18]
-  wire  _txEmitLengthLg_T_2 = |txEmitLengthLg_hi_1; // @[OneHot.scala 32:14]
-  wire [15:0] txEmitLengthLg_lo_1 = _txEmitLengthLg_T_1[15:0]; // @[OneHot.scala 31:18]
-  wire [15:0] _txEmitLengthLg_T_3 = txEmitLengthLg_hi_1 | txEmitLengthLg_lo_1; // @[OneHot.scala 32:28]
-  wire [7:0] txEmitLengthLg_hi_2 = _txEmitLengthLg_T_3[15:8]; // @[OneHot.scala 30:18]
-  wire  _txEmitLengthLg_T_4 = |txEmitLengthLg_hi_2; // @[OneHot.scala 32:14]
-  wire [7:0] txEmitLengthLg_lo_2 = _txEmitLengthLg_T_3[7:0]; // @[OneHot.scala 31:18]
-  wire [7:0] _txEmitLengthLg_T_5 = txEmitLengthLg_hi_2 | txEmitLengthLg_lo_2; // @[OneHot.scala 32:28]
-  wire [3:0] txEmitLengthLg_hi_3 = _txEmitLengthLg_T_5[7:4]; // @[OneHot.scala 30:18]
-  wire  _txEmitLengthLg_T_6 = |txEmitLengthLg_hi_3; // @[OneHot.scala 32:14]
-  wire [3:0] txEmitLengthLg_lo_3 = _txEmitLengthLg_T_5[3:0]; // @[OneHot.scala 31:18]
-  wire [3:0] _txEmitLengthLg_T_7 = txEmitLengthLg_hi_3 | txEmitLengthLg_lo_3; // @[OneHot.scala 32:28]
-  wire [1:0] txEmitLengthLg_hi_4 = _txEmitLengthLg_T_7[3:2]; // @[OneHot.scala 30:18]
-  wire  _txEmitLengthLg_T_8 = |txEmitLengthLg_hi_4; // @[OneHot.scala 32:14]
-  wire [1:0] txEmitLengthLg_lo_4 = _txEmitLengthLg_T_7[1:0]; // @[OneHot.scala 31:18]
-  wire [1:0] _txEmitLengthLg_T_9 = txEmitLengthLg_hi_4 | txEmitLengthLg_lo_4; // @[OneHot.scala 32:28]
-  wire [5:0] _txEmitLengthLg_T_15 = {_txEmitLengthLg_T,_txEmitLengthLg_T_2,_txEmitLengthLg_T_4,_txEmitLengthLg_T_6,
-    _txEmitLengthLg_T_8,_txEmitLengthLg_T_9[1]}; // @[Cat.scala 33:92]
-  wire [5:0] _txEmitLengthLg_T_16 = isBelowLimit ? _txEmitLengthLg_T_15 : 6'h6; // @[CScratchpad.scala 150:28]
-  wire [5:0] _GEN_111 = 2'h1 == mem_tx_state ? _txEmitLengthLg_T_16 : 6'h0; // @[CScratchpad.scala 131:18 138:24 150:22]
-  wire [5:0] _GEN_169 = 2'h0 == mem_tx_state ? 6'h0 : _GEN_111; // @[CScratchpad.scala 131:18 138:24]
-  wire [3:0] txEmitLengthLg = _GEN_169[3:0]; // @[CScratchpad.scala 130:36]
-  wire [5:0] _x1_a_bits_a_mask_sizeOH_T = {{2'd0}, txEmitLengthLg}; // @[Misc.scala 201:34]
-  wire [2:0] x1_a_bits_a_mask_sizeOH_shiftAmount = _x1_a_bits_a_mask_sizeOH_T[2:0]; // @[OneHot.scala 63:49]
-  wire [7:0] _x1_a_bits_a_mask_sizeOH_T_1 = 8'h1 << x1_a_bits_a_mask_sizeOH_shiftAmount; // @[OneHot.scala 64:12]
-  wire [5:0] x1_a_bits_a_mask_sizeOH = _x1_a_bits_a_mask_sizeOH_T_1[5:0] | 6'h1; // @[Misc.scala 201:81]
-  wire  _x1_a_bits_a_mask_T = txEmitLengthLg >= 4'h6; // @[Misc.scala 205:21]
-  wire  x1_a_bits_a_mask_size = x1_a_bits_a_mask_sizeOH[5]; // @[Misc.scala 208:26]
-  wire  x1_a_bits_a_mask_bit = totalTx_memoryAddress[5]; // @[Misc.scala 209:26]
-  wire  x1_a_bits_a_mask_nbit = ~x1_a_bits_a_mask_bit; // @[Misc.scala 210:20]
-  wire  x1_a_bits_a_mask_acc = _x1_a_bits_a_mask_T | x1_a_bits_a_mask_size & x1_a_bits_a_mask_nbit; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_acc_1 = _x1_a_bits_a_mask_T | x1_a_bits_a_mask_size & x1_a_bits_a_mask_bit; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_size_1 = x1_a_bits_a_mask_sizeOH[4]; // @[Misc.scala 208:26]
-  wire  x1_a_bits_a_mask_bit_1 = totalTx_memoryAddress[4]; // @[Misc.scala 209:26]
-  wire  x1_a_bits_a_mask_nbit_1 = ~x1_a_bits_a_mask_bit_1; // @[Misc.scala 210:20]
-  wire  x1_a_bits_a_mask_eq_2 = x1_a_bits_a_mask_nbit & x1_a_bits_a_mask_nbit_1; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_2 = x1_a_bits_a_mask_acc | x1_a_bits_a_mask_size_1 & x1_a_bits_a_mask_eq_2; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_3 = x1_a_bits_a_mask_nbit & x1_a_bits_a_mask_bit_1; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_3 = x1_a_bits_a_mask_acc | x1_a_bits_a_mask_size_1 & x1_a_bits_a_mask_eq_3; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_4 = x1_a_bits_a_mask_bit & x1_a_bits_a_mask_nbit_1; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_4 = x1_a_bits_a_mask_acc_1 | x1_a_bits_a_mask_size_1 & x1_a_bits_a_mask_eq_4; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_5 = x1_a_bits_a_mask_bit & x1_a_bits_a_mask_bit_1; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_5 = x1_a_bits_a_mask_acc_1 | x1_a_bits_a_mask_size_1 & x1_a_bits_a_mask_eq_5; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_size_2 = x1_a_bits_a_mask_sizeOH[3]; // @[Misc.scala 208:26]
-  wire  x1_a_bits_a_mask_bit_2 = totalTx_memoryAddress[3]; // @[Misc.scala 209:26]
-  wire  x1_a_bits_a_mask_nbit_2 = ~x1_a_bits_a_mask_bit_2; // @[Misc.scala 210:20]
-  wire  x1_a_bits_a_mask_eq_6 = x1_a_bits_a_mask_eq_2 & x1_a_bits_a_mask_nbit_2; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_6 = x1_a_bits_a_mask_acc_2 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_6; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_7 = x1_a_bits_a_mask_eq_2 & x1_a_bits_a_mask_bit_2; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_7 = x1_a_bits_a_mask_acc_2 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_7; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_8 = x1_a_bits_a_mask_eq_3 & x1_a_bits_a_mask_nbit_2; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_8 = x1_a_bits_a_mask_acc_3 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_8; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_9 = x1_a_bits_a_mask_eq_3 & x1_a_bits_a_mask_bit_2; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_9 = x1_a_bits_a_mask_acc_3 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_9; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_10 = x1_a_bits_a_mask_eq_4 & x1_a_bits_a_mask_nbit_2; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_10 = x1_a_bits_a_mask_acc_4 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_10; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_11 = x1_a_bits_a_mask_eq_4 & x1_a_bits_a_mask_bit_2; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_11 = x1_a_bits_a_mask_acc_4 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_11; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_12 = x1_a_bits_a_mask_eq_5 & x1_a_bits_a_mask_nbit_2; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_12 = x1_a_bits_a_mask_acc_5 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_12; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_13 = x1_a_bits_a_mask_eq_5 & x1_a_bits_a_mask_bit_2; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_13 = x1_a_bits_a_mask_acc_5 | x1_a_bits_a_mask_size_2 & x1_a_bits_a_mask_eq_13; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_size_3 = x1_a_bits_a_mask_sizeOH[2]; // @[Misc.scala 208:26]
-  wire  x1_a_bits_a_mask_bit_3 = totalTx_memoryAddress[2]; // @[Misc.scala 209:26]
-  wire  x1_a_bits_a_mask_nbit_3 = ~x1_a_bits_a_mask_bit_3; // @[Misc.scala 210:20]
-  wire  x1_a_bits_a_mask_eq_14 = x1_a_bits_a_mask_eq_6 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_14 = x1_a_bits_a_mask_acc_6 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_14; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_15 = x1_a_bits_a_mask_eq_6 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_15 = x1_a_bits_a_mask_acc_6 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_15; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_16 = x1_a_bits_a_mask_eq_7 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_16 = x1_a_bits_a_mask_acc_7 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_16; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_17 = x1_a_bits_a_mask_eq_7 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_17 = x1_a_bits_a_mask_acc_7 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_17; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_18 = x1_a_bits_a_mask_eq_8 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_18 = x1_a_bits_a_mask_acc_8 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_18; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_19 = x1_a_bits_a_mask_eq_8 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_19 = x1_a_bits_a_mask_acc_8 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_19; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_20 = x1_a_bits_a_mask_eq_9 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_20 = x1_a_bits_a_mask_acc_9 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_20; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_21 = x1_a_bits_a_mask_eq_9 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_21 = x1_a_bits_a_mask_acc_9 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_21; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_22 = x1_a_bits_a_mask_eq_10 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_22 = x1_a_bits_a_mask_acc_10 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_22; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_23 = x1_a_bits_a_mask_eq_10 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_23 = x1_a_bits_a_mask_acc_10 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_23; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_24 = x1_a_bits_a_mask_eq_11 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_24 = x1_a_bits_a_mask_acc_11 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_24; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_25 = x1_a_bits_a_mask_eq_11 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_25 = x1_a_bits_a_mask_acc_11 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_25; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_26 = x1_a_bits_a_mask_eq_12 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_26 = x1_a_bits_a_mask_acc_12 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_26; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_27 = x1_a_bits_a_mask_eq_12 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_27 = x1_a_bits_a_mask_acc_12 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_27; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_28 = x1_a_bits_a_mask_eq_13 & x1_a_bits_a_mask_nbit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_28 = x1_a_bits_a_mask_acc_13 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_28; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_29 = x1_a_bits_a_mask_eq_13 & x1_a_bits_a_mask_bit_3; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_29 = x1_a_bits_a_mask_acc_13 | x1_a_bits_a_mask_size_3 & x1_a_bits_a_mask_eq_29; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_size_4 = x1_a_bits_a_mask_sizeOH[1]; // @[Misc.scala 208:26]
-  wire  x1_a_bits_a_mask_bit_4 = totalTx_memoryAddress[1]; // @[Misc.scala 209:26]
-  wire  x1_a_bits_a_mask_nbit_4 = ~x1_a_bits_a_mask_bit_4; // @[Misc.scala 210:20]
-  wire  x1_a_bits_a_mask_eq_30 = x1_a_bits_a_mask_eq_14 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_30 = x1_a_bits_a_mask_acc_14 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_30; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_31 = x1_a_bits_a_mask_eq_14 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_31 = x1_a_bits_a_mask_acc_14 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_31; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_32 = x1_a_bits_a_mask_eq_15 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_32 = x1_a_bits_a_mask_acc_15 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_32; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_33 = x1_a_bits_a_mask_eq_15 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_33 = x1_a_bits_a_mask_acc_15 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_33; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_34 = x1_a_bits_a_mask_eq_16 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_34 = x1_a_bits_a_mask_acc_16 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_34; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_35 = x1_a_bits_a_mask_eq_16 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_35 = x1_a_bits_a_mask_acc_16 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_35; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_36 = x1_a_bits_a_mask_eq_17 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_36 = x1_a_bits_a_mask_acc_17 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_36; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_37 = x1_a_bits_a_mask_eq_17 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_37 = x1_a_bits_a_mask_acc_17 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_37; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_38 = x1_a_bits_a_mask_eq_18 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_38 = x1_a_bits_a_mask_acc_18 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_38; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_39 = x1_a_bits_a_mask_eq_18 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_39 = x1_a_bits_a_mask_acc_18 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_39; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_40 = x1_a_bits_a_mask_eq_19 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_40 = x1_a_bits_a_mask_acc_19 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_40; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_41 = x1_a_bits_a_mask_eq_19 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_41 = x1_a_bits_a_mask_acc_19 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_41; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_42 = x1_a_bits_a_mask_eq_20 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_42 = x1_a_bits_a_mask_acc_20 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_42; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_43 = x1_a_bits_a_mask_eq_20 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_43 = x1_a_bits_a_mask_acc_20 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_43; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_44 = x1_a_bits_a_mask_eq_21 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_44 = x1_a_bits_a_mask_acc_21 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_44; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_45 = x1_a_bits_a_mask_eq_21 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_45 = x1_a_bits_a_mask_acc_21 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_45; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_46 = x1_a_bits_a_mask_eq_22 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_46 = x1_a_bits_a_mask_acc_22 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_46; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_47 = x1_a_bits_a_mask_eq_22 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_47 = x1_a_bits_a_mask_acc_22 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_47; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_48 = x1_a_bits_a_mask_eq_23 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_48 = x1_a_bits_a_mask_acc_23 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_48; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_49 = x1_a_bits_a_mask_eq_23 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_49 = x1_a_bits_a_mask_acc_23 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_49; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_50 = x1_a_bits_a_mask_eq_24 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_50 = x1_a_bits_a_mask_acc_24 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_50; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_51 = x1_a_bits_a_mask_eq_24 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_51 = x1_a_bits_a_mask_acc_24 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_51; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_52 = x1_a_bits_a_mask_eq_25 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_52 = x1_a_bits_a_mask_acc_25 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_52; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_53 = x1_a_bits_a_mask_eq_25 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_53 = x1_a_bits_a_mask_acc_25 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_53; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_54 = x1_a_bits_a_mask_eq_26 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_54 = x1_a_bits_a_mask_acc_26 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_54; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_55 = x1_a_bits_a_mask_eq_26 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_55 = x1_a_bits_a_mask_acc_26 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_55; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_56 = x1_a_bits_a_mask_eq_27 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_56 = x1_a_bits_a_mask_acc_27 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_56; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_57 = x1_a_bits_a_mask_eq_27 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_57 = x1_a_bits_a_mask_acc_27 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_57; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_58 = x1_a_bits_a_mask_eq_28 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_58 = x1_a_bits_a_mask_acc_28 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_58; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_59 = x1_a_bits_a_mask_eq_28 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_59 = x1_a_bits_a_mask_acc_28 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_59; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_60 = x1_a_bits_a_mask_eq_29 & x1_a_bits_a_mask_nbit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_60 = x1_a_bits_a_mask_acc_29 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_60; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_61 = x1_a_bits_a_mask_eq_29 & x1_a_bits_a_mask_bit_4; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_61 = x1_a_bits_a_mask_acc_29 | x1_a_bits_a_mask_size_4 & x1_a_bits_a_mask_eq_61; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_size_5 = x1_a_bits_a_mask_sizeOH[0]; // @[Misc.scala 208:26]
-  wire  x1_a_bits_a_mask_bit_5 = totalTx_memoryAddress[0]; // @[Misc.scala 209:26]
-  wire  x1_a_bits_a_mask_nbit_5 = ~x1_a_bits_a_mask_bit_5; // @[Misc.scala 210:20]
-  wire  x1_a_bits_a_mask_eq_62 = x1_a_bits_a_mask_eq_30 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_62 = x1_a_bits_a_mask_acc_30 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_62; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_63 = x1_a_bits_a_mask_eq_30 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_63 = x1_a_bits_a_mask_acc_30 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_63; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_64 = x1_a_bits_a_mask_eq_31 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_64 = x1_a_bits_a_mask_acc_31 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_64; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_65 = x1_a_bits_a_mask_eq_31 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_65 = x1_a_bits_a_mask_acc_31 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_65; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_66 = x1_a_bits_a_mask_eq_32 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_66 = x1_a_bits_a_mask_acc_32 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_66; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_67 = x1_a_bits_a_mask_eq_32 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_67 = x1_a_bits_a_mask_acc_32 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_67; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_68 = x1_a_bits_a_mask_eq_33 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_68 = x1_a_bits_a_mask_acc_33 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_68; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_69 = x1_a_bits_a_mask_eq_33 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_69 = x1_a_bits_a_mask_acc_33 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_69; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_70 = x1_a_bits_a_mask_eq_34 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_70 = x1_a_bits_a_mask_acc_34 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_70; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_71 = x1_a_bits_a_mask_eq_34 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_71 = x1_a_bits_a_mask_acc_34 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_71; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_72 = x1_a_bits_a_mask_eq_35 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_72 = x1_a_bits_a_mask_acc_35 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_72; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_73 = x1_a_bits_a_mask_eq_35 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_73 = x1_a_bits_a_mask_acc_35 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_73; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_74 = x1_a_bits_a_mask_eq_36 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_74 = x1_a_bits_a_mask_acc_36 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_74; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_75 = x1_a_bits_a_mask_eq_36 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_75 = x1_a_bits_a_mask_acc_36 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_75; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_76 = x1_a_bits_a_mask_eq_37 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_76 = x1_a_bits_a_mask_acc_37 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_76; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_77 = x1_a_bits_a_mask_eq_37 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_77 = x1_a_bits_a_mask_acc_37 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_77; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_78 = x1_a_bits_a_mask_eq_38 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_78 = x1_a_bits_a_mask_acc_38 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_78; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_79 = x1_a_bits_a_mask_eq_38 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_79 = x1_a_bits_a_mask_acc_38 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_79; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_80 = x1_a_bits_a_mask_eq_39 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_80 = x1_a_bits_a_mask_acc_39 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_80; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_81 = x1_a_bits_a_mask_eq_39 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_81 = x1_a_bits_a_mask_acc_39 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_81; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_82 = x1_a_bits_a_mask_eq_40 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_82 = x1_a_bits_a_mask_acc_40 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_82; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_83 = x1_a_bits_a_mask_eq_40 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_83 = x1_a_bits_a_mask_acc_40 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_83; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_84 = x1_a_bits_a_mask_eq_41 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_84 = x1_a_bits_a_mask_acc_41 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_84; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_85 = x1_a_bits_a_mask_eq_41 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_85 = x1_a_bits_a_mask_acc_41 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_85; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_86 = x1_a_bits_a_mask_eq_42 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_86 = x1_a_bits_a_mask_acc_42 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_86; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_87 = x1_a_bits_a_mask_eq_42 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_87 = x1_a_bits_a_mask_acc_42 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_87; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_88 = x1_a_bits_a_mask_eq_43 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_88 = x1_a_bits_a_mask_acc_43 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_88; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_89 = x1_a_bits_a_mask_eq_43 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_89 = x1_a_bits_a_mask_acc_43 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_89; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_90 = x1_a_bits_a_mask_eq_44 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_90 = x1_a_bits_a_mask_acc_44 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_90; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_91 = x1_a_bits_a_mask_eq_44 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_91 = x1_a_bits_a_mask_acc_44 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_91; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_92 = x1_a_bits_a_mask_eq_45 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_92 = x1_a_bits_a_mask_acc_45 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_92; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_93 = x1_a_bits_a_mask_eq_45 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_93 = x1_a_bits_a_mask_acc_45 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_93; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_94 = x1_a_bits_a_mask_eq_46 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_94 = x1_a_bits_a_mask_acc_46 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_94; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_95 = x1_a_bits_a_mask_eq_46 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_95 = x1_a_bits_a_mask_acc_46 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_95; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_96 = x1_a_bits_a_mask_eq_47 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_96 = x1_a_bits_a_mask_acc_47 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_96; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_97 = x1_a_bits_a_mask_eq_47 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_97 = x1_a_bits_a_mask_acc_47 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_97; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_98 = x1_a_bits_a_mask_eq_48 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_98 = x1_a_bits_a_mask_acc_48 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_98; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_99 = x1_a_bits_a_mask_eq_48 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_99 = x1_a_bits_a_mask_acc_48 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_99; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_100 = x1_a_bits_a_mask_eq_49 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_100 = x1_a_bits_a_mask_acc_49 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_100; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_101 = x1_a_bits_a_mask_eq_49 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_101 = x1_a_bits_a_mask_acc_49 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_101; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_102 = x1_a_bits_a_mask_eq_50 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_102 = x1_a_bits_a_mask_acc_50 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_102; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_103 = x1_a_bits_a_mask_eq_50 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_103 = x1_a_bits_a_mask_acc_50 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_103; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_104 = x1_a_bits_a_mask_eq_51 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_104 = x1_a_bits_a_mask_acc_51 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_104; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_105 = x1_a_bits_a_mask_eq_51 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_105 = x1_a_bits_a_mask_acc_51 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_105; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_106 = x1_a_bits_a_mask_eq_52 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_106 = x1_a_bits_a_mask_acc_52 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_106; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_107 = x1_a_bits_a_mask_eq_52 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_107 = x1_a_bits_a_mask_acc_52 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_107; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_108 = x1_a_bits_a_mask_eq_53 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_108 = x1_a_bits_a_mask_acc_53 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_108; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_109 = x1_a_bits_a_mask_eq_53 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_109 = x1_a_bits_a_mask_acc_53 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_109; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_110 = x1_a_bits_a_mask_eq_54 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_110 = x1_a_bits_a_mask_acc_54 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_110; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_111 = x1_a_bits_a_mask_eq_54 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_111 = x1_a_bits_a_mask_acc_54 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_111; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_112 = x1_a_bits_a_mask_eq_55 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_112 = x1_a_bits_a_mask_acc_55 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_112; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_113 = x1_a_bits_a_mask_eq_55 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_113 = x1_a_bits_a_mask_acc_55 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_113; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_114 = x1_a_bits_a_mask_eq_56 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_114 = x1_a_bits_a_mask_acc_56 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_114; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_115 = x1_a_bits_a_mask_eq_56 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_115 = x1_a_bits_a_mask_acc_56 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_115; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_116 = x1_a_bits_a_mask_eq_57 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_116 = x1_a_bits_a_mask_acc_57 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_116; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_117 = x1_a_bits_a_mask_eq_57 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_117 = x1_a_bits_a_mask_acc_57 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_117; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_118 = x1_a_bits_a_mask_eq_58 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_118 = x1_a_bits_a_mask_acc_58 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_118; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_119 = x1_a_bits_a_mask_eq_58 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_119 = x1_a_bits_a_mask_acc_58 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_119; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_120 = x1_a_bits_a_mask_eq_59 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_120 = x1_a_bits_a_mask_acc_59 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_120; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_121 = x1_a_bits_a_mask_eq_59 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_121 = x1_a_bits_a_mask_acc_59 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_121; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_122 = x1_a_bits_a_mask_eq_60 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_122 = x1_a_bits_a_mask_acc_60 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_122; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_123 = x1_a_bits_a_mask_eq_60 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_123 = x1_a_bits_a_mask_acc_60 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_123; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_124 = x1_a_bits_a_mask_eq_61 & x1_a_bits_a_mask_nbit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_124 = x1_a_bits_a_mask_acc_61 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_124; // @[Misc.scala 214:29]
-  wire  x1_a_bits_a_mask_eq_125 = x1_a_bits_a_mask_eq_61 & x1_a_bits_a_mask_bit_5; // @[Misc.scala 213:27]
-  wire  x1_a_bits_a_mask_acc_125 = x1_a_bits_a_mask_acc_61 | x1_a_bits_a_mask_size_5 & x1_a_bits_a_mask_eq_125; // @[Misc.scala 214:29]
-  wire [7:0] x1_a_bits_a_mask_lo_lo_lo = {x1_a_bits_a_mask_acc_69,x1_a_bits_a_mask_acc_68,x1_a_bits_a_mask_acc_67,
-    x1_a_bits_a_mask_acc_66,x1_a_bits_a_mask_acc_65,x1_a_bits_a_mask_acc_64,x1_a_bits_a_mask_acc_63,
-    x1_a_bits_a_mask_acc_62}; // @[Cat.scala 33:92]
-  wire [15:0] x1_a_bits_a_mask_lo_lo = {x1_a_bits_a_mask_acc_77,x1_a_bits_a_mask_acc_76,x1_a_bits_a_mask_acc_75,
-    x1_a_bits_a_mask_acc_74,x1_a_bits_a_mask_acc_73,x1_a_bits_a_mask_acc_72,x1_a_bits_a_mask_acc_71,
-    x1_a_bits_a_mask_acc_70,x1_a_bits_a_mask_lo_lo_lo}; // @[Cat.scala 33:92]
-  wire [7:0] x1_a_bits_a_mask_lo_hi_lo = {x1_a_bits_a_mask_acc_85,x1_a_bits_a_mask_acc_84,x1_a_bits_a_mask_acc_83,
-    x1_a_bits_a_mask_acc_82,x1_a_bits_a_mask_acc_81,x1_a_bits_a_mask_acc_80,x1_a_bits_a_mask_acc_79,
-    x1_a_bits_a_mask_acc_78}; // @[Cat.scala 33:92]
-  wire [31:0] x1_a_bits_a_mask_lo = {x1_a_bits_a_mask_acc_93,x1_a_bits_a_mask_acc_92,x1_a_bits_a_mask_acc_91,
-    x1_a_bits_a_mask_acc_90,x1_a_bits_a_mask_acc_89,x1_a_bits_a_mask_acc_88,x1_a_bits_a_mask_acc_87,
-    x1_a_bits_a_mask_acc_86,x1_a_bits_a_mask_lo_hi_lo,x1_a_bits_a_mask_lo_lo}; // @[Cat.scala 33:92]
-  wire [7:0] x1_a_bits_a_mask_hi_lo_lo = {x1_a_bits_a_mask_acc_101,x1_a_bits_a_mask_acc_100,x1_a_bits_a_mask_acc_99,
-    x1_a_bits_a_mask_acc_98,x1_a_bits_a_mask_acc_97,x1_a_bits_a_mask_acc_96,x1_a_bits_a_mask_acc_95,
-    x1_a_bits_a_mask_acc_94}; // @[Cat.scala 33:92]
-  wire [15:0] x1_a_bits_a_mask_hi_lo = {x1_a_bits_a_mask_acc_109,x1_a_bits_a_mask_acc_108,x1_a_bits_a_mask_acc_107,
-    x1_a_bits_a_mask_acc_106,x1_a_bits_a_mask_acc_105,x1_a_bits_a_mask_acc_104,x1_a_bits_a_mask_acc_103,
-    x1_a_bits_a_mask_acc_102,x1_a_bits_a_mask_hi_lo_lo}; // @[Cat.scala 33:92]
-  wire [7:0] x1_a_bits_a_mask_hi_hi_lo = {x1_a_bits_a_mask_acc_117,x1_a_bits_a_mask_acc_116,x1_a_bits_a_mask_acc_115,
-    x1_a_bits_a_mask_acc_114,x1_a_bits_a_mask_acc_113,x1_a_bits_a_mask_acc_112,x1_a_bits_a_mask_acc_111,
-    x1_a_bits_a_mask_acc_110}; // @[Cat.scala 33:92]
-  wire [31:0] x1_a_bits_a_mask_hi = {x1_a_bits_a_mask_acc_125,x1_a_bits_a_mask_acc_124,x1_a_bits_a_mask_acc_123,
-    x1_a_bits_a_mask_acc_122,x1_a_bits_a_mask_acc_121,x1_a_bits_a_mask_acc_120,x1_a_bits_a_mask_acc_119,
-    x1_a_bits_a_mask_acc_118,x1_a_bits_a_mask_hi_hi_lo,x1_a_bits_a_mask_hi_lo}; // @[Cat.scala 33:92]
-  wire  _GEN_112 = 2'h1 == mem_tx_state ? reqAvailable : mem_tx_state == 2'h1; // @[CScratchpad.scala 136:19 138:24 151:23]
-  wire  mem_out_a_valid = 2'h0 == mem_tx_state ? mem_tx_state == 2'h1 : _GEN_112; // @[CScratchpad.scala 136:19 138:24]
-  wire  _T_13 = auto_mem_out_a_ready & mem_out_a_valid; // @[Decoupled.scala 51:35]
-  wire  _GEN_8 = 4'h0 == reqChosen ? 1'h0 : reqIdleBits_0; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_9 = 4'h1 == reqChosen ? 1'h0 : reqIdleBits_1; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_10 = 4'h2 == reqChosen ? 1'h0 : reqIdleBits_2; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_11 = 4'h3 == reqChosen ? 1'h0 : reqIdleBits_3; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_12 = 4'h4 == reqChosen ? 1'h0 : reqIdleBits_4; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_13 = 4'h5 == reqChosen ? 1'h0 : reqIdleBits_5; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_14 = 4'h6 == reqChosen ? 1'h0 : reqIdleBits_6; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_15 = 4'h7 == reqChosen ? 1'h0 : reqIdleBits_7; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_16 = 4'h8 == reqChosen ? 1'h0 : reqIdleBits_8; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_17 = 4'h9 == reqChosen ? 1'h0 : reqIdleBits_9; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_18 = 4'ha == reqChosen ? 1'h0 : reqIdleBits_10; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_19 = 4'hb == reqChosen ? 1'h0 : reqIdleBits_11; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_20 = 4'hc == reqChosen ? 1'h0 : reqIdleBits_12; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_21 = 4'hd == reqChosen ? 1'h0 : reqIdleBits_13; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_22 = 4'he == reqChosen ? 1'h0 : reqIdleBits_14; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire  _GEN_23 = 4'hf == reqChosen ? 1'h0 : reqIdleBits_15; // @[CScratchpad.scala 153:{32,32} 110:36]
-  wire [33:0] _req_cache_memoryLength_T = isBelowLimit ? totalTx_memoryLength : 34'h40; // @[CScratchpad.scala 155:49]
-  wire [15:0] _GEN_40 = 4'h0 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_0_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_41 = 4'h1 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_1_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_42 = 4'h2 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_2_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_43 = 4'h3 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_3_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_44 = 4'h4 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_4_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_45 = 4'h5 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_5_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_46 = 4'h6 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_6_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_47 = 4'h7 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_7_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_48 = 4'h8 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_8_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_49 = 4'h9 == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_9_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_50 = 4'ha == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_10_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_51 = 4'hb == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_11_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_52 = 4'hc == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_12_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_53 = 4'hd == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_13_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_54 = 4'he == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_14_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [15:0] _GEN_55 = 4'hf == reqChosen ? _req_cache_memoryLength_T[15:0] : req_cache_15_memoryLength; // @[CScratchpad.scala 114:30 155:{43,43}]
-  wire [33:0] _totalTx_memoryLength_T_1 = totalTx_memoryLength - 34'h40; // @[CScratchpad.scala 156:54]
-  wire [33:0] _totalTx_memoryAddress_T_1 = totalTx_memoryAddress + 34'h40; // @[CScratchpad.scala 158:56]
-  wire [1:0] _GEN_56 = isBelowLimit ? 2'h2 : mem_tx_state; // @[CScratchpad.scala 159:28 160:24 102:37]
-  wire  _GEN_57 = _T_13 ? _GEN_8 : reqIdleBits_0; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_58 = _T_13 ? _GEN_9 : reqIdleBits_1; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_59 = _T_13 ? _GEN_10 : reqIdleBits_2; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_60 = _T_13 ? _GEN_11 : reqIdleBits_3; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_61 = _T_13 ? _GEN_12 : reqIdleBits_4; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_62 = _T_13 ? _GEN_13 : reqIdleBits_5; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_63 = _T_13 ? _GEN_14 : reqIdleBits_6; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_64 = _T_13 ? _GEN_15 : reqIdleBits_7; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_65 = _T_13 ? _GEN_16 : reqIdleBits_8; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_66 = _T_13 ? _GEN_17 : reqIdleBits_9; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_67 = _T_13 ? _GEN_18 : reqIdleBits_10; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_68 = _T_13 ? _GEN_19 : reqIdleBits_11; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_69 = _T_13 ? _GEN_20 : reqIdleBits_12; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_70 = _T_13 ? _GEN_21 : reqIdleBits_13; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_71 = _T_13 ? _GEN_22 : reqIdleBits_14; // @[CScratchpad.scala 152:28 110:36]
-  wire  _GEN_72 = _T_13 ? _GEN_23 : reqIdleBits_15; // @[CScratchpad.scala 152:28 110:36]
-  wire [15:0] _GEN_89 = _T_13 ? _GEN_40 : req_cache_0_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_90 = _T_13 ? _GEN_41 : req_cache_1_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_91 = _T_13 ? _GEN_42 : req_cache_2_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_92 = _T_13 ? _GEN_43 : req_cache_3_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_93 = _T_13 ? _GEN_44 : req_cache_4_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_94 = _T_13 ? _GEN_45 : req_cache_5_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_95 = _T_13 ? _GEN_46 : req_cache_6_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_96 = _T_13 ? _GEN_47 : req_cache_7_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_97 = _T_13 ? _GEN_48 : req_cache_8_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_98 = _T_13 ? _GEN_49 : req_cache_9_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_99 = _T_13 ? _GEN_50 : req_cache_10_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_100 = _T_13 ? _GEN_51 : req_cache_11_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_101 = _T_13 ? _GEN_52 : req_cache_12_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_102 = _T_13 ? _GEN_53 : req_cache_13_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_103 = _T_13 ? _GEN_54 : req_cache_14_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [15:0] _GEN_104 = _T_13 ? _GEN_55 : req_cache_15_memoryLength; // @[CScratchpad.scala 152:28 114:30]
-  wire [1:0] _GEN_109 = reqIdleBits_0 & reqIdleBits_1 & reqIdleBits_2 & reqIdleBits_3 & reqIdleBits_4 & reqIdleBits_5 &
-    reqIdleBits_6 & reqIdleBits_7 & reqIdleBits_8 & reqIdleBits_9 & reqIdleBits_10 & reqIdleBits_11 & reqIdleBits_12 &
-    reqIdleBits_13 & reqIdleBits_14 & reqIdleBits_15 ? 2'h0 : mem_tx_state; // @[CScratchpad.scala 166:40 167:22 102:37]
-  wire  _GEN_113 = 2'h1 == mem_tx_state ? _GEN_57 : reqIdleBits_0; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_114 = 2'h1 == mem_tx_state ? _GEN_58 : reqIdleBits_1; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_115 = 2'h1 == mem_tx_state ? _GEN_59 : reqIdleBits_2; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_116 = 2'h1 == mem_tx_state ? _GEN_60 : reqIdleBits_3; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_117 = 2'h1 == mem_tx_state ? _GEN_61 : reqIdleBits_4; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_118 = 2'h1 == mem_tx_state ? _GEN_62 : reqIdleBits_5; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_119 = 2'h1 == mem_tx_state ? _GEN_63 : reqIdleBits_6; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_120 = 2'h1 == mem_tx_state ? _GEN_64 : reqIdleBits_7; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_121 = 2'h1 == mem_tx_state ? _GEN_65 : reqIdleBits_8; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_122 = 2'h1 == mem_tx_state ? _GEN_66 : reqIdleBits_9; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_123 = 2'h1 == mem_tx_state ? _GEN_67 : reqIdleBits_10; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_124 = 2'h1 == mem_tx_state ? _GEN_68 : reqIdleBits_11; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_125 = 2'h1 == mem_tx_state ? _GEN_69 : reqIdleBits_12; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_126 = 2'h1 == mem_tx_state ? _GEN_70 : reqIdleBits_13; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_127 = 2'h1 == mem_tx_state ? _GEN_71 : reqIdleBits_14; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_128 = 2'h1 == mem_tx_state ? _GEN_72 : reqIdleBits_15; // @[CScratchpad.scala 138:24 110:36]
-  wire [15:0] _GEN_145 = 2'h1 == mem_tx_state ? _GEN_89 : req_cache_0_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_146 = 2'h1 == mem_tx_state ? _GEN_90 : req_cache_1_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_147 = 2'h1 == mem_tx_state ? _GEN_91 : req_cache_2_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_148 = 2'h1 == mem_tx_state ? _GEN_92 : req_cache_3_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_149 = 2'h1 == mem_tx_state ? _GEN_93 : req_cache_4_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_150 = 2'h1 == mem_tx_state ? _GEN_94 : req_cache_5_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_151 = 2'h1 == mem_tx_state ? _GEN_95 : req_cache_6_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_152 = 2'h1 == mem_tx_state ? _GEN_96 : req_cache_7_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_153 = 2'h1 == mem_tx_state ? _GEN_97 : req_cache_8_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_154 = 2'h1 == mem_tx_state ? _GEN_98 : req_cache_9_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_155 = 2'h1 == mem_tx_state ? _GEN_99 : req_cache_10_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_156 = 2'h1 == mem_tx_state ? _GEN_100 : req_cache_11_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_157 = 2'h1 == mem_tx_state ? _GEN_101 : req_cache_12_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_158 = 2'h1 == mem_tx_state ? _GEN_102 : req_cache_13_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_159 = 2'h1 == mem_tx_state ? _GEN_103 : req_cache_14_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_160 = 2'h1 == mem_tx_state ? _GEN_104 : req_cache_15_memoryLength; // @[CScratchpad.scala 138:24 114:30]
-  wire  _GEN_171 = 2'h0 == mem_tx_state ? reqIdleBits_0 : _GEN_113; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_172 = 2'h0 == mem_tx_state ? reqIdleBits_1 : _GEN_114; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_173 = 2'h0 == mem_tx_state ? reqIdleBits_2 : _GEN_115; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_174 = 2'h0 == mem_tx_state ? reqIdleBits_3 : _GEN_116; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_175 = 2'h0 == mem_tx_state ? reqIdleBits_4 : _GEN_117; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_176 = 2'h0 == mem_tx_state ? reqIdleBits_5 : _GEN_118; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_177 = 2'h0 == mem_tx_state ? reqIdleBits_6 : _GEN_119; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_178 = 2'h0 == mem_tx_state ? reqIdleBits_7 : _GEN_120; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_179 = 2'h0 == mem_tx_state ? reqIdleBits_8 : _GEN_121; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_180 = 2'h0 == mem_tx_state ? reqIdleBits_9 : _GEN_122; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_181 = 2'h0 == mem_tx_state ? reqIdleBits_10 : _GEN_123; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_182 = 2'h0 == mem_tx_state ? reqIdleBits_11 : _GEN_124; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_183 = 2'h0 == mem_tx_state ? reqIdleBits_12 : _GEN_125; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_184 = 2'h0 == mem_tx_state ? reqIdleBits_13 : _GEN_126; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_185 = 2'h0 == mem_tx_state ? reqIdleBits_14 : _GEN_127; // @[CScratchpad.scala 138:24 110:36]
-  wire  _GEN_186 = 2'h0 == mem_tx_state ? reqIdleBits_15 : _GEN_128; // @[CScratchpad.scala 138:24 110:36]
-  wire [15:0] _GEN_203 = 2'h0 == mem_tx_state ? req_cache_0_memoryLength : _GEN_145; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_204 = 2'h0 == mem_tx_state ? req_cache_1_memoryLength : _GEN_146; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_205 = 2'h0 == mem_tx_state ? req_cache_2_memoryLength : _GEN_147; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_206 = 2'h0 == mem_tx_state ? req_cache_3_memoryLength : _GEN_148; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_207 = 2'h0 == mem_tx_state ? req_cache_4_memoryLength : _GEN_149; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_208 = 2'h0 == mem_tx_state ? req_cache_5_memoryLength : _GEN_150; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_209 = 2'h0 == mem_tx_state ? req_cache_6_memoryLength : _GEN_151; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_210 = 2'h0 == mem_tx_state ? req_cache_7_memoryLength : _GEN_152; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_211 = 2'h0 == mem_tx_state ? req_cache_8_memoryLength : _GEN_153; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_212 = 2'h0 == mem_tx_state ? req_cache_9_memoryLength : _GEN_154; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_213 = 2'h0 == mem_tx_state ? req_cache_10_memoryLength : _GEN_155; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_214 = 2'h0 == mem_tx_state ? req_cache_11_memoryLength : _GEN_156; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_215 = 2'h0 == mem_tx_state ? req_cache_12_memoryLength : _GEN_157; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_216 = 2'h0 == mem_tx_state ? req_cache_13_memoryLength : _GEN_158; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_217 = 2'h0 == mem_tx_state ? req_cache_14_memoryLength : _GEN_159; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_218 = 2'h0 == mem_tx_state ? req_cache_15_memoryLength : _GEN_160; // @[CScratchpad.scala 138:24 114:30]
-  wire [15:0] _GEN_220 = 4'h1 == auto_mem_out_d_bits_source ? req_cache_1_memoryLength : req_cache_0_memoryLength; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_221 = 4'h2 == auto_mem_out_d_bits_source ? req_cache_2_memoryLength : _GEN_220; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_222 = 4'h3 == auto_mem_out_d_bits_source ? req_cache_3_memoryLength : _GEN_221; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_223 = 4'h4 == auto_mem_out_d_bits_source ? req_cache_4_memoryLength : _GEN_222; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_224 = 4'h5 == auto_mem_out_d_bits_source ? req_cache_5_memoryLength : _GEN_223; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_225 = 4'h6 == auto_mem_out_d_bits_source ? req_cache_6_memoryLength : _GEN_224; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_226 = 4'h7 == auto_mem_out_d_bits_source ? req_cache_7_memoryLength : _GEN_225; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_227 = 4'h8 == auto_mem_out_d_bits_source ? req_cache_8_memoryLength : _GEN_226; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_228 = 4'h9 == auto_mem_out_d_bits_source ? req_cache_9_memoryLength : _GEN_227; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_229 = 4'ha == auto_mem_out_d_bits_source ? req_cache_10_memoryLength : _GEN_228; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_230 = 4'hb == auto_mem_out_d_bits_source ? req_cache_11_memoryLength : _GEN_229; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_231 = 4'hc == auto_mem_out_d_bits_source ? req_cache_12_memoryLength : _GEN_230; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_232 = 4'hd == auto_mem_out_d_bits_source ? req_cache_13_memoryLength : _GEN_231; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_233 = 4'he == auto_mem_out_d_bits_source ? req_cache_14_memoryLength : _GEN_232; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_234 = 4'hf == auto_mem_out_d_bits_source ? req_cache_15_memoryLength : _GEN_233; // @[CScratchpad.scala 174:{40,40}]
-  wire [15:0] _GEN_235 = _GEN_234 >= 16'h40 ? 16'h40 : _GEN_234; // @[CScratchpad.scala 174:55 175:39 177:39]
-  wire  mem_out_d_ready = loader_io_cache_block_in_ready; // @[Nodes.scala 1212:84 CScratchpad.scala 180:19]
-  wire  _T_36 = mem_out_d_ready & auto_mem_out_d_valid; // @[Decoupled.scala 51:35]
-  wire [15:0] _req_cache_memoryLength_T_2 = _GEN_234 - 16'h40; // @[CScratchpad.scala 210:72]
-  wire  _GEN_445 = 4'h0 == auto_mem_out_d_bits_source | _GEN_171; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_446 = 4'h1 == auto_mem_out_d_bits_source | _GEN_172; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_447 = 4'h2 == auto_mem_out_d_bits_source | _GEN_173; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_448 = 4'h3 == auto_mem_out_d_bits_source | _GEN_174; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_449 = 4'h4 == auto_mem_out_d_bits_source | _GEN_175; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_450 = 4'h5 == auto_mem_out_d_bits_source | _GEN_176; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_451 = 4'h6 == auto_mem_out_d_bits_source | _GEN_177; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_452 = 4'h7 == auto_mem_out_d_bits_source | _GEN_178; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_453 = 4'h8 == auto_mem_out_d_bits_source | _GEN_179; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_454 = 4'h9 == auto_mem_out_d_bits_source | _GEN_180; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_455 = 4'ha == auto_mem_out_d_bits_source | _GEN_181; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_456 = 4'hb == auto_mem_out_d_bits_source | _GEN_182; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_457 = 4'hc == auto_mem_out_d_bits_source | _GEN_183; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_458 = 4'hd == auto_mem_out_d_bits_source | _GEN_184; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_459 = 4'he == auto_mem_out_d_bits_source | _GEN_185; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_460 = 4'hf == auto_mem_out_d_bits_source | _GEN_186; // @[CScratchpad.scala 213:{28,28}]
-  wire  _GEN_461 = _GEN_234 <= 16'h40 ? _GEN_445 : _GEN_171; // @[CScratchpad.scala 212:57]
-  wire  _GEN_462 = _GEN_234 <= 16'h40 ? _GEN_446 : _GEN_172; // @[CScratchpad.scala 212:57]
-  wire  _GEN_463 = _GEN_234 <= 16'h40 ? _GEN_447 : _GEN_173; // @[CScratchpad.scala 212:57]
-  wire  _GEN_464 = _GEN_234 <= 16'h40 ? _GEN_448 : _GEN_174; // @[CScratchpad.scala 212:57]
-  wire  _GEN_465 = _GEN_234 <= 16'h40 ? _GEN_449 : _GEN_175; // @[CScratchpad.scala 212:57]
-  wire  _GEN_466 = _GEN_234 <= 16'h40 ? _GEN_450 : _GEN_176; // @[CScratchpad.scala 212:57]
-  wire  _GEN_467 = _GEN_234 <= 16'h40 ? _GEN_451 : _GEN_177; // @[CScratchpad.scala 212:57]
-  wire  _GEN_468 = _GEN_234 <= 16'h40 ? _GEN_452 : _GEN_178; // @[CScratchpad.scala 212:57]
-  wire  _GEN_469 = _GEN_234 <= 16'h40 ? _GEN_453 : _GEN_179; // @[CScratchpad.scala 212:57]
-  wire  _GEN_470 = _GEN_234 <= 16'h40 ? _GEN_454 : _GEN_180; // @[CScratchpad.scala 212:57]
-  wire  _GEN_471 = _GEN_234 <= 16'h40 ? _GEN_455 : _GEN_181; // @[CScratchpad.scala 212:57]
-  wire  _GEN_472 = _GEN_234 <= 16'h40 ? _GEN_456 : _GEN_182; // @[CScratchpad.scala 212:57]
-  wire  _GEN_473 = _GEN_234 <= 16'h40 ? _GEN_457 : _GEN_183; // @[CScratchpad.scala 212:57]
-  wire  _GEN_474 = _GEN_234 <= 16'h40 ? _GEN_458 : _GEN_184; // @[CScratchpad.scala 212:57]
-  wire  _GEN_475 = _GEN_234 <= 16'h40 ? _GEN_459 : _GEN_185; // @[CScratchpad.scala 212:57]
-  wire  _GEN_476 = _GEN_234 <= 16'h40 ? _GEN_460 : _GEN_186; // @[CScratchpad.scala 212:57]
-  wire  _GEN_494 = _T_36 ? _GEN_461 : _GEN_171; // @[CScratchpad.scala 209:24]
-  wire  _GEN_495 = _T_36 ? _GEN_462 : _GEN_172; // @[CScratchpad.scala 209:24]
-  wire  _GEN_496 = _T_36 ? _GEN_463 : _GEN_173; // @[CScratchpad.scala 209:24]
-  wire  _GEN_497 = _T_36 ? _GEN_464 : _GEN_174; // @[CScratchpad.scala 209:24]
-  wire  _GEN_498 = _T_36 ? _GEN_465 : _GEN_175; // @[CScratchpad.scala 209:24]
-  wire  _GEN_499 = _T_36 ? _GEN_466 : _GEN_176; // @[CScratchpad.scala 209:24]
-  wire  _GEN_500 = _T_36 ? _GEN_467 : _GEN_177; // @[CScratchpad.scala 209:24]
-  wire  _GEN_501 = _T_36 ? _GEN_468 : _GEN_178; // @[CScratchpad.scala 209:24]
-  wire  _GEN_502 = _T_36 ? _GEN_469 : _GEN_179; // @[CScratchpad.scala 209:24]
-  wire  _GEN_503 = _T_36 ? _GEN_470 : _GEN_180; // @[CScratchpad.scala 209:24]
-  wire  _GEN_504 = _T_36 ? _GEN_471 : _GEN_181; // @[CScratchpad.scala 209:24]
-  wire  _GEN_505 = _T_36 ? _GEN_472 : _GEN_182; // @[CScratchpad.scala 209:24]
-  wire  _GEN_506 = _T_36 ? _GEN_473 : _GEN_183; // @[CScratchpad.scala 209:24]
-  wire  _GEN_507 = _T_36 ? _GEN_474 : _GEN_184; // @[CScratchpad.scala 209:24]
-  wire  _GEN_508 = _T_36 ? _GEN_475 : _GEN_185; // @[CScratchpad.scala 209:24]
-  wire  _GEN_509 = _T_36 ? _GEN_476 : _GEN_186; // @[CScratchpad.scala 209:24]
-  CScratchpadPackedSubwordLoader_3 loader ( // @[CScratchpad.scala 94:30]
-    .clock(loader_clock),
-    .reset(loader_reset),
-    .io_cache_block_in_ready(loader_io_cache_block_in_ready),
-    .io_cache_block_in_valid(loader_io_cache_block_in_valid),
-    .io_cache_block_in_bits_len(loader_io_cache_block_in_bits_len),
-    .io_sp_write_out_valid(loader_io_sp_write_out_valid)
-  );
-  assign auto_mem_out_a_valid = 2'h0 == mem_tx_state ? mem_tx_state == 2'h1 : _GEN_112; // @[CScratchpad.scala 136:19 138:24]
-  assign auto_mem_out_a_bits_size = txEmitLengthLg[2:0]; // @[Edges.scala 447:17 450:15]
-  assign auto_mem_out_a_bits_source = reqIdleBits_0 ? 4'h0 : _reqChosen_T_13; // @[Mux.scala 47:70]
-  assign auto_mem_out_a_bits_address = totalTx_memoryAddress; // @[Edges.scala 447:17 452:15]
-  assign auto_mem_out_a_bits_mask = {x1_a_bits_a_mask_hi,x1_a_bits_a_mask_lo}; // @[Cat.scala 33:92]
-  assign auto_mem_out_d_ready = loader_io_cache_block_in_ready; // @[Nodes.scala 1212:84 CScratchpad.scala 180:19]
-  assign loader_clock = clock;
-  assign loader_reset = reset;
-  assign loader_io_cache_block_in_valid = auto_mem_out_d_valid; // @[Nodes.scala 1212:84 LazyModule.scala 368:12]
-  assign loader_io_cache_block_in_bits_len = _GEN_235[6:0];
-  always @(posedge clock) begin
-    if (reset) begin // @[CScratchpad.scala 102:37]
-      mem_tx_state <= 2'h0; // @[CScratchpad.scala 102:37]
-    end else if (!(2'h0 == mem_tx_state)) begin // @[CScratchpad.scala 138:24]
-      if (2'h1 == mem_tx_state) begin // @[CScratchpad.scala 138:24]
-        if (_T_13) begin // @[CScratchpad.scala 152:28]
-          mem_tx_state <= _GEN_56;
-        end
-      end else if (2'h2 == mem_tx_state) begin // @[CScratchpad.scala 138:24]
-        mem_tx_state <= _GEN_109;
-      end
-    end
-    reqIdleBits_0 <= reset | _GEN_494; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_1 <= reset | _GEN_495; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_2 <= reset | _GEN_496; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_3 <= reset | _GEN_497; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_4 <= reset | _GEN_498; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_5 <= reset | _GEN_499; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_6 <= reset | _GEN_500; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_7 <= reset | _GEN_501; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_8 <= reset | _GEN_502; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_9 <= reset | _GEN_503; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_10 <= reset | _GEN_504; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_11 <= reset | _GEN_505; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_12 <= reset | _GEN_506; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_13 <= reset | _GEN_507; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_14 <= reset | _GEN_508; // @[CScratchpad.scala 110:{36,36}]
-    reqIdleBits_15 <= reset | _GEN_509; // @[CScratchpad.scala 110:{36,36}]
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'h0 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_0_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_0_memoryLength <= _GEN_203;
-      end
-    end else begin
-      req_cache_0_memoryLength <= _GEN_203;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'h1 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_1_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_1_memoryLength <= _GEN_204;
-      end
-    end else begin
-      req_cache_1_memoryLength <= _GEN_204;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'h2 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_2_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_2_memoryLength <= _GEN_205;
-      end
-    end else begin
-      req_cache_2_memoryLength <= _GEN_205;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'h3 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_3_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_3_memoryLength <= _GEN_206;
-      end
-    end else begin
-      req_cache_3_memoryLength <= _GEN_206;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'h4 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_4_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_4_memoryLength <= _GEN_207;
-      end
-    end else begin
-      req_cache_4_memoryLength <= _GEN_207;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'h5 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_5_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_5_memoryLength <= _GEN_208;
-      end
-    end else begin
-      req_cache_5_memoryLength <= _GEN_208;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'h6 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_6_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_6_memoryLength <= _GEN_209;
-      end
-    end else begin
-      req_cache_6_memoryLength <= _GEN_209;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'h7 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_7_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_7_memoryLength <= _GEN_210;
-      end
-    end else begin
-      req_cache_7_memoryLength <= _GEN_210;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'h8 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_8_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_8_memoryLength <= _GEN_211;
-      end
-    end else begin
-      req_cache_8_memoryLength <= _GEN_211;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'h9 == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_9_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_9_memoryLength <= _GEN_212;
-      end
-    end else begin
-      req_cache_9_memoryLength <= _GEN_212;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'ha == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_10_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_10_memoryLength <= _GEN_213;
-      end
-    end else begin
-      req_cache_10_memoryLength <= _GEN_213;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'hb == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_11_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_11_memoryLength <= _GEN_214;
-      end
-    end else begin
-      req_cache_11_memoryLength <= _GEN_214;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'hc == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_12_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_12_memoryLength <= _GEN_215;
-      end
-    end else begin
-      req_cache_12_memoryLength <= _GEN_215;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'hd == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_13_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_13_memoryLength <= _GEN_216;
-      end
-    end else begin
-      req_cache_13_memoryLength <= _GEN_216;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'he == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_14_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_14_memoryLength <= _GEN_217;
-      end
-    end else begin
-      req_cache_14_memoryLength <= _GEN_217;
-    end
-    if (_T_36) begin // @[CScratchpad.scala 209:24]
-      if (4'hf == auto_mem_out_d_bits_source) begin // @[CScratchpad.scala 210:37]
-        req_cache_15_memoryLength <= _req_cache_memoryLength_T_2; // @[CScratchpad.scala 210:37]
-      end else begin
-        req_cache_15_memoryLength <= _GEN_218;
-      end
-    end else begin
-      req_cache_15_memoryLength <= _GEN_218;
-    end
-    if (!(2'h0 == mem_tx_state)) begin // @[CScratchpad.scala 138:24]
-      if (2'h1 == mem_tx_state) begin // @[CScratchpad.scala 138:24]
-        if (_T_13) begin // @[CScratchpad.scala 152:28]
-          totalTx_memoryAddress <= _totalTx_memoryAddress_T_1; // @[CScratchpad.scala 158:31]
         end
       end
     end
@@ -4088,6 +4754,1509 @@ module SequentialWriter(
     `endif // SYNTHESIS
   end
 endmodule
+module FPUNew(
+  input         clock,
+  input         reset,
+  input  [31:0] io_req_bits_operands_0_0,
+  input  [31:0] io_req_bits_operands_0_1,
+  input  [31:0] io_req_bits_operands_0_2,
+  input  [31:0] io_req_bits_operands_1_0,
+  input  [31:0] io_req_bits_operands_1_1,
+  input  [31:0] io_req_bits_operands_1_2,
+  input  [31:0] io_req_bits_operands_2_0,
+  input  [31:0] io_req_bits_operands_2_1,
+  input  [3:0]  io_req_bits_op,
+  input         io_req_bits_opModifier,
+  input         io_resp_ready,
+  output        io_resp_valid,
+  output [31:0] io_resp_bits_result_0,
+  output [31:0] io_resp_bits_result_1,
+  output [31:0] io_resp_bits_result_2
+);
+  wire  blackbox_clk_i; // @[FPNewMain.scala 141:32]
+  wire  blackbox_rst_ni; // @[FPNewMain.scala 141:32]
+  wire [287:0] blackbox_operands_i; // @[FPNewMain.scala 141:32]
+  wire [2:0] blackbox_rnd_mode_i; // @[FPNewMain.scala 141:32]
+  wire [3:0] blackbox_op_i; // @[FPNewMain.scala 141:32]
+  wire  blackbox_op_mod_i; // @[FPNewMain.scala 141:32]
+  wire [2:0] blackbox_src_fmt_i; // @[FPNewMain.scala 141:32]
+  wire [2:0] blackbox_dst_fmt_i; // @[FPNewMain.scala 141:32]
+  wire [1:0] blackbox_int_fmt_i; // @[FPNewMain.scala 141:32]
+  wire  blackbox_vectorial_op_i; // @[FPNewMain.scala 141:32]
+  wire  blackbox_tag_i; // @[FPNewMain.scala 141:32]
+  wire  blackbox_in_valid_i; // @[FPNewMain.scala 141:32]
+  wire  blackbox_in_ready_o; // @[FPNewMain.scala 141:32]
+  wire  blackbox_flush_i; // @[FPNewMain.scala 141:32]
+  wire [95:0] blackbox_result_o; // @[FPNewMain.scala 141:32]
+  wire [4:0] blackbox_status_o; // @[FPNewMain.scala 141:32]
+  wire  blackbox_tag_o; // @[FPNewMain.scala 141:32]
+  wire  blackbox_out_valid_o; // @[FPNewMain.scala 141:32]
+  wire  blackbox_out_ready_i; // @[FPNewMain.scala 141:32]
+  wire  blackbox_busy_o; // @[FPNewMain.scala 141:32]
+  wire [95:0] _blackbox_io_operands_i_T = {io_req_bits_operands_0_2,io_req_bits_operands_0_1,io_req_bits_operands_0_0}; // @[Cat.scala 33:92]
+  wire [191:0] blackbox_io_operands_i_hi_3 = {32'h0,io_req_bits_operands_2_1,io_req_bits_operands_2_0,
+    io_req_bits_operands_1_2,io_req_bits_operands_1_1,io_req_bits_operands_1_0}; // @[Cat.scala 33:92]
+  FPNewBlackbox_tyfloat_l3_1s_1tw_1ops blackbox ( // @[FPNewMain.scala 141:32]
+    .clk_i(blackbox_clk_i),
+    .rst_ni(blackbox_rst_ni),
+    .operands_i(blackbox_operands_i),
+    .rnd_mode_i(blackbox_rnd_mode_i),
+    .op_i(blackbox_op_i),
+    .op_mod_i(blackbox_op_mod_i),
+    .src_fmt_i(blackbox_src_fmt_i),
+    .dst_fmt_i(blackbox_dst_fmt_i),
+    .int_fmt_i(blackbox_int_fmt_i),
+    .vectorial_op_i(blackbox_vectorial_op_i),
+    .tag_i(blackbox_tag_i),
+    .in_valid_i(blackbox_in_valid_i),
+    .in_ready_o(blackbox_in_ready_o),
+    .flush_i(blackbox_flush_i),
+    .result_o(blackbox_result_o),
+    .status_o(blackbox_status_o),
+    .tag_o(blackbox_tag_o),
+    .out_valid_o(blackbox_out_valid_o),
+    .out_ready_i(blackbox_out_ready_i),
+    .busy_o(blackbox_busy_o)
+  );
+  assign io_resp_valid = blackbox_out_valid_o; // @[FPNewMain.scala 171:17]
+  assign io_resp_bits_result_0 = blackbox_result_o[31:0]; // @[FPNewMain.scala 168:74]
+  assign io_resp_bits_result_1 = blackbox_result_o[63:32]; // @[FPNewMain.scala 168:74]
+  assign io_resp_bits_result_2 = blackbox_result_o[95:64]; // @[FPNewMain.scala 168:74]
+  assign blackbox_clk_i = clock; // @[FPNewMain.scala 150:21]
+  assign blackbox_rst_ni = ~reset; // @[FPNewMain.scala 151:25]
+  assign blackbox_operands_i = {blackbox_io_operands_i_hi_3,_blackbox_io_operands_i_T}; // @[Cat.scala 33:92]
+  assign blackbox_rnd_mode_i = 3'h0; // @[FPNewMain.scala 155:54]
+  assign blackbox_op_i = io_req_bits_op; // @[FPNewMain.scala 156:38]
+  assign blackbox_op_mod_i = io_req_bits_opModifier; // @[FPNewMain.scala 157:24]
+  assign blackbox_src_fmt_i = 3'h0; // @[FPNewMain.scala 158:50]
+  assign blackbox_dst_fmt_i = 3'h0; // @[FPNewMain.scala 159:50]
+  assign blackbox_int_fmt_i = 2'h0; // @[FPNewMain.scala 160:50]
+  assign blackbox_vectorial_op_i = 1'h1; // @[FPNewMain.scala 161:30]
+  assign blackbox_tag_i = 1'h0; // @[FPNewMain.scala 164:21]
+  assign blackbox_in_valid_i = 1'h1; // @[FPNewMain.scala 163:26]
+  assign blackbox_flush_i = 1'h0; // @[FPNewMain.scala 176:23]
+  assign blackbox_out_ready_i = 1'h1; // @[FPNewMain.scala 173:27]
+endmodule
+module FPUNew_2(
+  input         clock,
+  input         reset,
+  input  [31:0] io_req_bits_operands_0_0,
+  input  [31:0] io_req_bits_operands_1_0,
+  input  [3:0]  io_req_bits_op,
+  input         io_resp_ready,
+  output        io_resp_valid,
+  output [31:0] io_resp_bits_result_0
+);
+  wire  blackbox_clk_i; // @[FPNewMain.scala 141:32]
+  wire  blackbox_rst_ni; // @[FPNewMain.scala 141:32]
+  wire [95:0] blackbox_operands_i; // @[FPNewMain.scala 141:32]
+  wire [2:0] blackbox_rnd_mode_i; // @[FPNewMain.scala 141:32]
+  wire [3:0] blackbox_op_i; // @[FPNewMain.scala 141:32]
+  wire  blackbox_op_mod_i; // @[FPNewMain.scala 141:32]
+  wire [2:0] blackbox_src_fmt_i; // @[FPNewMain.scala 141:32]
+  wire [2:0] blackbox_dst_fmt_i; // @[FPNewMain.scala 141:32]
+  wire [1:0] blackbox_int_fmt_i; // @[FPNewMain.scala 141:32]
+  wire  blackbox_vectorial_op_i; // @[FPNewMain.scala 141:32]
+  wire  blackbox_tag_i; // @[FPNewMain.scala 141:32]
+  wire  blackbox_in_valid_i; // @[FPNewMain.scala 141:32]
+  wire  blackbox_in_ready_o; // @[FPNewMain.scala 141:32]
+  wire  blackbox_flush_i; // @[FPNewMain.scala 141:32]
+  wire [31:0] blackbox_result_o; // @[FPNewMain.scala 141:32]
+  wire [4:0] blackbox_status_o; // @[FPNewMain.scala 141:32]
+  wire  blackbox_tag_o; // @[FPNewMain.scala 141:32]
+  wire  blackbox_out_valid_o; // @[FPNewMain.scala 141:32]
+  wire  blackbox_out_ready_i; // @[FPNewMain.scala 141:32]
+  wire  blackbox_busy_o; // @[FPNewMain.scala 141:32]
+  wire [63:0] blackbox_io_operands_i_hi = {32'h0,io_req_bits_operands_1_0}; // @[Cat.scala 33:92]
+  FPNewBlackbox_tyfloat_l1_1s_1tw_2ops blackbox ( // @[FPNewMain.scala 141:32]
+    .clk_i(blackbox_clk_i),
+    .rst_ni(blackbox_rst_ni),
+    .operands_i(blackbox_operands_i),
+    .rnd_mode_i(blackbox_rnd_mode_i),
+    .op_i(blackbox_op_i),
+    .op_mod_i(blackbox_op_mod_i),
+    .src_fmt_i(blackbox_src_fmt_i),
+    .dst_fmt_i(blackbox_dst_fmt_i),
+    .int_fmt_i(blackbox_int_fmt_i),
+    .vectorial_op_i(blackbox_vectorial_op_i),
+    .tag_i(blackbox_tag_i),
+    .in_valid_i(blackbox_in_valid_i),
+    .in_ready_o(blackbox_in_ready_o),
+    .flush_i(blackbox_flush_i),
+    .result_o(blackbox_result_o),
+    .status_o(blackbox_status_o),
+    .tag_o(blackbox_tag_o),
+    .out_valid_o(blackbox_out_valid_o),
+    .out_ready_i(blackbox_out_ready_i),
+    .busy_o(blackbox_busy_o)
+  );
+  assign io_resp_valid = blackbox_out_valid_o; // @[FPNewMain.scala 171:17]
+  assign io_resp_bits_result_0 = blackbox_result_o; // @[FPNewMain.scala 168:74]
+  assign blackbox_clk_i = clock; // @[FPNewMain.scala 150:21]
+  assign blackbox_rst_ni = ~reset; // @[FPNewMain.scala 151:25]
+  assign blackbox_operands_i = {blackbox_io_operands_i_hi,io_req_bits_operands_0_0}; // @[Cat.scala 33:92]
+  assign blackbox_rnd_mode_i = 3'h0; // @[FPNewMain.scala 155:54]
+  assign blackbox_op_i = io_req_bits_op; // @[FPNewMain.scala 156:38]
+  assign blackbox_op_mod_i = 1'h0; // @[FPNewMain.scala 157:24]
+  assign blackbox_src_fmt_i = 3'h0; // @[FPNewMain.scala 158:50]
+  assign blackbox_dst_fmt_i = 3'h0; // @[FPNewMain.scala 159:50]
+  assign blackbox_int_fmt_i = 2'h0; // @[FPNewMain.scala 160:50]
+  assign blackbox_vectorial_op_i = 1'h1; // @[FPNewMain.scala 161:30]
+  assign blackbox_tag_i = 1'h0; // @[FPNewMain.scala 164:21]
+  assign blackbox_in_valid_i = 1'h1; // @[FPNewMain.scala 163:26]
+  assign blackbox_flush_i = 1'h0; // @[FPNewMain.scala 176:23]
+  assign blackbox_out_ready_i = 1'h1; // @[FPNewMain.scala 173:27]
+endmodule
+module HalfNonBonded(
+  input         clock,
+  input         reset,
+  input  [31:0] io_in_vdwE,
+  input  [31:0] io_in_esE,
+  output [31:0] io_out_vdwE,
+  output [31:0] io_out_esE,
+  input         io_start,
+  output        io_done
+);
+  wire  fpuAdd_clock; // @[HalfNonBonded.scala 144:24]
+  wire  fpuAdd_reset; // @[HalfNonBonded.scala 144:24]
+  wire [31:0] fpuAdd_io_req_bits_operands_0_0; // @[HalfNonBonded.scala 144:24]
+  wire [31:0] fpuAdd_io_req_bits_operands_0_1; // @[HalfNonBonded.scala 144:24]
+  wire [31:0] fpuAdd_io_req_bits_operands_0_2; // @[HalfNonBonded.scala 144:24]
+  wire [31:0] fpuAdd_io_req_bits_operands_1_0; // @[HalfNonBonded.scala 144:24]
+  wire [31:0] fpuAdd_io_req_bits_operands_1_1; // @[HalfNonBonded.scala 144:24]
+  wire [31:0] fpuAdd_io_req_bits_operands_1_2; // @[HalfNonBonded.scala 144:24]
+  wire [31:0] fpuAdd_io_req_bits_operands_2_0; // @[HalfNonBonded.scala 144:24]
+  wire [31:0] fpuAdd_io_req_bits_operands_2_1; // @[HalfNonBonded.scala 144:24]
+  wire [3:0] fpuAdd_io_req_bits_op; // @[HalfNonBonded.scala 144:24]
+  wire  fpuAdd_io_req_bits_opModifier; // @[HalfNonBonded.scala 144:24]
+  wire  fpuAdd_io_resp_ready; // @[HalfNonBonded.scala 144:24]
+  wire  fpuAdd_io_resp_valid; // @[HalfNonBonded.scala 144:24]
+  wire [31:0] fpuAdd_io_resp_bits_result_0; // @[HalfNonBonded.scala 144:24]
+  wire [31:0] fpuAdd_io_resp_bits_result_1; // @[HalfNonBonded.scala 144:24]
+  wire [31:0] fpuAdd_io_resp_bits_result_2; // @[HalfNonBonded.scala 144:24]
+  wire  fpuMul_clock; // @[HalfNonBonded.scala 186:24]
+  wire  fpuMul_reset; // @[HalfNonBonded.scala 186:24]
+  wire [31:0] fpuMul_io_req_bits_operands_0_0; // @[HalfNonBonded.scala 186:24]
+  wire [31:0] fpuMul_io_req_bits_operands_0_1; // @[HalfNonBonded.scala 186:24]
+  wire [31:0] fpuMul_io_req_bits_operands_0_2; // @[HalfNonBonded.scala 186:24]
+  wire [31:0] fpuMul_io_req_bits_operands_1_0; // @[HalfNonBonded.scala 186:24]
+  wire [31:0] fpuMul_io_req_bits_operands_1_1; // @[HalfNonBonded.scala 186:24]
+  wire [31:0] fpuMul_io_req_bits_operands_1_2; // @[HalfNonBonded.scala 186:24]
+  wire [31:0] fpuMul_io_req_bits_operands_2_0; // @[HalfNonBonded.scala 186:24]
+  wire [31:0] fpuMul_io_req_bits_operands_2_1; // @[HalfNonBonded.scala 186:24]
+  wire [3:0] fpuMul_io_req_bits_op; // @[HalfNonBonded.scala 186:24]
+  wire  fpuMul_io_req_bits_opModifier; // @[HalfNonBonded.scala 186:24]
+  wire  fpuMul_io_resp_ready; // @[HalfNonBonded.scala 186:24]
+  wire  fpuMul_io_resp_valid; // @[HalfNonBonded.scala 186:24]
+  wire [31:0] fpuMul_io_resp_bits_result_0; // @[HalfNonBonded.scala 186:24]
+  wire [31:0] fpuMul_io_resp_bits_result_1; // @[HalfNonBonded.scala 186:24]
+  wire [31:0] fpuMul_io_resp_bits_result_2; // @[HalfNonBonded.scala 186:24]
+  wire  fpuDiv_clock; // @[HalfNonBonded.scala 223:24]
+  wire  fpuDiv_reset; // @[HalfNonBonded.scala 223:24]
+  wire [31:0] fpuDiv_io_req_bits_operands_0_0; // @[HalfNonBonded.scala 223:24]
+  wire [31:0] fpuDiv_io_req_bits_operands_1_0; // @[HalfNonBonded.scala 223:24]
+  wire [3:0] fpuDiv_io_req_bits_op; // @[HalfNonBonded.scala 223:24]
+  wire  fpuDiv_io_resp_ready; // @[HalfNonBonded.scala 223:24]
+  wire  fpuDiv_io_resp_valid; // @[HalfNonBonded.scala 223:24]
+  wire [31:0] fpuDiv_io_resp_bits_result_0; // @[HalfNonBonded.scala 223:24]
+  wire  fpuSqrt_clock; // @[HalfNonBonded.scala 245:25]
+  wire  fpuSqrt_reset; // @[HalfNonBonded.scala 245:25]
+  wire [31:0] fpuSqrt_io_req_bits_operands_0_0; // @[HalfNonBonded.scala 245:25]
+  wire [31:0] fpuSqrt_io_req_bits_operands_1_0; // @[HalfNonBonded.scala 245:25]
+  wire [3:0] fpuSqrt_io_req_bits_op; // @[HalfNonBonded.scala 245:25]
+  wire  fpuSqrt_io_resp_ready; // @[HalfNonBonded.scala 245:25]
+  wire  fpuSqrt_io_resp_valid; // @[HalfNonBonded.scala 245:25]
+  wire [31:0] fpuSqrt_io_resp_bits_result_0; // @[HalfNonBonded.scala 245:25]
+  reg  done_cal; // @[HalfNonBonded.scala 33:25]
+  reg  wait_for_data; // @[HalfNonBonded.scala 39:30]
+  reg [31:0] counter; // @[HalfNonBonded.scala 41:24]
+  wire  _wait_for_data_T = io_start | wait_for_data; // @[HalfNonBonded.scala 43:23]
+  wire [31:0] _counter_T_2 = counter + 32'h1; // @[HalfNonBonded.scala 44:64]
+  wire  counter_1H_1 = counter == 32'h1; // @[HalfNonBonded.scala 45:65]
+  wire  counter_1H_2 = counter == 32'h2; // @[HalfNonBonded.scala 45:65]
+  wire  counter_1H_3 = counter == 32'h3; // @[HalfNonBonded.scala 45:65]
+  wire  counter_1H_4 = counter == 32'h4; // @[HalfNonBonded.scala 45:65]
+  wire  counter_1H_5 = counter == 32'h5; // @[HalfNonBonded.scala 45:65]
+  wire  counter_1H_6 = counter == 32'h6; // @[HalfNonBonded.scala 45:65]
+  wire  counter_1H_7 = counter == 32'h7; // @[HalfNonBonded.scala 45:65]
+  wire  counter_1H_8 = counter == 32'h8; // @[HalfNonBonded.scala 45:65]
+  wire  counter_1H_9 = counter == 32'h9; // @[HalfNonBonded.scala 45:65]
+  wire  counter_1H_10 = counter == 32'ha; // @[HalfNonBonded.scala 45:65]
+  reg [31:0] accessState; // @[HalfNonBonded.scala 57:30]
+  reg [31:0] rijx; // @[HalfNonBonded.scala 122:23]
+  reg [31:0] rijy; // @[HalfNonBonded.scala 123:23]
+  reg [31:0] rijz; // @[HalfNonBonded.scala 124:23]
+  reg [31:0] rijx2; // @[HalfNonBonded.scala 125:24]
+  reg [31:0] rijy2; // @[HalfNonBonded.scala 126:24]
+  reg [31:0] rijz2; // @[HalfNonBonded.scala 127:24]
+  reg [31:0] rijx_y; // @[HalfNonBonded.scala 128:25]
+  reg [31:0] rij2; // @[HalfNonBonded.scala 129:23]
+  reg [31:0] rij4; // @[HalfNonBonded.scala 130:23]
+  reg [31:0] rij6; // @[HalfNonBonded.scala 131:23]
+  reg [31:0] rij12; // @[HalfNonBonded.scala 132:24]
+  reg [31:0] chargeij; // @[HalfNonBonded.scala 133:27]
+  reg [31:0] chargeijC; // @[HalfNonBonded.scala 134:28]
+  reg [31:0] partialSumES; // @[HalfNonBonded.scala 135:31]
+  reg [31:0] Aij_rij12; // @[HalfNonBonded.scala 136:28]
+  reg [31:0] Bij_rij6; // @[HalfNonBonded.scala 137:27]
+  reg [31:0] partialSumVDW; // @[HalfNonBonded.scala 138:32]
+  reg [31:0] outES; // @[HalfNonBonded.scala 139:24]
+  reg [31:0] outVDW; // @[HalfNonBonded.scala 140:25]
+  wire [31:0] _fpuAdd_io_req_bits_operands_1_0_T_3 = counter_1H_3 ? rijx2 : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuAdd_io_req_bits_operands_1_0_T_4 = counter_1H_4 ? rijx_y : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuAdd_io_req_bits_operands_1_0_T_9 = counter_1H_9 ? Aij_rij12 : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuAdd_io_req_bits_operands_1_0_T_10 = counter_1H_10 ? io_in_esE : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuAdd_io_req_bits_operands_1_0_T_14 = _fpuAdd_io_req_bits_operands_1_0_T_3 |
+    _fpuAdd_io_req_bits_operands_1_0_T_4; // @[Mux.scala 27:73]
+  wire [31:0] _fpuAdd_io_req_bits_operands_1_0_T_19 = _fpuAdd_io_req_bits_operands_1_0_T_14 |
+    _fpuAdd_io_req_bits_operands_1_0_T_9; // @[Mux.scala 27:73]
+  wire [31:0] _fpuAdd_io_req_bits_operands_2_0_T_3 = counter_1H_3 ? rijy2 : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuAdd_io_req_bits_operands_2_0_T_4 = counter_1H_4 ? rijz2 : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuAdd_io_req_bits_operands_2_0_T_9 = counter_1H_9 ? Bij_rij6 : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuAdd_io_req_bits_operands_2_0_T_10 = counter_1H_10 ? partialSumES : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuAdd_io_req_bits_operands_2_0_T_14 = _fpuAdd_io_req_bits_operands_2_0_T_3 |
+    _fpuAdd_io_req_bits_operands_2_0_T_4; // @[Mux.scala 27:73]
+  wire [31:0] _fpuAdd_io_req_bits_operands_2_0_T_19 = _fpuAdd_io_req_bits_operands_2_0_T_14 |
+    _fpuAdd_io_req_bits_operands_2_0_T_9; // @[Mux.scala 27:73]
+  wire  _T_8 = fpuAdd_io_resp_ready & fpuAdd_io_resp_valid; // @[Decoupled.scala 51:35]
+  wire [31:0] _fpuMul_io_req_bits_operands_0_0_T_2 = counter_1H_2 ? rijx : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuMul_io_req_bits_operands_0_0_T_5 = counter_1H_5 ? rij2 : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuMul_io_req_bits_operands_0_0_T_6 = counter_1H_6 ? rij4 : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuMul_io_req_bits_operands_0_0_T_7 = counter_1H_7 ? rij6 : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuMul_io_req_bits_operands_0_0_T_15 = _fpuMul_io_req_bits_operands_0_0_T_2 |
+    _fpuMul_io_req_bits_operands_0_0_T_5; // @[Mux.scala 27:73]
+  wire [31:0] _fpuMul_io_req_bits_operands_0_0_T_16 = _fpuMul_io_req_bits_operands_0_0_T_15 |
+    _fpuMul_io_req_bits_operands_0_0_T_6; // @[Mux.scala 27:73]
+  wire [31:0] _fpuMul_io_req_bits_operands_1_0_T_6 = counter_1H_6 ? rij2 : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuMul_io_req_bits_operands_1_0_T_16 = _fpuMul_io_req_bits_operands_0_0_T_15 |
+    _fpuMul_io_req_bits_operands_1_0_T_6; // @[Mux.scala 27:73]
+  wire [31:0] _fpuMul_io_req_bits_operands_0_1_T_2 = counter_1H_2 ? rijy : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuMul_io_req_bits_operands_0_1_T_5 = counter_1H_5 ? chargeij : 32'h0; // @[Mux.scala 27:73]
+  wire  _T_9 = fpuMul_io_resp_ready & fpuMul_io_resp_valid; // @[Decoupled.scala 51:35]
+  wire [31:0] _fpuDiv_io_req_bits_operands_1_0_T_8 = counter_1H_8 ? rij12 : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuDiv_io_req_bits_operands_1_0_T_17 = _fpuMul_io_req_bits_operands_1_0_T_6 |
+    _fpuMul_io_req_bits_operands_0_0_T_7; // @[Mux.scala 27:73]
+  wire  _T_10 = fpuDiv_io_resp_ready & fpuDiv_io_resp_valid; // @[Decoupled.scala 51:35]
+  FPUNew fpuAdd ( // @[HalfNonBonded.scala 144:24]
+    .clock(fpuAdd_clock),
+    .reset(fpuAdd_reset),
+    .io_req_bits_operands_0_0(fpuAdd_io_req_bits_operands_0_0),
+    .io_req_bits_operands_0_1(fpuAdd_io_req_bits_operands_0_1),
+    .io_req_bits_operands_0_2(fpuAdd_io_req_bits_operands_0_2),
+    .io_req_bits_operands_1_0(fpuAdd_io_req_bits_operands_1_0),
+    .io_req_bits_operands_1_1(fpuAdd_io_req_bits_operands_1_1),
+    .io_req_bits_operands_1_2(fpuAdd_io_req_bits_operands_1_2),
+    .io_req_bits_operands_2_0(fpuAdd_io_req_bits_operands_2_0),
+    .io_req_bits_operands_2_1(fpuAdd_io_req_bits_operands_2_1),
+    .io_req_bits_op(fpuAdd_io_req_bits_op),
+    .io_req_bits_opModifier(fpuAdd_io_req_bits_opModifier),
+    .io_resp_ready(fpuAdd_io_resp_ready),
+    .io_resp_valid(fpuAdd_io_resp_valid),
+    .io_resp_bits_result_0(fpuAdd_io_resp_bits_result_0),
+    .io_resp_bits_result_1(fpuAdd_io_resp_bits_result_1),
+    .io_resp_bits_result_2(fpuAdd_io_resp_bits_result_2)
+  );
+  FPUNew fpuMul ( // @[HalfNonBonded.scala 186:24]
+    .clock(fpuMul_clock),
+    .reset(fpuMul_reset),
+    .io_req_bits_operands_0_0(fpuMul_io_req_bits_operands_0_0),
+    .io_req_bits_operands_0_1(fpuMul_io_req_bits_operands_0_1),
+    .io_req_bits_operands_0_2(fpuMul_io_req_bits_operands_0_2),
+    .io_req_bits_operands_1_0(fpuMul_io_req_bits_operands_1_0),
+    .io_req_bits_operands_1_1(fpuMul_io_req_bits_operands_1_1),
+    .io_req_bits_operands_1_2(fpuMul_io_req_bits_operands_1_2),
+    .io_req_bits_operands_2_0(fpuMul_io_req_bits_operands_2_0),
+    .io_req_bits_operands_2_1(fpuMul_io_req_bits_operands_2_1),
+    .io_req_bits_op(fpuMul_io_req_bits_op),
+    .io_req_bits_opModifier(fpuMul_io_req_bits_opModifier),
+    .io_resp_ready(fpuMul_io_resp_ready),
+    .io_resp_valid(fpuMul_io_resp_valid),
+    .io_resp_bits_result_0(fpuMul_io_resp_bits_result_0),
+    .io_resp_bits_result_1(fpuMul_io_resp_bits_result_1),
+    .io_resp_bits_result_2(fpuMul_io_resp_bits_result_2)
+  );
+  FPUNew_2 fpuDiv ( // @[HalfNonBonded.scala 223:24]
+    .clock(fpuDiv_clock),
+    .reset(fpuDiv_reset),
+    .io_req_bits_operands_0_0(fpuDiv_io_req_bits_operands_0_0),
+    .io_req_bits_operands_1_0(fpuDiv_io_req_bits_operands_1_0),
+    .io_req_bits_op(fpuDiv_io_req_bits_op),
+    .io_resp_ready(fpuDiv_io_resp_ready),
+    .io_resp_valid(fpuDiv_io_resp_valid),
+    .io_resp_bits_result_0(fpuDiv_io_resp_bits_result_0)
+  );
+  FPUNew_2 fpuSqrt ( // @[HalfNonBonded.scala 245:25]
+    .clock(fpuSqrt_clock),
+    .reset(fpuSqrt_reset),
+    .io_req_bits_operands_0_0(fpuSqrt_io_req_bits_operands_0_0),
+    .io_req_bits_operands_1_0(fpuSqrt_io_req_bits_operands_1_0),
+    .io_req_bits_op(fpuSqrt_io_req_bits_op),
+    .io_resp_ready(fpuSqrt_io_resp_ready),
+    .io_resp_valid(fpuSqrt_io_resp_valid),
+    .io_resp_bits_result_0(fpuSqrt_io_resp_bits_result_0)
+  );
+  assign io_out_vdwE = outVDW; // @[HalfNonBonded.scala 181:17 49:98 52:17]
+  assign io_out_esE = outES; // @[HalfNonBonded.scala 182:16 49:98 53:16]
+  assign io_done = done_cal; // @[HalfNonBonded.scala 37:28]
+  assign fpuAdd_clock = clock;
+  assign fpuAdd_reset = reset;
+  assign fpuAdd_io_req_bits_operands_0_0 = 32'h0;
+  assign fpuAdd_io_req_bits_operands_0_1 = 32'h0;
+  assign fpuAdd_io_req_bits_operands_0_2 = 32'h0;
+  assign fpuAdd_io_req_bits_operands_1_0 = _fpuAdd_io_req_bits_operands_1_0_T_19 | _fpuAdd_io_req_bits_operands_1_0_T_10
+    ; // @[Mux.scala 27:73]
+  assign fpuAdd_io_req_bits_operands_1_1 = counter_1H_10 ? io_in_vdwE : 32'h0; // @[Mux.scala 27:73]
+  assign fpuAdd_io_req_bits_operands_1_2 = 32'h0; // @[Mux.scala 27:73]
+  assign fpuAdd_io_req_bits_operands_2_0 = _fpuAdd_io_req_bits_operands_2_0_T_19 | _fpuAdd_io_req_bits_operands_2_0_T_10
+    ; // @[Mux.scala 27:73]
+  assign fpuAdd_io_req_bits_operands_2_1 = counter_1H_10 ? partialSumVDW : 32'h0; // @[Mux.scala 27:73]
+  assign fpuAdd_io_req_bits_op = 4'h2; // @[HalfNonBonded.scala 158:27]
+  assign fpuAdd_io_req_bits_opModifier = counter_1H_1 | counter_1H_9; // @[Mux.scala 27:73]
+  assign fpuAdd_io_resp_ready = 1'h1; // @[HalfNonBonded.scala 147:26]
+  assign fpuMul_clock = clock;
+  assign fpuMul_reset = reset;
+  assign fpuMul_io_req_bits_operands_0_0 = _fpuMul_io_req_bits_operands_0_0_T_16 | _fpuMul_io_req_bits_operands_0_0_T_7; // @[Mux.scala 27:73]
+  assign fpuMul_io_req_bits_operands_0_1 = _fpuMul_io_req_bits_operands_0_1_T_2 | _fpuMul_io_req_bits_operands_0_1_T_5; // @[Mux.scala 27:73]
+  assign fpuMul_io_req_bits_operands_0_2 = counter_1H_2 ? rijz : 32'h0; // @[Mux.scala 27:73]
+  assign fpuMul_io_req_bits_operands_1_0 = _fpuMul_io_req_bits_operands_1_0_T_16 | _fpuMul_io_req_bits_operands_0_0_T_7; // @[Mux.scala 27:73]
+  assign fpuMul_io_req_bits_operands_1_1 = counter_1H_2 ? rijy : 32'h0; // @[Mux.scala 27:73]
+  assign fpuMul_io_req_bits_operands_1_2 = counter_1H_2 ? rijz : 32'h0; // @[Mux.scala 27:73]
+  assign fpuMul_io_req_bits_operands_2_0 = 32'h0;
+  assign fpuMul_io_req_bits_operands_2_1 = 32'h0;
+  assign fpuMul_io_req_bits_op = 4'h3; // @[HalfNonBonded.scala 201:27]
+  assign fpuMul_io_req_bits_opModifier = 1'h0; // @[HalfNonBonded.scala 191:35]
+  assign fpuMul_io_resp_ready = 1'h1; // @[HalfNonBonded.scala 189:26]
+  assign fpuDiv_clock = clock;
+  assign fpuDiv_reset = reset;
+  assign fpuDiv_io_req_bits_operands_0_0 = counter_1H_6 ? chargeijC : 32'h0; // @[Mux.scala 27:73]
+  assign fpuDiv_io_req_bits_operands_1_0 = _fpuDiv_io_req_bits_operands_1_0_T_17 | _fpuDiv_io_req_bits_operands_1_0_T_8; // @[Mux.scala 27:73]
+  assign fpuDiv_io_req_bits_op = 4'h4; // @[HalfNonBonded.scala 235:27]
+  assign fpuDiv_io_resp_ready = 1'h1; // @[HalfNonBonded.scala 226:26]
+  assign fpuSqrt_clock = clock;
+  assign fpuSqrt_reset = reset;
+  assign fpuSqrt_io_req_bits_operands_0_0 = rij2; // @[HalfNonBonded.scala 253:40]
+  assign fpuSqrt_io_req_bits_operands_1_0 = 32'h0;
+  assign fpuSqrt_io_req_bits_op = 4'h5; // @[HalfNonBonded.scala 252:28]
+  assign fpuSqrt_io_resp_ready = 1'h1; // @[HalfNonBonded.scala 248:27]
+  always @(posedge clock) begin
+    if (reset) begin // @[HalfNonBonded.scala 33:25]
+      done_cal <= 1'h0; // @[HalfNonBonded.scala 33:25]
+    end else if (_T_8) begin // @[HalfNonBonded.scala 170:31]
+      done_cal <= counter_1H_10 | done_cal; // @[HalfNonBonded.scala 179:16]
+    end else if (io_start) begin // @[HalfNonBonded.scala 35:18]
+      done_cal <= 1'h0;
+    end
+    if (reset) begin // @[HalfNonBonded.scala 39:30]
+      wait_for_data <= 1'h0; // @[HalfNonBonded.scala 39:30]
+    end else if (accessState == 32'h0) begin // @[HalfNonBonded.scala 78:31]
+      wait_for_data <= io_start | wait_for_data; // @[HalfNonBonded.scala 43:17]
+    end else if (accessState == 32'h1) begin // @[HalfNonBonded.scala 91:37]
+      wait_for_data <= io_start | wait_for_data; // @[HalfNonBonded.scala 43:17]
+    end else if (accessState == 32'h2) begin // @[HalfNonBonded.scala 103:37]
+      wait_for_data <= 1'h0; // @[HalfNonBonded.scala 105:21]
+    end else begin
+      wait_for_data <= io_start | wait_for_data; // @[HalfNonBonded.scala 43:17]
+    end
+    if (reset) begin // @[HalfNonBonded.scala 41:24]
+      counter <= 32'h0; // @[HalfNonBonded.scala 41:24]
+    end else if (_wait_for_data_T) begin // @[HalfNonBonded.scala 44:17]
+      counter <= 32'h0;
+    end else begin
+      counter <= _counter_T_2;
+    end
+    if (reset) begin // @[HalfNonBonded.scala 57:30]
+      accessState <= 32'h3; // @[HalfNonBonded.scala 57:30]
+    end else if (accessState == 32'h0) begin // @[HalfNonBonded.scala 78:31]
+      accessState <= 32'h2; // @[HalfNonBonded.scala 79:19]
+    end else if (io_start) begin // @[HalfNonBonded.scala 60:23]
+      accessState <= 32'h0;
+    end
+    if (reset) begin // @[HalfNonBonded.scala 122:23]
+      rijx <= 32'h0; // @[HalfNonBonded.scala 122:23]
+    end else if (_T_8) begin // @[HalfNonBonded.scala 170:31]
+      if (counter_1H_1) begin // @[HalfNonBonded.scala 171:18]
+        rijx <= fpuAdd_io_resp_bits_result_0;
+      end
+    end
+    if (reset) begin // @[HalfNonBonded.scala 123:23]
+      rijy <= 32'h0; // @[HalfNonBonded.scala 123:23]
+    end else if (_T_8) begin // @[HalfNonBonded.scala 170:31]
+      if (counter_1H_1) begin // @[HalfNonBonded.scala 172:18]
+        rijy <= fpuAdd_io_resp_bits_result_1;
+      end
+    end
+    if (reset) begin // @[HalfNonBonded.scala 124:23]
+      rijz <= 32'h0; // @[HalfNonBonded.scala 124:23]
+    end else if (_T_8) begin // @[HalfNonBonded.scala 170:31]
+      if (counter_1H_1) begin // @[HalfNonBonded.scala 173:18]
+        rijz <= fpuAdd_io_resp_bits_result_2;
+      end
+    end
+    if (reset) begin // @[HalfNonBonded.scala 125:24]
+      rijx2 <= 32'h0; // @[HalfNonBonded.scala 125:24]
+    end else if (_T_9) begin // @[HalfNonBonded.scala 211:31]
+      if (counter_1H_2) begin // @[HalfNonBonded.scala 212:23]
+        rijx2 <= fpuMul_io_resp_bits_result_0;
+      end
+    end
+    if (reset) begin // @[HalfNonBonded.scala 126:24]
+      rijy2 <= 32'h0; // @[HalfNonBonded.scala 126:24]
+    end else if (_T_9) begin // @[HalfNonBonded.scala 211:31]
+      if (counter_1H_2) begin // @[HalfNonBonded.scala 213:23]
+        rijy2 <= fpuMul_io_resp_bits_result_1;
+      end
+    end
+    if (reset) begin // @[HalfNonBonded.scala 127:24]
+      rijz2 <= 32'h0; // @[HalfNonBonded.scala 127:24]
+    end else if (_T_9) begin // @[HalfNonBonded.scala 211:31]
+      if (counter_1H_2) begin // @[HalfNonBonded.scala 214:23]
+        rijz2 <= fpuMul_io_resp_bits_result_2;
+      end
+    end
+    if (reset) begin // @[HalfNonBonded.scala 128:25]
+      rijx_y <= 32'h0; // @[HalfNonBonded.scala 128:25]
+    end else if (_T_8) begin // @[HalfNonBonded.scala 170:31]
+      if (counter_1H_2) begin // @[HalfNonBonded.scala 174:20]
+        rijx_y <= fpuAdd_io_resp_bits_result_0;
+      end
+    end
+    if (reset) begin // @[HalfNonBonded.scala 129:23]
+      rij2 <= 32'h0; // @[HalfNonBonded.scala 129:23]
+    end else if (_T_8) begin // @[HalfNonBonded.scala 170:31]
+      if (counter_1H_4) begin // @[HalfNonBonded.scala 175:18]
+        rij2 <= fpuAdd_io_resp_bits_result_0;
+      end
+    end
+    if (reset) begin // @[HalfNonBonded.scala 130:23]
+      rij4 <= 32'h0; // @[HalfNonBonded.scala 130:23]
+    end else if (_T_9) begin // @[HalfNonBonded.scala 211:31]
+      if (counter_1H_5) begin // @[HalfNonBonded.scala 216:23]
+        rij4 <= fpuMul_io_resp_bits_result_0;
+      end
+    end
+    if (reset) begin // @[HalfNonBonded.scala 131:23]
+      rij6 <= 32'h0; // @[HalfNonBonded.scala 131:23]
+    end else if (_T_9) begin // @[HalfNonBonded.scala 211:31]
+      if (counter_1H_6) begin // @[HalfNonBonded.scala 218:23]
+        rij6 <= fpuMul_io_resp_bits_result_0;
+      end
+    end
+    if (reset) begin // @[HalfNonBonded.scala 132:24]
+      rij12 <= 32'h0; // @[HalfNonBonded.scala 132:24]
+    end else if (_T_9) begin // @[HalfNonBonded.scala 211:31]
+      if (counter_1H_7) begin // @[HalfNonBonded.scala 219:23]
+        rij12 <= fpuMul_io_resp_bits_result_0;
+      end
+    end
+    if (reset) begin // @[HalfNonBonded.scala 133:27]
+      chargeij <= 32'h0; // @[HalfNonBonded.scala 133:27]
+    end else if (_T_9) begin // @[HalfNonBonded.scala 211:31]
+      if (counter_1H_3) begin // @[HalfNonBonded.scala 215:23]
+        chargeij <= fpuMul_io_resp_bits_result_0;
+      end
+    end
+    if (reset) begin // @[HalfNonBonded.scala 134:28]
+      chargeijC <= 32'h0; // @[HalfNonBonded.scala 134:28]
+    end else if (_T_9) begin // @[HalfNonBonded.scala 211:31]
+      if (counter_1H_5) begin // @[HalfNonBonded.scala 217:23]
+        chargeijC <= fpuMul_io_resp_bits_result_1;
+      end
+    end
+    if (reset) begin // @[HalfNonBonded.scala 135:31]
+      partialSumES <= 32'h0; // @[HalfNonBonded.scala 135:31]
+    end else if (_T_10) begin // @[HalfNonBonded.scala 239:31]
+      if (counter_1H_6) begin // @[HalfNonBonded.scala 240:26]
+        partialSumES <= fpuMul_io_resp_bits_result_0;
+      end
+    end
+    if (reset) begin // @[HalfNonBonded.scala 136:28]
+      Aij_rij12 <= 32'h0; // @[HalfNonBonded.scala 136:28]
+    end else if (_T_10) begin // @[HalfNonBonded.scala 239:31]
+      if (counter_1H_8) begin // @[HalfNonBonded.scala 242:26]
+        Aij_rij12 <= fpuMul_io_resp_bits_result_0;
+      end
+    end
+    if (reset) begin // @[HalfNonBonded.scala 137:27]
+      Bij_rij6 <= 32'h0; // @[HalfNonBonded.scala 137:27]
+    end else if (_T_10) begin // @[HalfNonBonded.scala 239:31]
+      if (counter_1H_7) begin // @[HalfNonBonded.scala 241:26]
+        Bij_rij6 <= fpuMul_io_resp_bits_result_0;
+      end
+    end
+    if (reset) begin // @[HalfNonBonded.scala 138:32]
+      partialSumVDW <= 32'h0; // @[HalfNonBonded.scala 138:32]
+    end else if (_T_8) begin // @[HalfNonBonded.scala 170:31]
+      if (counter_1H_9) begin // @[HalfNonBonded.scala 176:27]
+        partialSumVDW <= fpuAdd_io_resp_bits_result_0;
+      end
+    end
+    if (reset) begin // @[HalfNonBonded.scala 139:24]
+      outES <= 32'h0; // @[HalfNonBonded.scala 139:24]
+    end else if (_T_8) begin // @[HalfNonBonded.scala 170:31]
+      if (counter_1H_10) begin // @[HalfNonBonded.scala 177:19]
+        outES <= fpuAdd_io_resp_bits_result_0;
+      end
+    end
+    if (reset) begin // @[HalfNonBonded.scala 140:25]
+      outVDW <= 32'h0; // @[HalfNonBonded.scala 140:25]
+    end else if (_T_8) begin // @[HalfNonBonded.scala 170:31]
+      if (counter_1H_10) begin // @[HalfNonBonded.scala 178:20]
+        outVDW <= fpuAdd_io_resp_bits_result_1;
+      end
+    end
+  end
+endmodule
+module NonBonded(
+  input         clock,
+  input         reset,
+  input  [31:0] io_in_vdwE,
+  input  [31:0] io_in_esE,
+  output [31:0] io_out_vdwE,
+  output [31:0] io_out_esE,
+  input         io_start,
+  output        io_done
+);
+  wire  fpuAdd_clock; // @[NonBonded.scala 142:24]
+  wire  fpuAdd_reset; // @[NonBonded.scala 142:24]
+  wire [31:0] fpuAdd_io_req_bits_operands_0_0; // @[NonBonded.scala 142:24]
+  wire [31:0] fpuAdd_io_req_bits_operands_0_1; // @[NonBonded.scala 142:24]
+  wire [31:0] fpuAdd_io_req_bits_operands_0_2; // @[NonBonded.scala 142:24]
+  wire [31:0] fpuAdd_io_req_bits_operands_1_0; // @[NonBonded.scala 142:24]
+  wire [31:0] fpuAdd_io_req_bits_operands_1_1; // @[NonBonded.scala 142:24]
+  wire [31:0] fpuAdd_io_req_bits_operands_1_2; // @[NonBonded.scala 142:24]
+  wire [31:0] fpuAdd_io_req_bits_operands_2_0; // @[NonBonded.scala 142:24]
+  wire [31:0] fpuAdd_io_req_bits_operands_2_1; // @[NonBonded.scala 142:24]
+  wire [3:0] fpuAdd_io_req_bits_op; // @[NonBonded.scala 142:24]
+  wire  fpuAdd_io_req_bits_opModifier; // @[NonBonded.scala 142:24]
+  wire  fpuAdd_io_resp_ready; // @[NonBonded.scala 142:24]
+  wire  fpuAdd_io_resp_valid; // @[NonBonded.scala 142:24]
+  wire [31:0] fpuAdd_io_resp_bits_result_0; // @[NonBonded.scala 142:24]
+  wire [31:0] fpuAdd_io_resp_bits_result_1; // @[NonBonded.scala 142:24]
+  wire [31:0] fpuAdd_io_resp_bits_result_2; // @[NonBonded.scala 142:24]
+  wire  fpuMul_clock; // @[NonBonded.scala 184:24]
+  wire  fpuMul_reset; // @[NonBonded.scala 184:24]
+  wire [31:0] fpuMul_io_req_bits_operands_0_0; // @[NonBonded.scala 184:24]
+  wire [31:0] fpuMul_io_req_bits_operands_0_1; // @[NonBonded.scala 184:24]
+  wire [31:0] fpuMul_io_req_bits_operands_0_2; // @[NonBonded.scala 184:24]
+  wire [31:0] fpuMul_io_req_bits_operands_1_0; // @[NonBonded.scala 184:24]
+  wire [31:0] fpuMul_io_req_bits_operands_1_1; // @[NonBonded.scala 184:24]
+  wire [31:0] fpuMul_io_req_bits_operands_1_2; // @[NonBonded.scala 184:24]
+  wire [31:0] fpuMul_io_req_bits_operands_2_0; // @[NonBonded.scala 184:24]
+  wire [31:0] fpuMul_io_req_bits_operands_2_1; // @[NonBonded.scala 184:24]
+  wire [3:0] fpuMul_io_req_bits_op; // @[NonBonded.scala 184:24]
+  wire  fpuMul_io_req_bits_opModifier; // @[NonBonded.scala 184:24]
+  wire  fpuMul_io_resp_ready; // @[NonBonded.scala 184:24]
+  wire  fpuMul_io_resp_valid; // @[NonBonded.scala 184:24]
+  wire [31:0] fpuMul_io_resp_bits_result_0; // @[NonBonded.scala 184:24]
+  wire [31:0] fpuMul_io_resp_bits_result_1; // @[NonBonded.scala 184:24]
+  wire [31:0] fpuMul_io_resp_bits_result_2; // @[NonBonded.scala 184:24]
+  wire  fpuDiv_clock; // @[NonBonded.scala 221:24]
+  wire  fpuDiv_reset; // @[NonBonded.scala 221:24]
+  wire [31:0] fpuDiv_io_req_bits_operands_0_0; // @[NonBonded.scala 221:24]
+  wire [31:0] fpuDiv_io_req_bits_operands_1_0; // @[NonBonded.scala 221:24]
+  wire [3:0] fpuDiv_io_req_bits_op; // @[NonBonded.scala 221:24]
+  wire  fpuDiv_io_resp_ready; // @[NonBonded.scala 221:24]
+  wire  fpuDiv_io_resp_valid; // @[NonBonded.scala 221:24]
+  wire [31:0] fpuDiv_io_resp_bits_result_0; // @[NonBonded.scala 221:24]
+  wire  fpuSqrt_clock; // @[NonBonded.scala 242:25]
+  wire  fpuSqrt_reset; // @[NonBonded.scala 242:25]
+  wire [31:0] fpuSqrt_io_req_bits_operands_0_0; // @[NonBonded.scala 242:25]
+  wire [31:0] fpuSqrt_io_req_bits_operands_1_0; // @[NonBonded.scala 242:25]
+  wire [3:0] fpuSqrt_io_req_bits_op; // @[NonBonded.scala 242:25]
+  wire  fpuSqrt_io_resp_ready; // @[NonBonded.scala 242:25]
+  wire  fpuSqrt_io_resp_valid; // @[NonBonded.scala 242:25]
+  wire [31:0] fpuSqrt_io_resp_bits_result_0; // @[NonBonded.scala 242:25]
+  reg  done_cal; // @[NonBonded.scala 32:25]
+  reg  wait_for_data; // @[NonBonded.scala 38:30]
+  reg [31:0] counter; // @[NonBonded.scala 40:24]
+  wire  _wait_for_data_T = io_start | wait_for_data; // @[NonBonded.scala 42:23]
+  wire [31:0] _counter_T_2 = counter + 32'h1; // @[NonBonded.scala 43:64]
+  wire  counter_1H_1 = counter == 32'h1; // @[NonBonded.scala 44:65]
+  wire  counter_1H_2 = counter == 32'h2; // @[NonBonded.scala 44:65]
+  wire  counter_1H_3 = counter == 32'h3; // @[NonBonded.scala 44:65]
+  wire  counter_1H_4 = counter == 32'h4; // @[NonBonded.scala 44:65]
+  wire  counter_1H_5 = counter == 32'h5; // @[NonBonded.scala 44:65]
+  wire  counter_1H_6 = counter == 32'h6; // @[NonBonded.scala 44:65]
+  wire  counter_1H_7 = counter == 32'h7; // @[NonBonded.scala 44:65]
+  wire  counter_1H_8 = counter == 32'h8; // @[NonBonded.scala 44:65]
+  wire  counter_1H_9 = counter == 32'h9; // @[NonBonded.scala 44:65]
+  wire  counter_1H_10 = counter == 32'ha; // @[NonBonded.scala 44:65]
+  reg [31:0] accessState; // @[NonBonded.scala 56:30]
+  reg [31:0] rijx; // @[NonBonded.scala 120:23]
+  reg [31:0] rijy; // @[NonBonded.scala 121:23]
+  reg [31:0] rijz; // @[NonBonded.scala 122:23]
+  reg [31:0] rijx2; // @[NonBonded.scala 123:24]
+  reg [31:0] rijy2; // @[NonBonded.scala 124:24]
+  reg [31:0] rijz2; // @[NonBonded.scala 125:24]
+  reg [31:0] rijx_y; // @[NonBonded.scala 126:25]
+  reg [31:0] rij2; // @[NonBonded.scala 127:23]
+  reg [31:0] rij4; // @[NonBonded.scala 128:23]
+  reg [31:0] rij6; // @[NonBonded.scala 129:23]
+  reg [31:0] rij12; // @[NonBonded.scala 130:24]
+  reg [31:0] chargeij; // @[NonBonded.scala 131:27]
+  reg [31:0] chargeijC; // @[NonBonded.scala 132:28]
+  reg [31:0] partialSumES; // @[NonBonded.scala 133:31]
+  reg [31:0] Aij_rij12; // @[NonBonded.scala 134:28]
+  reg [31:0] Bij_rij6; // @[NonBonded.scala 135:27]
+  reg [31:0] partialSumVDW; // @[NonBonded.scala 136:32]
+  reg [31:0] outES; // @[NonBonded.scala 137:24]
+  reg [31:0] outVDW; // @[NonBonded.scala 138:25]
+  wire [31:0] _fpuAdd_io_req_bits_operands_1_0_T_3 = counter_1H_3 ? rijx2 : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuAdd_io_req_bits_operands_1_0_T_4 = counter_1H_4 ? rijx_y : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuAdd_io_req_bits_operands_1_0_T_9 = counter_1H_9 ? Aij_rij12 : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuAdd_io_req_bits_operands_1_0_T_10 = counter_1H_10 ? io_in_esE : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuAdd_io_req_bits_operands_1_0_T_14 = _fpuAdd_io_req_bits_operands_1_0_T_3 |
+    _fpuAdd_io_req_bits_operands_1_0_T_4; // @[Mux.scala 27:73]
+  wire [31:0] _fpuAdd_io_req_bits_operands_1_0_T_19 = _fpuAdd_io_req_bits_operands_1_0_T_14 |
+    _fpuAdd_io_req_bits_operands_1_0_T_9; // @[Mux.scala 27:73]
+  wire [31:0] _fpuAdd_io_req_bits_operands_2_0_T_3 = counter_1H_3 ? rijy2 : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuAdd_io_req_bits_operands_2_0_T_4 = counter_1H_4 ? rijz2 : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuAdd_io_req_bits_operands_2_0_T_9 = counter_1H_9 ? Bij_rij6 : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuAdd_io_req_bits_operands_2_0_T_10 = counter_1H_10 ? partialSumES : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuAdd_io_req_bits_operands_2_0_T_14 = _fpuAdd_io_req_bits_operands_2_0_T_3 |
+    _fpuAdd_io_req_bits_operands_2_0_T_4; // @[Mux.scala 27:73]
+  wire [31:0] _fpuAdd_io_req_bits_operands_2_0_T_19 = _fpuAdd_io_req_bits_operands_2_0_T_14 |
+    _fpuAdd_io_req_bits_operands_2_0_T_9; // @[Mux.scala 27:73]
+  wire  _T_8 = fpuAdd_io_resp_ready & fpuAdd_io_resp_valid; // @[Decoupled.scala 51:35]
+  wire [31:0] _fpuMul_io_req_bits_operands_0_0_T_2 = counter_1H_2 ? rijx : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuMul_io_req_bits_operands_0_0_T_5 = counter_1H_5 ? rij2 : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuMul_io_req_bits_operands_0_0_T_6 = counter_1H_6 ? rij4 : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuMul_io_req_bits_operands_0_0_T_7 = counter_1H_7 ? rij6 : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuMul_io_req_bits_operands_0_0_T_15 = _fpuMul_io_req_bits_operands_0_0_T_2 |
+    _fpuMul_io_req_bits_operands_0_0_T_5; // @[Mux.scala 27:73]
+  wire [31:0] _fpuMul_io_req_bits_operands_0_0_T_16 = _fpuMul_io_req_bits_operands_0_0_T_15 |
+    _fpuMul_io_req_bits_operands_0_0_T_6; // @[Mux.scala 27:73]
+  wire [31:0] _fpuMul_io_req_bits_operands_1_0_T_6 = counter_1H_6 ? rij2 : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuMul_io_req_bits_operands_1_0_T_16 = _fpuMul_io_req_bits_operands_0_0_T_15 |
+    _fpuMul_io_req_bits_operands_1_0_T_6; // @[Mux.scala 27:73]
+  wire [31:0] _fpuMul_io_req_bits_operands_0_1_T_2 = counter_1H_2 ? rijy : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuMul_io_req_bits_operands_0_1_T_5 = counter_1H_5 ? chargeij : 32'h0; // @[Mux.scala 27:73]
+  wire  _T_9 = fpuMul_io_resp_ready & fpuMul_io_resp_valid; // @[Decoupled.scala 51:35]
+  wire [31:0] _fpuDiv_io_req_bits_operands_1_0_T_8 = counter_1H_8 ? rij12 : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuDiv_io_req_bits_operands_1_0_T_17 = _fpuMul_io_req_bits_operands_1_0_T_6 |
+    _fpuMul_io_req_bits_operands_0_0_T_7; // @[Mux.scala 27:73]
+  wire  _T_10 = fpuDiv_io_resp_ready & fpuDiv_io_resp_valid; // @[Decoupled.scala 51:35]
+  FPUNew fpuAdd ( // @[NonBonded.scala 142:24]
+    .clock(fpuAdd_clock),
+    .reset(fpuAdd_reset),
+    .io_req_bits_operands_0_0(fpuAdd_io_req_bits_operands_0_0),
+    .io_req_bits_operands_0_1(fpuAdd_io_req_bits_operands_0_1),
+    .io_req_bits_operands_0_2(fpuAdd_io_req_bits_operands_0_2),
+    .io_req_bits_operands_1_0(fpuAdd_io_req_bits_operands_1_0),
+    .io_req_bits_operands_1_1(fpuAdd_io_req_bits_operands_1_1),
+    .io_req_bits_operands_1_2(fpuAdd_io_req_bits_operands_1_2),
+    .io_req_bits_operands_2_0(fpuAdd_io_req_bits_operands_2_0),
+    .io_req_bits_operands_2_1(fpuAdd_io_req_bits_operands_2_1),
+    .io_req_bits_op(fpuAdd_io_req_bits_op),
+    .io_req_bits_opModifier(fpuAdd_io_req_bits_opModifier),
+    .io_resp_ready(fpuAdd_io_resp_ready),
+    .io_resp_valid(fpuAdd_io_resp_valid),
+    .io_resp_bits_result_0(fpuAdd_io_resp_bits_result_0),
+    .io_resp_bits_result_1(fpuAdd_io_resp_bits_result_1),
+    .io_resp_bits_result_2(fpuAdd_io_resp_bits_result_2)
+  );
+  FPUNew fpuMul ( // @[NonBonded.scala 184:24]
+    .clock(fpuMul_clock),
+    .reset(fpuMul_reset),
+    .io_req_bits_operands_0_0(fpuMul_io_req_bits_operands_0_0),
+    .io_req_bits_operands_0_1(fpuMul_io_req_bits_operands_0_1),
+    .io_req_bits_operands_0_2(fpuMul_io_req_bits_operands_0_2),
+    .io_req_bits_operands_1_0(fpuMul_io_req_bits_operands_1_0),
+    .io_req_bits_operands_1_1(fpuMul_io_req_bits_operands_1_1),
+    .io_req_bits_operands_1_2(fpuMul_io_req_bits_operands_1_2),
+    .io_req_bits_operands_2_0(fpuMul_io_req_bits_operands_2_0),
+    .io_req_bits_operands_2_1(fpuMul_io_req_bits_operands_2_1),
+    .io_req_bits_op(fpuMul_io_req_bits_op),
+    .io_req_bits_opModifier(fpuMul_io_req_bits_opModifier),
+    .io_resp_ready(fpuMul_io_resp_ready),
+    .io_resp_valid(fpuMul_io_resp_valid),
+    .io_resp_bits_result_0(fpuMul_io_resp_bits_result_0),
+    .io_resp_bits_result_1(fpuMul_io_resp_bits_result_1),
+    .io_resp_bits_result_2(fpuMul_io_resp_bits_result_2)
+  );
+  FPUNew_2 fpuDiv ( // @[NonBonded.scala 221:24]
+    .clock(fpuDiv_clock),
+    .reset(fpuDiv_reset),
+    .io_req_bits_operands_0_0(fpuDiv_io_req_bits_operands_0_0),
+    .io_req_bits_operands_1_0(fpuDiv_io_req_bits_operands_1_0),
+    .io_req_bits_op(fpuDiv_io_req_bits_op),
+    .io_resp_ready(fpuDiv_io_resp_ready),
+    .io_resp_valid(fpuDiv_io_resp_valid),
+    .io_resp_bits_result_0(fpuDiv_io_resp_bits_result_0)
+  );
+  FPUNew_2 fpuSqrt ( // @[NonBonded.scala 242:25]
+    .clock(fpuSqrt_clock),
+    .reset(fpuSqrt_reset),
+    .io_req_bits_operands_0_0(fpuSqrt_io_req_bits_operands_0_0),
+    .io_req_bits_operands_1_0(fpuSqrt_io_req_bits_operands_1_0),
+    .io_req_bits_op(fpuSqrt_io_req_bits_op),
+    .io_resp_ready(fpuSqrt_io_resp_ready),
+    .io_resp_valid(fpuSqrt_io_resp_valid),
+    .io_resp_bits_result_0(fpuSqrt_io_resp_bits_result_0)
+  );
+  assign io_out_vdwE = outES; // @[NonBonded.scala 180:17 48:94 51:17]
+  assign io_out_esE = outVDW; // @[NonBonded.scala 179:16 48:94 52:16]
+  assign io_done = done_cal; // @[NonBonded.scala 36:28]
+  assign fpuAdd_clock = clock;
+  assign fpuAdd_reset = reset;
+  assign fpuAdd_io_req_bits_operands_0_0 = 32'h0;
+  assign fpuAdd_io_req_bits_operands_0_1 = 32'h0;
+  assign fpuAdd_io_req_bits_operands_0_2 = 32'h0;
+  assign fpuAdd_io_req_bits_operands_1_0 = _fpuAdd_io_req_bits_operands_1_0_T_19 | _fpuAdd_io_req_bits_operands_1_0_T_10
+    ; // @[Mux.scala 27:73]
+  assign fpuAdd_io_req_bits_operands_1_1 = counter_1H_10 ? io_in_vdwE : 32'h0; // @[Mux.scala 27:73]
+  assign fpuAdd_io_req_bits_operands_1_2 = 32'h0; // @[Mux.scala 27:73]
+  assign fpuAdd_io_req_bits_operands_2_0 = _fpuAdd_io_req_bits_operands_2_0_T_19 | _fpuAdd_io_req_bits_operands_2_0_T_10
+    ; // @[Mux.scala 27:73]
+  assign fpuAdd_io_req_bits_operands_2_1 = counter_1H_10 ? partialSumVDW : 32'h0; // @[Mux.scala 27:73]
+  assign fpuAdd_io_req_bits_op = 4'h2; // @[NonBonded.scala 157:27]
+  assign fpuAdd_io_req_bits_opModifier = counter_1H_1 | counter_1H_9; // @[Mux.scala 27:73]
+  assign fpuAdd_io_resp_ready = 1'h1; // @[NonBonded.scala 145:26]
+  assign fpuMul_clock = clock;
+  assign fpuMul_reset = reset;
+  assign fpuMul_io_req_bits_operands_0_0 = _fpuMul_io_req_bits_operands_0_0_T_16 | _fpuMul_io_req_bits_operands_0_0_T_7; // @[Mux.scala 27:73]
+  assign fpuMul_io_req_bits_operands_0_1 = _fpuMul_io_req_bits_operands_0_1_T_2 | _fpuMul_io_req_bits_operands_0_1_T_5; // @[Mux.scala 27:73]
+  assign fpuMul_io_req_bits_operands_0_2 = counter_1H_2 ? rijz : 32'h0; // @[Mux.scala 27:73]
+  assign fpuMul_io_req_bits_operands_1_0 = _fpuMul_io_req_bits_operands_1_0_T_16 | _fpuMul_io_req_bits_operands_0_0_T_7; // @[Mux.scala 27:73]
+  assign fpuMul_io_req_bits_operands_1_1 = counter_1H_2 ? rijy : 32'h0; // @[Mux.scala 27:73]
+  assign fpuMul_io_req_bits_operands_1_2 = counter_1H_2 ? rijz : 32'h0; // @[Mux.scala 27:73]
+  assign fpuMul_io_req_bits_operands_2_0 = 32'h0;
+  assign fpuMul_io_req_bits_operands_2_1 = 32'h0;
+  assign fpuMul_io_req_bits_op = 4'h3; // @[NonBonded.scala 199:27]
+  assign fpuMul_io_req_bits_opModifier = 1'h0; // @[NonBonded.scala 189:35]
+  assign fpuMul_io_resp_ready = 1'h1; // @[NonBonded.scala 187:26]
+  assign fpuDiv_clock = clock;
+  assign fpuDiv_reset = reset;
+  assign fpuDiv_io_req_bits_operands_0_0 = counter_1H_6 ? chargeijC : 32'h0; // @[Mux.scala 27:73]
+  assign fpuDiv_io_req_bits_operands_1_0 = _fpuDiv_io_req_bits_operands_1_0_T_17 | _fpuDiv_io_req_bits_operands_1_0_T_8; // @[Mux.scala 27:73]
+  assign fpuDiv_io_req_bits_op = 4'h4; // @[NonBonded.scala 232:27]
+  assign fpuDiv_io_resp_ready = 1'h1; // @[NonBonded.scala 224:26]
+  assign fpuSqrt_clock = clock;
+  assign fpuSqrt_reset = reset;
+  assign fpuSqrt_io_req_bits_operands_0_0 = rij2; // @[NonBonded.scala 250:40]
+  assign fpuSqrt_io_req_bits_operands_1_0 = 32'h0;
+  assign fpuSqrt_io_req_bits_op = 4'h5; // @[NonBonded.scala 249:28]
+  assign fpuSqrt_io_resp_ready = 1'h1; // @[NonBonded.scala 245:27]
+  always @(posedge clock) begin
+    if (reset) begin // @[NonBonded.scala 32:25]
+      done_cal <= 1'h0; // @[NonBonded.scala 32:25]
+    end else if (_T_8) begin // @[NonBonded.scala 168:31]
+      done_cal <= counter_1H_10 | done_cal; // @[NonBonded.scala 177:16]
+    end else if (io_start) begin // @[NonBonded.scala 34:18]
+      done_cal <= 1'h0;
+    end
+    if (reset) begin // @[NonBonded.scala 38:30]
+      wait_for_data <= 1'h0; // @[NonBonded.scala 38:30]
+    end else if (accessState == 32'h0) begin // @[NonBonded.scala 76:31]
+      wait_for_data <= io_start | wait_for_data; // @[NonBonded.scala 42:17]
+    end else if (accessState == 32'h1) begin // @[NonBonded.scala 89:37]
+      wait_for_data <= io_start | wait_for_data; // @[NonBonded.scala 42:17]
+    end else if (accessState == 32'h2) begin // @[NonBonded.scala 101:37]
+      wait_for_data <= 1'h0; // @[NonBonded.scala 103:21]
+    end else begin
+      wait_for_data <= io_start | wait_for_data; // @[NonBonded.scala 42:17]
+    end
+    if (reset) begin // @[NonBonded.scala 40:24]
+      counter <= 32'h0; // @[NonBonded.scala 40:24]
+    end else if (_wait_for_data_T) begin // @[NonBonded.scala 43:17]
+      counter <= 32'h0;
+    end else begin
+      counter <= _counter_T_2;
+    end
+    if (reset) begin // @[NonBonded.scala 56:30]
+      accessState <= 32'h3; // @[NonBonded.scala 56:30]
+    end else if (accessState == 32'h0) begin // @[NonBonded.scala 76:31]
+      accessState <= 32'h2; // @[NonBonded.scala 77:19]
+    end else if (io_start) begin // @[NonBonded.scala 59:23]
+      accessState <= 32'h0;
+    end
+    if (reset) begin // @[NonBonded.scala 120:23]
+      rijx <= 32'h0; // @[NonBonded.scala 120:23]
+    end else if (_T_8) begin // @[NonBonded.scala 168:31]
+      if (counter_1H_1) begin // @[NonBonded.scala 169:18]
+        rijx <= fpuAdd_io_resp_bits_result_0;
+      end
+    end
+    if (reset) begin // @[NonBonded.scala 121:23]
+      rijy <= 32'h0; // @[NonBonded.scala 121:23]
+    end else if (_T_8) begin // @[NonBonded.scala 168:31]
+      if (counter_1H_1) begin // @[NonBonded.scala 170:18]
+        rijy <= fpuAdd_io_resp_bits_result_1;
+      end
+    end
+    if (reset) begin // @[NonBonded.scala 122:23]
+      rijz <= 32'h0; // @[NonBonded.scala 122:23]
+    end else if (_T_8) begin // @[NonBonded.scala 168:31]
+      if (counter_1H_1) begin // @[NonBonded.scala 171:18]
+        rijz <= fpuAdd_io_resp_bits_result_2;
+      end
+    end
+    if (reset) begin // @[NonBonded.scala 123:24]
+      rijx2 <= 32'h0; // @[NonBonded.scala 123:24]
+    end else if (_T_9) begin // @[NonBonded.scala 209:31]
+      if (counter_1H_2) begin // @[NonBonded.scala 210:23]
+        rijx2 <= fpuMul_io_resp_bits_result_0;
+      end
+    end
+    if (reset) begin // @[NonBonded.scala 124:24]
+      rijy2 <= 32'h0; // @[NonBonded.scala 124:24]
+    end else if (_T_9) begin // @[NonBonded.scala 209:31]
+      if (counter_1H_2) begin // @[NonBonded.scala 211:23]
+        rijy2 <= fpuMul_io_resp_bits_result_1;
+      end
+    end
+    if (reset) begin // @[NonBonded.scala 125:24]
+      rijz2 <= 32'h0; // @[NonBonded.scala 125:24]
+    end else if (_T_9) begin // @[NonBonded.scala 209:31]
+      if (counter_1H_2) begin // @[NonBonded.scala 212:23]
+        rijz2 <= fpuMul_io_resp_bits_result_2;
+      end
+    end
+    if (reset) begin // @[NonBonded.scala 126:25]
+      rijx_y <= 32'h0; // @[NonBonded.scala 126:25]
+    end else if (_T_8) begin // @[NonBonded.scala 168:31]
+      if (counter_1H_2) begin // @[NonBonded.scala 172:20]
+        rijx_y <= fpuAdd_io_resp_bits_result_0;
+      end
+    end
+    if (reset) begin // @[NonBonded.scala 127:23]
+      rij2 <= 32'h0; // @[NonBonded.scala 127:23]
+    end else if (_T_8) begin // @[NonBonded.scala 168:31]
+      if (counter_1H_4) begin // @[NonBonded.scala 173:18]
+        rij2 <= fpuAdd_io_resp_bits_result_0;
+      end
+    end
+    if (reset) begin // @[NonBonded.scala 128:23]
+      rij4 <= 32'h0; // @[NonBonded.scala 128:23]
+    end else if (_T_9) begin // @[NonBonded.scala 209:31]
+      if (counter_1H_5) begin // @[NonBonded.scala 214:23]
+        rij4 <= fpuMul_io_resp_bits_result_0;
+      end
+    end
+    if (reset) begin // @[NonBonded.scala 129:23]
+      rij6 <= 32'h0; // @[NonBonded.scala 129:23]
+    end else if (_T_9) begin // @[NonBonded.scala 209:31]
+      if (counter_1H_6) begin // @[NonBonded.scala 216:23]
+        rij6 <= fpuMul_io_resp_bits_result_0;
+      end
+    end
+    if (reset) begin // @[NonBonded.scala 130:24]
+      rij12 <= 32'h0; // @[NonBonded.scala 130:24]
+    end else if (_T_9) begin // @[NonBonded.scala 209:31]
+      if (counter_1H_7) begin // @[NonBonded.scala 217:23]
+        rij12 <= fpuMul_io_resp_bits_result_0;
+      end
+    end
+    if (reset) begin // @[NonBonded.scala 131:27]
+      chargeij <= 32'h0; // @[NonBonded.scala 131:27]
+    end else if (_T_9) begin // @[NonBonded.scala 209:31]
+      if (counter_1H_3) begin // @[NonBonded.scala 213:23]
+        chargeij <= fpuMul_io_resp_bits_result_0;
+      end
+    end
+    if (reset) begin // @[NonBonded.scala 132:28]
+      chargeijC <= 32'h0; // @[NonBonded.scala 132:28]
+    end else if (_T_9) begin // @[NonBonded.scala 209:31]
+      if (counter_1H_5) begin // @[NonBonded.scala 215:23]
+        chargeijC <= fpuMul_io_resp_bits_result_1;
+      end
+    end
+    if (reset) begin // @[NonBonded.scala 133:31]
+      partialSumES <= 32'h0; // @[NonBonded.scala 133:31]
+    end else if (_T_10) begin // @[NonBonded.scala 236:31]
+      if (counter_1H_6) begin // @[NonBonded.scala 237:26]
+        partialSumES <= fpuMul_io_resp_bits_result_0;
+      end
+    end
+    if (reset) begin // @[NonBonded.scala 134:28]
+      Aij_rij12 <= 32'h0; // @[NonBonded.scala 134:28]
+    end else if (_T_10) begin // @[NonBonded.scala 236:31]
+      if (counter_1H_8) begin // @[NonBonded.scala 239:26]
+        Aij_rij12 <= fpuMul_io_resp_bits_result_0;
+      end
+    end
+    if (reset) begin // @[NonBonded.scala 135:27]
+      Bij_rij6 <= 32'h0; // @[NonBonded.scala 135:27]
+    end else if (_T_10) begin // @[NonBonded.scala 236:31]
+      if (counter_1H_7) begin // @[NonBonded.scala 238:26]
+        Bij_rij6 <= fpuMul_io_resp_bits_result_0;
+      end
+    end
+    if (reset) begin // @[NonBonded.scala 136:32]
+      partialSumVDW <= 32'h0; // @[NonBonded.scala 136:32]
+    end else if (_T_8) begin // @[NonBonded.scala 168:31]
+      if (counter_1H_9) begin // @[NonBonded.scala 174:27]
+        partialSumVDW <= fpuAdd_io_resp_bits_result_0;
+      end
+    end
+    if (reset) begin // @[NonBonded.scala 137:24]
+      outES <= 32'h0; // @[NonBonded.scala 137:24]
+    end else if (_T_8) begin // @[NonBonded.scala 168:31]
+      if (counter_1H_10) begin // @[NonBonded.scala 176:19]
+        outES <= fpuAdd_io_resp_bits_result_1;
+      end else begin
+        outES <= outVDW;
+      end
+    end
+    if (reset) begin // @[NonBonded.scala 138:25]
+      outVDW <= 32'h0; // @[NonBonded.scala 138:25]
+    end else if (_T_8) begin // @[NonBonded.scala 168:31]
+      if (counter_1H_10) begin // @[NonBonded.scala 175:20]
+        outVDW <= fpuAdd_io_resp_bits_result_0;
+      end else begin
+        outVDW <= outES;
+      end
+    end
+  end
+endmodule
+module FPUNew_10(
+  input         clock,
+  input         reset,
+  input  [31:0] io_req_bits_operands_0_0,
+  input  [31:0] io_req_bits_operands_0_1,
+  input  [31:0] io_req_bits_operands_1_0,
+  input         io_resp_ready,
+  output        io_resp_valid,
+  output [31:0] io_resp_bits_result_0,
+  output [31:0] io_resp_bits_result_1
+);
+  wire  blackbox_clk_i; // @[FPNewMain.scala 141:32]
+  wire  blackbox_rst_ni; // @[FPNewMain.scala 141:32]
+  wire [191:0] blackbox_operands_i; // @[FPNewMain.scala 141:32]
+  wire [2:0] blackbox_rnd_mode_i; // @[FPNewMain.scala 141:32]
+  wire [3:0] blackbox_op_i; // @[FPNewMain.scala 141:32]
+  wire  blackbox_op_mod_i; // @[FPNewMain.scala 141:32]
+  wire [2:0] blackbox_src_fmt_i; // @[FPNewMain.scala 141:32]
+  wire [2:0] blackbox_dst_fmt_i; // @[FPNewMain.scala 141:32]
+  wire [1:0] blackbox_int_fmt_i; // @[FPNewMain.scala 141:32]
+  wire  blackbox_vectorial_op_i; // @[FPNewMain.scala 141:32]
+  wire  blackbox_tag_i; // @[FPNewMain.scala 141:32]
+  wire  blackbox_in_valid_i; // @[FPNewMain.scala 141:32]
+  wire  blackbox_in_ready_o; // @[FPNewMain.scala 141:32]
+  wire  blackbox_flush_i; // @[FPNewMain.scala 141:32]
+  wire [63:0] blackbox_result_o; // @[FPNewMain.scala 141:32]
+  wire [4:0] blackbox_status_o; // @[FPNewMain.scala 141:32]
+  wire  blackbox_tag_o; // @[FPNewMain.scala 141:32]
+  wire  blackbox_out_valid_o; // @[FPNewMain.scala 141:32]
+  wire  blackbox_out_ready_i; // @[FPNewMain.scala 141:32]
+  wire  blackbox_busy_o; // @[FPNewMain.scala 141:32]
+  wire [63:0] _blackbox_io_operands_i_T = {io_req_bits_operands_0_1,io_req_bits_operands_0_0}; // @[Cat.scala 33:92]
+  wire [127:0] blackbox_io_operands_i_hi = {64'h0,32'h0,io_req_bits_operands_1_0}; // @[Cat.scala 33:92]
+  FPNewBlackbox_tyfloat_l2_1s_1tw_2ops blackbox ( // @[FPNewMain.scala 141:32]
+    .clk_i(blackbox_clk_i),
+    .rst_ni(blackbox_rst_ni),
+    .operands_i(blackbox_operands_i),
+    .rnd_mode_i(blackbox_rnd_mode_i),
+    .op_i(blackbox_op_i),
+    .op_mod_i(blackbox_op_mod_i),
+    .src_fmt_i(blackbox_src_fmt_i),
+    .dst_fmt_i(blackbox_dst_fmt_i),
+    .int_fmt_i(blackbox_int_fmt_i),
+    .vectorial_op_i(blackbox_vectorial_op_i),
+    .tag_i(blackbox_tag_i),
+    .in_valid_i(blackbox_in_valid_i),
+    .in_ready_o(blackbox_in_ready_o),
+    .flush_i(blackbox_flush_i),
+    .result_o(blackbox_result_o),
+    .status_o(blackbox_status_o),
+    .tag_o(blackbox_tag_o),
+    .out_valid_o(blackbox_out_valid_o),
+    .out_ready_i(blackbox_out_ready_i),
+    .busy_o(blackbox_busy_o)
+  );
+  assign io_resp_valid = blackbox_out_valid_o; // @[FPNewMain.scala 171:17]
+  assign io_resp_bits_result_0 = blackbox_result_o[31:0]; // @[FPNewMain.scala 168:74]
+  assign io_resp_bits_result_1 = blackbox_result_o[63:32]; // @[FPNewMain.scala 168:74]
+  assign blackbox_clk_i = clock; // @[FPNewMain.scala 150:21]
+  assign blackbox_rst_ni = ~reset; // @[FPNewMain.scala 151:25]
+  assign blackbox_operands_i = {blackbox_io_operands_i_hi,_blackbox_io_operands_i_T}; // @[Cat.scala 33:92]
+  assign blackbox_rnd_mode_i = 3'h0; // @[FPNewMain.scala 155:54]
+  assign blackbox_op_i = 4'h4; // @[FPNewMain.scala 156:38]
+  assign blackbox_op_mod_i = 1'h0; // @[FPNewMain.scala 157:24]
+  assign blackbox_src_fmt_i = 3'h0; // @[FPNewMain.scala 158:50]
+  assign blackbox_dst_fmt_i = 3'h0; // @[FPNewMain.scala 159:50]
+  assign blackbox_int_fmt_i = 2'h0; // @[FPNewMain.scala 160:50]
+  assign blackbox_vectorial_op_i = 1'h1; // @[FPNewMain.scala 161:30]
+  assign blackbox_tag_i = 1'h0; // @[FPNewMain.scala 164:21]
+  assign blackbox_in_valid_i = 1'h1; // @[FPNewMain.scala 163:26]
+  assign blackbox_flush_i = 1'h0; // @[FPNewMain.scala 176:23]
+  assign blackbox_out_ready_i = 1'h1; // @[FPNewMain.scala 173:27]
+endmodule
+module FPUNew_12(
+  input         clock,
+  input         reset,
+  input  [31:0] io_req_bits_operands_0_0
+);
+  wire  blackbox_clk_i; // @[FPNewMain.scala 141:32]
+  wire  blackbox_rst_ni; // @[FPNewMain.scala 141:32]
+  wire [95:0] blackbox_operands_i; // @[FPNewMain.scala 141:32]
+  wire [2:0] blackbox_rnd_mode_i; // @[FPNewMain.scala 141:32]
+  wire [3:0] blackbox_op_i; // @[FPNewMain.scala 141:32]
+  wire  blackbox_op_mod_i; // @[FPNewMain.scala 141:32]
+  wire [2:0] blackbox_src_fmt_i; // @[FPNewMain.scala 141:32]
+  wire [2:0] blackbox_dst_fmt_i; // @[FPNewMain.scala 141:32]
+  wire [1:0] blackbox_int_fmt_i; // @[FPNewMain.scala 141:32]
+  wire  blackbox_vectorial_op_i; // @[FPNewMain.scala 141:32]
+  wire  blackbox_tag_i; // @[FPNewMain.scala 141:32]
+  wire  blackbox_in_valid_i; // @[FPNewMain.scala 141:32]
+  wire  blackbox_in_ready_o; // @[FPNewMain.scala 141:32]
+  wire  blackbox_flush_i; // @[FPNewMain.scala 141:32]
+  wire [31:0] blackbox_result_o; // @[FPNewMain.scala 141:32]
+  wire [4:0] blackbox_status_o; // @[FPNewMain.scala 141:32]
+  wire  blackbox_tag_o; // @[FPNewMain.scala 141:32]
+  wire  blackbox_out_valid_o; // @[FPNewMain.scala 141:32]
+  wire  blackbox_out_ready_i; // @[FPNewMain.scala 141:32]
+  wire  blackbox_busy_o; // @[FPNewMain.scala 141:32]
+  FPNewBlackbox_tyfloat_l1_1s_1tw_4ops blackbox ( // @[FPNewMain.scala 141:32]
+    .clk_i(blackbox_clk_i),
+    .rst_ni(blackbox_rst_ni),
+    .operands_i(blackbox_operands_i),
+    .rnd_mode_i(blackbox_rnd_mode_i),
+    .op_i(blackbox_op_i),
+    .op_mod_i(blackbox_op_mod_i),
+    .src_fmt_i(blackbox_src_fmt_i),
+    .dst_fmt_i(blackbox_dst_fmt_i),
+    .int_fmt_i(blackbox_int_fmt_i),
+    .vectorial_op_i(blackbox_vectorial_op_i),
+    .tag_i(blackbox_tag_i),
+    .in_valid_i(blackbox_in_valid_i),
+    .in_ready_o(blackbox_in_ready_o),
+    .flush_i(blackbox_flush_i),
+    .result_o(blackbox_result_o),
+    .status_o(blackbox_status_o),
+    .tag_o(blackbox_tag_o),
+    .out_valid_o(blackbox_out_valid_o),
+    .out_ready_i(blackbox_out_ready_i),
+    .busy_o(blackbox_busy_o)
+  );
+  assign blackbox_clk_i = clock; // @[FPNewMain.scala 150:21]
+  assign blackbox_rst_ni = ~reset; // @[FPNewMain.scala 151:25]
+  assign blackbox_operands_i = {64'h0,io_req_bits_operands_0_0}; // @[Cat.scala 33:92]
+  assign blackbox_rnd_mode_i = 3'h1; // @[FPNewMain.scala 155:54]
+  assign blackbox_op_i = 4'h8; // @[FPNewMain.scala 156:38]
+  assign blackbox_op_mod_i = 1'h0; // @[FPNewMain.scala 157:24]
+  assign blackbox_src_fmt_i = 3'h0; // @[FPNewMain.scala 158:50]
+  assign blackbox_dst_fmt_i = 3'h0; // @[FPNewMain.scala 159:50]
+  assign blackbox_int_fmt_i = 2'h0; // @[FPNewMain.scala 160:50]
+  assign blackbox_vectorial_op_i = 1'h1; // @[FPNewMain.scala 161:30]
+  assign blackbox_tag_i = 1'h0; // @[FPNewMain.scala 164:21]
+  assign blackbox_in_valid_i = 1'h1; // @[FPNewMain.scala 163:26]
+  assign blackbox_flush_i = 1'h0; // @[FPNewMain.scala 176:23]
+  assign blackbox_out_ready_i = 1'h1; // @[FPNewMain.scala 173:27]
+endmodule
+module Solvated(
+  input         clock,
+  input         reset,
+  input  [31:0] io_in_solvE,
+  output [31:0] io_out_solvE,
+  input         io_start,
+  output        io_done
+);
+  wire  fpuAdd_clock; // @[Solvated.scala 128:22]
+  wire  fpuAdd_reset; // @[Solvated.scala 128:22]
+  wire [31:0] fpuAdd_io_req_bits_operands_0_0; // @[Solvated.scala 128:22]
+  wire [31:0] fpuAdd_io_req_bits_operands_0_1; // @[Solvated.scala 128:22]
+  wire [31:0] fpuAdd_io_req_bits_operands_0_2; // @[Solvated.scala 128:22]
+  wire [31:0] fpuAdd_io_req_bits_operands_1_0; // @[Solvated.scala 128:22]
+  wire [31:0] fpuAdd_io_req_bits_operands_1_1; // @[Solvated.scala 128:22]
+  wire [31:0] fpuAdd_io_req_bits_operands_1_2; // @[Solvated.scala 128:22]
+  wire [31:0] fpuAdd_io_req_bits_operands_2_0; // @[Solvated.scala 128:22]
+  wire [31:0] fpuAdd_io_req_bits_operands_2_1; // @[Solvated.scala 128:22]
+  wire [3:0] fpuAdd_io_req_bits_op; // @[Solvated.scala 128:22]
+  wire  fpuAdd_io_req_bits_opModifier; // @[Solvated.scala 128:22]
+  wire  fpuAdd_io_resp_ready; // @[Solvated.scala 128:22]
+  wire  fpuAdd_io_resp_valid; // @[Solvated.scala 128:22]
+  wire [31:0] fpuAdd_io_resp_bits_result_0; // @[Solvated.scala 128:22]
+  wire [31:0] fpuAdd_io_resp_bits_result_1; // @[Solvated.scala 128:22]
+  wire [31:0] fpuAdd_io_resp_bits_result_2; // @[Solvated.scala 128:22]
+  wire  fpuMul_clock; // @[Solvated.scala 172:22]
+  wire  fpuMul_reset; // @[Solvated.scala 172:22]
+  wire [31:0] fpuMul_io_req_bits_operands_0_0; // @[Solvated.scala 172:22]
+  wire [31:0] fpuMul_io_req_bits_operands_0_1; // @[Solvated.scala 172:22]
+  wire [31:0] fpuMul_io_req_bits_operands_0_2; // @[Solvated.scala 172:22]
+  wire [31:0] fpuMul_io_req_bits_operands_1_0; // @[Solvated.scala 172:22]
+  wire [31:0] fpuMul_io_req_bits_operands_1_1; // @[Solvated.scala 172:22]
+  wire [31:0] fpuMul_io_req_bits_operands_1_2; // @[Solvated.scala 172:22]
+  wire [31:0] fpuMul_io_req_bits_operands_2_0; // @[Solvated.scala 172:22]
+  wire [31:0] fpuMul_io_req_bits_operands_2_1; // @[Solvated.scala 172:22]
+  wire [3:0] fpuMul_io_req_bits_op; // @[Solvated.scala 172:22]
+  wire  fpuMul_io_req_bits_opModifier; // @[Solvated.scala 172:22]
+  wire  fpuMul_io_resp_ready; // @[Solvated.scala 172:22]
+  wire  fpuMul_io_resp_valid; // @[Solvated.scala 172:22]
+  wire [31:0] fpuMul_io_resp_bits_result_0; // @[Solvated.scala 172:22]
+  wire [31:0] fpuMul_io_resp_bits_result_1; // @[Solvated.scala 172:22]
+  wire [31:0] fpuMul_io_resp_bits_result_2; // @[Solvated.scala 172:22]
+  wire  fpuDiv_clock; // @[Solvated.scala 207:22]
+  wire  fpuDiv_reset; // @[Solvated.scala 207:22]
+  wire [31:0] fpuDiv_io_req_bits_operands_0_0; // @[Solvated.scala 207:22]
+  wire [31:0] fpuDiv_io_req_bits_operands_0_1; // @[Solvated.scala 207:22]
+  wire [31:0] fpuDiv_io_req_bits_operands_1_0; // @[Solvated.scala 207:22]
+  wire  fpuDiv_io_resp_ready; // @[Solvated.scala 207:22]
+  wire  fpuDiv_io_resp_valid; // @[Solvated.scala 207:22]
+  wire [31:0] fpuDiv_io_resp_bits_result_0; // @[Solvated.scala 207:22]
+  wire [31:0] fpuDiv_io_resp_bits_result_1; // @[Solvated.scala 207:22]
+  wire  fpuSqrt_clock; // @[Solvated.scala 236:23]
+  wire  fpuSqrt_reset; // @[Solvated.scala 236:23]
+  wire [31:0] fpuSqrt_io_req_bits_operands_0_0; // @[Solvated.scala 236:23]
+  wire [31:0] fpuSqrt_io_req_bits_operands_1_0; // @[Solvated.scala 236:23]
+  wire [3:0] fpuSqrt_io_req_bits_op; // @[Solvated.scala 236:23]
+  wire  fpuSqrt_io_resp_ready; // @[Solvated.scala 236:23]
+  wire  fpuSqrt_io_resp_valid; // @[Solvated.scala 236:23]
+  wire [31:0] fpuSqrt_io_resp_bits_result_0; // @[Solvated.scala 236:23]
+  wire  fpuComp_clock; // @[Solvated.scala 252:23]
+  wire  fpuComp_reset; // @[Solvated.scala 252:23]
+  wire [31:0] fpuComp_io_req_bits_operands_0_0; // @[Solvated.scala 252:23]
+  reg  done_cal; // @[Solvated.scala 36:25]
+  reg [31:0] counter; // @[Solvated.scala 42:24]
+  wire [31:0] _counter_T_1 = counter + 32'h1; // @[Solvated.scala 45:47]
+  wire  counter_1H_1 = counter == 32'h1; // @[Solvated.scala 46:65]
+  wire  counter_1H_2 = counter == 32'h2; // @[Solvated.scala 46:65]
+  wire  counter_1H_3 = counter == 32'h3; // @[Solvated.scala 46:65]
+  wire  counter_1H_4 = counter == 32'h4; // @[Solvated.scala 46:65]
+  wire  counter_1H_6 = counter == 32'h6; // @[Solvated.scala 46:65]
+  wire  counter_1H_7 = counter == 32'h7; // @[Solvated.scala 46:65]
+  wire  counter_1H_8 = counter == 32'h8; // @[Solvated.scala 46:65]
+  wire  counter_1H_9 = counter == 32'h9; // @[Solvated.scala 46:65]
+  wire  counter_1H_10 = counter == 32'ha; // @[Solvated.scala 46:65]
+  wire  counter_1H_11 = counter == 32'hb; // @[Solvated.scala 46:65]
+  wire  counter_1H_12 = counter == 32'hc; // @[Solvated.scala 46:65]
+  wire  counter_1H_13 = counter == 32'hd; // @[Solvated.scala 46:65]
+  reg [31:0] fpuM_in10_2; // @[Solvated.scala 52:21]
+  reg [31:0] fpuM_in20_2; // @[Solvated.scala 53:21]
+  reg [31:0] fpuM_in30_2; // @[Solvated.scala 54:21]
+  reg [31:0] fpuAM_in11_3; // @[Solvated.scala 55:22]
+  reg [31:0] fpuAM_in12_3; // @[Solvated.scala 56:22]
+  reg [31:0] fpuAM_in12_4; // @[Solvated.scala 57:22]
+  reg [31:0] fpuAM_in11_4; // @[Solvated.scala 58:23]
+  reg [31:0] fpuD_in11_12; // @[Solvated.scala 59:21]
+  reg [31:0] fpuAM_in11_6; // @[Solvated.scala 60:20]
+  reg [31:0] fpuD_in10_7; // @[Solvated.scala 61:26]
+  reg [31:0] fpuD_in20_7; // @[Solvated.scala 62:26]
+  reg [31:0] Xij; // @[Solvated.scala 63:20]
+  reg [31:0] Xji; // @[Solvated.scala 64:20]
+  reg [31:0] Xij_2; // @[Solvated.scala 65:22]
+  reg [31:0] Xji_2; // @[Solvated.scala 66:22]
+  reg [31:0] Xij_21; // @[Solvated.scala 67:23]
+  reg [31:0] Xji_21; // @[Solvated.scala 68:23]
+  reg [31:0] aXij_2; // @[Solvated.scala 69:23]
+  reg [31:0] aXji_2; // @[Solvated.scala 70:23]
+  reg [31:0] aXijXji; // @[Solvated.scala 71:24]
+  reg [31:0] fpuAM_in12_13; // @[Solvated.scala 72:31]
+  reg [31:0] output_; // @[Solvated.scala 75:23]
+  wire [31:0] _fpuAdd_io_req_bits_operands_1_0_T_3 = counter_1H_3 ? fpuAM_in11_3 : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuAdd_io_req_bits_operands_1_0_T_4 = counter_1H_4 ? fpuAM_in11_4 : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuAdd_io_req_bits_operands_1_0_T_6 = counter_1H_6 ? fpuAM_in11_6 : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuAdd_io_req_bits_operands_1_0_T_11 = counter_1H_11 ? aXij_2 : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuAdd_io_req_bits_operands_1_0_T_13 = counter_1H_13 ? io_in_solvE : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuAdd_io_req_bits_operands_1_0_T_17 = _fpuAdd_io_req_bits_operands_1_0_T_3 |
+    _fpuAdd_io_req_bits_operands_1_0_T_4; // @[Mux.scala 27:73]
+  wire [31:0] _fpuAdd_io_req_bits_operands_1_0_T_19 = _fpuAdd_io_req_bits_operands_1_0_T_17 |
+    _fpuAdd_io_req_bits_operands_1_0_T_6; // @[Mux.scala 27:73]
+  wire [31:0] _fpuAdd_io_req_bits_operands_1_0_T_24 = _fpuAdd_io_req_bits_operands_1_0_T_19 |
+    _fpuAdd_io_req_bits_operands_1_0_T_11; // @[Mux.scala 27:73]
+  wire [31:0] _fpuAdd_io_req_bits_operands_2_0_T_3 = counter_1H_3 ? fpuAM_in12_3 : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuAdd_io_req_bits_operands_2_0_T_4 = counter_1H_4 ? fpuAM_in12_4 : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuAdd_io_req_bits_operands_2_0_T_9 = counter_1H_9 ? Xij_2 : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuAdd_io_req_bits_operands_2_0_T_11 = counter_1H_11 ? aXji_2 : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuAdd_io_req_bits_operands_2_0_T_13 = counter_1H_13 ? fpuAM_in12_13 : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuAdd_io_req_bits_operands_2_0_T_17 = _fpuAdd_io_req_bits_operands_2_0_T_3 |
+    _fpuAdd_io_req_bits_operands_2_0_T_4; // @[Mux.scala 27:73]
+  wire [31:0] _fpuAdd_io_req_bits_operands_2_0_T_22 = _fpuAdd_io_req_bits_operands_2_0_T_17 |
+    _fpuAdd_io_req_bits_operands_2_0_T_9; // @[Mux.scala 27:73]
+  wire [31:0] _fpuAdd_io_req_bits_operands_2_0_T_24 = _fpuAdd_io_req_bits_operands_2_0_T_22 |
+    _fpuAdd_io_req_bits_operands_2_0_T_11; // @[Mux.scala 27:73]
+  wire  _T_3 = fpuAdd_io_resp_ready & fpuAdd_io_resp_valid; // @[Decoupled.scala 51:35]
+  wire [31:0] _fpuMul_io_req_bits_operands_0_0_T_2 = counter_1H_2 ? fpuM_in10_2 : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuMul_io_req_bits_operands_0_0_T_10 = counter_1H_10 ? Xij_21 : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuMul_io_req_bits_operands_0_1_T_2 = counter_1H_2 ? fpuM_in20_2 : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuMul_io_req_bits_operands_0_1_T_10 = counter_1H_10 ? Xji_21 : 32'h0; // @[Mux.scala 27:73]
+  wire  _T_4 = fpuMul_io_resp_ready & fpuMul_io_resp_valid; // @[Decoupled.scala 51:35]
+  wire [31:0] _fpuDiv_io_req_bits_operands_0_0_T_7 = counter_1H_7 ? fpuD_in10_7 : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuDiv_io_req_bits_operands_0_0_T_8 = counter_1H_8 ? Xij : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuDiv_io_req_bits_operands_0_0_T_12 = counter_1H_12 ? aXijXji : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuDiv_io_req_bits_operands_0_0_T_21 = _fpuDiv_io_req_bits_operands_0_0_T_7 |
+    _fpuDiv_io_req_bits_operands_0_0_T_8; // @[Mux.scala 27:73]
+  wire [31:0] _fpuDiv_io_req_bits_operands_0_1_T_7 = counter_1H_7 ? fpuD_in20_7 : 32'h0; // @[Mux.scala 27:73]
+  wire [31:0] _fpuDiv_io_req_bits_operands_0_1_T_8 = counter_1H_8 ? Xji : 32'h0; // @[Mux.scala 27:73]
+  wire  _T_5 = fpuDiv_io_resp_ready & fpuDiv_io_resp_valid; // @[Decoupled.scala 51:35]
+  wire  _T_6 = fpuSqrt_io_resp_ready & fpuSqrt_io_resp_valid; // @[Decoupled.scala 51:35]
+  FPUNew fpuAdd ( // @[Solvated.scala 128:22]
+    .clock(fpuAdd_clock),
+    .reset(fpuAdd_reset),
+    .io_req_bits_operands_0_0(fpuAdd_io_req_bits_operands_0_0),
+    .io_req_bits_operands_0_1(fpuAdd_io_req_bits_operands_0_1),
+    .io_req_bits_operands_0_2(fpuAdd_io_req_bits_operands_0_2),
+    .io_req_bits_operands_1_0(fpuAdd_io_req_bits_operands_1_0),
+    .io_req_bits_operands_1_1(fpuAdd_io_req_bits_operands_1_1),
+    .io_req_bits_operands_1_2(fpuAdd_io_req_bits_operands_1_2),
+    .io_req_bits_operands_2_0(fpuAdd_io_req_bits_operands_2_0),
+    .io_req_bits_operands_2_1(fpuAdd_io_req_bits_operands_2_1),
+    .io_req_bits_op(fpuAdd_io_req_bits_op),
+    .io_req_bits_opModifier(fpuAdd_io_req_bits_opModifier),
+    .io_resp_ready(fpuAdd_io_resp_ready),
+    .io_resp_valid(fpuAdd_io_resp_valid),
+    .io_resp_bits_result_0(fpuAdd_io_resp_bits_result_0),
+    .io_resp_bits_result_1(fpuAdd_io_resp_bits_result_1),
+    .io_resp_bits_result_2(fpuAdd_io_resp_bits_result_2)
+  );
+  FPUNew fpuMul ( // @[Solvated.scala 172:22]
+    .clock(fpuMul_clock),
+    .reset(fpuMul_reset),
+    .io_req_bits_operands_0_0(fpuMul_io_req_bits_operands_0_0),
+    .io_req_bits_operands_0_1(fpuMul_io_req_bits_operands_0_1),
+    .io_req_bits_operands_0_2(fpuMul_io_req_bits_operands_0_2),
+    .io_req_bits_operands_1_0(fpuMul_io_req_bits_operands_1_0),
+    .io_req_bits_operands_1_1(fpuMul_io_req_bits_operands_1_1),
+    .io_req_bits_operands_1_2(fpuMul_io_req_bits_operands_1_2),
+    .io_req_bits_operands_2_0(fpuMul_io_req_bits_operands_2_0),
+    .io_req_bits_operands_2_1(fpuMul_io_req_bits_operands_2_1),
+    .io_req_bits_op(fpuMul_io_req_bits_op),
+    .io_req_bits_opModifier(fpuMul_io_req_bits_opModifier),
+    .io_resp_ready(fpuMul_io_resp_ready),
+    .io_resp_valid(fpuMul_io_resp_valid),
+    .io_resp_bits_result_0(fpuMul_io_resp_bits_result_0),
+    .io_resp_bits_result_1(fpuMul_io_resp_bits_result_1),
+    .io_resp_bits_result_2(fpuMul_io_resp_bits_result_2)
+  );
+  FPUNew_10 fpuDiv ( // @[Solvated.scala 207:22]
+    .clock(fpuDiv_clock),
+    .reset(fpuDiv_reset),
+    .io_req_bits_operands_0_0(fpuDiv_io_req_bits_operands_0_0),
+    .io_req_bits_operands_0_1(fpuDiv_io_req_bits_operands_0_1),
+    .io_req_bits_operands_1_0(fpuDiv_io_req_bits_operands_1_0),
+    .io_resp_ready(fpuDiv_io_resp_ready),
+    .io_resp_valid(fpuDiv_io_resp_valid),
+    .io_resp_bits_result_0(fpuDiv_io_resp_bits_result_0),
+    .io_resp_bits_result_1(fpuDiv_io_resp_bits_result_1)
+  );
+  FPUNew_2 fpuSqrt ( // @[Solvated.scala 236:23]
+    .clock(fpuSqrt_clock),
+    .reset(fpuSqrt_reset),
+    .io_req_bits_operands_0_0(fpuSqrt_io_req_bits_operands_0_0),
+    .io_req_bits_operands_1_0(fpuSqrt_io_req_bits_operands_1_0),
+    .io_req_bits_op(fpuSqrt_io_req_bits_op),
+    .io_resp_ready(fpuSqrt_io_resp_ready),
+    .io_resp_valid(fpuSqrt_io_resp_valid),
+    .io_resp_bits_result_0(fpuSqrt_io_resp_bits_result_0)
+  );
+  FPUNew_12 fpuComp ( // @[Solvated.scala 252:23]
+    .clock(fpuComp_clock),
+    .reset(fpuComp_reset),
+    .io_req_bits_operands_0_0(fpuComp_io_req_bits_operands_0_0)
+  );
+  assign io_out_solvE = output_; // @[Solvated.scala 169:16]
+  assign io_done = done_cal; // @[Solvated.scala 38:11]
+  assign fpuAdd_clock = clock;
+  assign fpuAdd_reset = reset;
+  assign fpuAdd_io_req_bits_operands_0_0 = 32'h0;
+  assign fpuAdd_io_req_bits_operands_0_1 = 32'h0;
+  assign fpuAdd_io_req_bits_operands_0_2 = 32'h0;
+  assign fpuAdd_io_req_bits_operands_1_0 = _fpuAdd_io_req_bits_operands_1_0_T_24 | _fpuAdd_io_req_bits_operands_1_0_T_13
+    ; // @[Mux.scala 27:73]
+  assign fpuAdd_io_req_bits_operands_1_1 = counter_1H_6 ? fpuAM_in11_6 : 32'h0; // @[Mux.scala 27:73]
+  assign fpuAdd_io_req_bits_operands_1_2 = 32'h0; // @[Mux.scala 27:73]
+  assign fpuAdd_io_req_bits_operands_2_0 = _fpuAdd_io_req_bits_operands_2_0_T_24 | _fpuAdd_io_req_bits_operands_2_0_T_13
+    ; // @[Mux.scala 27:73]
+  assign fpuAdd_io_req_bits_operands_2_1 = counter_1H_9 ? Xji_2 : 32'h0; // @[Mux.scala 27:73]
+  assign fpuAdd_io_req_bits_op = 4'h2; // @[Solvated.scala 143:25]
+  assign fpuAdd_io_req_bits_opModifier = counter_1H_1 | counter_1H_6 | counter_1H_9 | counter_1H_11 | counter_1H_13; // @[Mux.scala 27:73]
+  assign fpuAdd_io_resp_ready = 1'h1; // @[Solvated.scala 131:24]
+  assign fpuMul_clock = clock;
+  assign fpuMul_reset = reset;
+  assign fpuMul_io_req_bits_operands_0_0 = _fpuMul_io_req_bits_operands_0_0_T_2 | _fpuMul_io_req_bits_operands_0_0_T_10; // @[Mux.scala 27:73]
+  assign fpuMul_io_req_bits_operands_0_1 = _fpuMul_io_req_bits_operands_0_1_T_2 | _fpuMul_io_req_bits_operands_0_1_T_10; // @[Mux.scala 27:73]
+  assign fpuMul_io_req_bits_operands_0_2 = counter_1H_2 ? fpuM_in30_2 : 32'h0; // @[Mux.scala 27:73]
+  assign fpuMul_io_req_bits_operands_1_0 = counter_1H_2 ? fpuM_in10_2 : 32'h0; // @[Mux.scala 27:73]
+  assign fpuMul_io_req_bits_operands_1_1 = counter_1H_2 ? fpuM_in20_2 : 32'h0; // @[Mux.scala 27:73]
+  assign fpuMul_io_req_bits_operands_1_2 = counter_1H_2 ? fpuM_in30_2 : 32'h0; // @[Mux.scala 27:73]
+  assign fpuMul_io_req_bits_operands_2_0 = 32'h0;
+  assign fpuMul_io_req_bits_operands_2_1 = 32'h0;
+  assign fpuMul_io_req_bits_op = 4'h3; // @[Solvated.scala 188:25]
+  assign fpuMul_io_req_bits_opModifier = 1'h0; // @[Solvated.scala 177:33]
+  assign fpuMul_io_resp_ready = 1'h1; // @[Solvated.scala 175:24]
+  assign fpuDiv_clock = clock;
+  assign fpuDiv_reset = reset;
+  assign fpuDiv_io_req_bits_operands_0_0 = _fpuDiv_io_req_bits_operands_0_0_T_21 | _fpuDiv_io_req_bits_operands_0_0_T_12
+    ; // @[Mux.scala 27:73]
+  assign fpuDiv_io_req_bits_operands_0_1 = _fpuDiv_io_req_bits_operands_0_1_T_7 | _fpuDiv_io_req_bits_operands_0_1_T_8; // @[Mux.scala 27:73]
+  assign fpuDiv_io_req_bits_operands_1_0 = counter_1H_12 ? fpuD_in11_12 : 32'h0; // @[Mux.scala 27:73]
+  assign fpuDiv_io_resp_ready = 1'h1; // @[Solvated.scala 210:24]
+  assign fpuSqrt_clock = clock;
+  assign fpuSqrt_reset = reset;
+  assign fpuSqrt_io_req_bits_operands_0_0 = fpuD_in11_12; // @[Solvated.scala 244:38]
+  assign fpuSqrt_io_req_bits_operands_1_0 = 32'h0;
+  assign fpuSqrt_io_req_bits_op = 4'h5; // @[Solvated.scala 243:26]
+  assign fpuSqrt_io_resp_ready = 1'h1; // @[Solvated.scala 240:25]
+  assign fpuComp_clock = clock;
+  assign fpuComp_reset = reset;
+  assign fpuComp_io_req_bits_operands_0_0 = fpuD_in11_12; // @[Solvated.scala 260:38]
+  always @(posedge clock) begin
+    if (reset) begin // @[Solvated.scala 36:25]
+      done_cal <= 1'h0; // @[Solvated.scala 36:25]
+    end else if (_T_3) begin // @[Solvated.scala 154:29]
+      done_cal <= counter_1H_13 | done_cal; // @[Solvated.scala 166:14]
+    end else if (io_start) begin // @[Solvated.scala 37:18]
+      done_cal <= 1'h0;
+    end
+    if (reset) begin // @[Solvated.scala 42:24]
+      counter <= 32'h0; // @[Solvated.scala 42:24]
+    end else if (io_start) begin // @[Solvated.scala 45:17]
+      counter <= 32'h0;
+    end else begin
+      counter <= _counter_T_1;
+    end
+    if (reset) begin // @[Solvated.scala 52:21]
+      fpuM_in10_2 <= 32'h0; // @[Solvated.scala 52:21]
+    end else if (_T_3) begin // @[Solvated.scala 154:29]
+      if (counter_1H_1) begin // @[Solvated.scala 155:16]
+        fpuM_in10_2 <= fpuAdd_io_resp_bits_result_0;
+      end
+    end
+    if (reset) begin // @[Solvated.scala 53:21]
+      fpuM_in20_2 <= 32'h0; // @[Solvated.scala 53:21]
+    end else if (_T_3) begin // @[Solvated.scala 154:29]
+      if (counter_1H_1) begin // @[Solvated.scala 156:16]
+        fpuM_in20_2 <= fpuAdd_io_resp_bits_result_1;
+      end
+    end
+    if (reset) begin // @[Solvated.scala 54:21]
+      fpuM_in30_2 <= 32'h0; // @[Solvated.scala 54:21]
+    end else if (_T_3) begin // @[Solvated.scala 154:29]
+      if (counter_1H_1) begin // @[Solvated.scala 157:16]
+        fpuM_in30_2 <= fpuAdd_io_resp_bits_result_2;
+      end
+    end
+    if (reset) begin // @[Solvated.scala 55:22]
+      fpuAM_in11_3 <= 32'h0; // @[Solvated.scala 55:22]
+    end else if (_T_4) begin // @[Solvated.scala 198:29]
+      if (counter_1H_2) begin // @[Solvated.scala 199:17]
+        fpuAM_in11_3 <= fpuMul_io_resp_bits_result_0;
+      end
+    end
+    if (reset) begin // @[Solvated.scala 56:22]
+      fpuAM_in12_3 <= 32'h0; // @[Solvated.scala 56:22]
+    end else if (_T_4) begin // @[Solvated.scala 198:29]
+      if (counter_1H_2) begin // @[Solvated.scala 200:17]
+        fpuAM_in12_3 <= fpuMul_io_resp_bits_result_1;
+      end
+    end
+    if (reset) begin // @[Solvated.scala 57:22]
+      fpuAM_in12_4 <= 32'h0; // @[Solvated.scala 57:22]
+    end else if (_T_4) begin // @[Solvated.scala 198:29]
+      if (counter_1H_2) begin // @[Solvated.scala 201:17]
+        fpuAM_in12_4 <= fpuMul_io_resp_bits_result_2;
+      end
+    end
+    if (reset) begin // @[Solvated.scala 58:23]
+      fpuAM_in11_4 <= 32'h0; // @[Solvated.scala 58:23]
+    end else if (_T_3) begin // @[Solvated.scala 154:29]
+      if (counter_1H_3) begin // @[Solvated.scala 158:18]
+        fpuAM_in11_4 <= fpuAdd_io_resp_bits_result_0;
+      end
+    end
+    if (reset) begin // @[Solvated.scala 59:21]
+      fpuD_in11_12 <= 32'h0; // @[Solvated.scala 59:21]
+    end else if (_T_3) begin // @[Solvated.scala 154:29]
+      if (counter_1H_4) begin // @[Solvated.scala 159:16]
+        fpuD_in11_12 <= fpuAdd_io_resp_bits_result_0;
+      end
+    end
+    if (reset) begin // @[Solvated.scala 60:20]
+      fpuAM_in11_6 <= 32'h0; // @[Solvated.scala 60:20]
+    end else if (_T_6) begin // @[Solvated.scala 247:30]
+      fpuAM_in11_6 <= fpuSqrt_io_resp_bits_result_0; // @[Solvated.scala 248:9]
+    end
+    if (reset) begin // @[Solvated.scala 61:26]
+      fpuD_in10_7 <= 32'h0; // @[Solvated.scala 61:26]
+    end else if (_T_3) begin // @[Solvated.scala 154:29]
+      if (counter_1H_6) begin // @[Solvated.scala 160:21]
+        fpuD_in10_7 <= fpuAdd_io_resp_bits_result_0;
+      end
+    end
+    if (reset) begin // @[Solvated.scala 62:26]
+      fpuD_in20_7 <= 32'h0; // @[Solvated.scala 62:26]
+    end else if (_T_3) begin // @[Solvated.scala 154:29]
+      if (counter_1H_6) begin // @[Solvated.scala 161:21]
+        fpuD_in20_7 <= fpuAdd_io_resp_bits_result_1;
+      end
+    end
+    if (reset) begin // @[Solvated.scala 63:20]
+      Xij <= 32'h0; // @[Solvated.scala 63:20]
+    end else if (_T_5) begin // @[Solvated.scala 227:29]
+      if (counter_1H_7) begin // @[Solvated.scala 228:15]
+        Xij <= fpuMul_io_resp_bits_result_0;
+      end
+    end
+    if (reset) begin // @[Solvated.scala 64:20]
+      Xji <= 32'h0; // @[Solvated.scala 64:20]
+    end else if (_T_5) begin // @[Solvated.scala 227:29]
+      if (counter_1H_7) begin // @[Solvated.scala 229:15]
+        Xji <= fpuMul_io_resp_bits_result_1;
+      end
+    end
+    if (reset) begin // @[Solvated.scala 65:22]
+      Xij_2 <= 32'h0; // @[Solvated.scala 65:22]
+    end else if (_T_5) begin // @[Solvated.scala 227:29]
+      if (counter_1H_8) begin // @[Solvated.scala 230:17]
+        Xij_2 <= fpuDiv_io_resp_bits_result_0;
+      end
+    end
+    if (reset) begin // @[Solvated.scala 66:22]
+      Xji_2 <= 32'h0; // @[Solvated.scala 66:22]
+    end else if (_T_5) begin // @[Solvated.scala 227:29]
+      if (counter_1H_8) begin // @[Solvated.scala 231:17]
+        Xji_2 <= fpuDiv_io_resp_bits_result_1;
+      end
+    end
+    if (reset) begin // @[Solvated.scala 67:23]
+      Xij_21 <= 32'h0; // @[Solvated.scala 67:23]
+    end else if (_T_3) begin // @[Solvated.scala 154:29]
+      if (counter_1H_9) begin // @[Solvated.scala 162:18]
+        Xij_21 <= fpuAdd_io_resp_bits_result_0;
+      end
+    end
+    if (reset) begin // @[Solvated.scala 68:23]
+      Xji_21 <= 32'h0; // @[Solvated.scala 68:23]
+    end else if (_T_3) begin // @[Solvated.scala 154:29]
+      if (counter_1H_9) begin // @[Solvated.scala 163:18]
+        Xji_21 <= fpuAdd_io_resp_bits_result_1;
+      end
+    end
+    if (reset) begin // @[Solvated.scala 69:23]
+      aXij_2 <= 32'h0; // @[Solvated.scala 69:23]
+    end else if (_T_4) begin // @[Solvated.scala 198:29]
+      if (counter_1H_10) begin // @[Solvated.scala 202:18]
+        aXij_2 <= fpuMul_io_resp_bits_result_0;
+      end
+    end
+    if (reset) begin // @[Solvated.scala 70:23]
+      aXji_2 <= 32'h0; // @[Solvated.scala 70:23]
+    end else if (_T_4) begin // @[Solvated.scala 198:29]
+      if (counter_1H_10) begin // @[Solvated.scala 203:18]
+        aXji_2 <= fpuMul_io_resp_bits_result_1;
+      end
+    end
+    if (reset) begin // @[Solvated.scala 71:24]
+      aXijXji <= 32'h0; // @[Solvated.scala 71:24]
+    end else if (_T_3) begin // @[Solvated.scala 154:29]
+      if (counter_1H_11) begin // @[Solvated.scala 164:19]
+        aXijXji <= fpuAdd_io_resp_bits_result_0;
+      end
+    end
+    if (reset) begin // @[Solvated.scala 72:31]
+      fpuAM_in12_13 <= 32'h0; // @[Solvated.scala 72:31]
+    end else if (_T_5) begin // @[Solvated.scala 227:29]
+      if (counter_1H_12) begin // @[Solvated.scala 232:26]
+        fpuAM_in12_13 <= fpuDiv_io_resp_bits_result_0;
+      end
+    end
+    if (reset) begin // @[Solvated.scala 75:23]
+      output_ <= 32'h0; // @[Solvated.scala 75:23]
+    end else begin
+      output_ <= io_in_solvE; // @[Solvated.scala 168:10]
+    end
+  end
+endmodule
 module ComposerCoreWrapper(
   input          clock,
   input          reset,
@@ -4100,6 +6269,7 @@ module ComposerCoreWrapper(
   output         auto_solvated_mem_out_d_ready,
   input          auto_solvated_mem_out_d_valid,
   input  [3:0]   auto_solvated_mem_out_d_bits_source,
+  input  [511:0] auto_solvated_mem_out_d_bits_data,
   input          auto_nonBonded_mem_out_a_ready,
   output         auto_nonBonded_mem_out_a_valid,
   output [2:0]   auto_nonBonded_mem_out_a_bits_size,
@@ -4109,6 +6279,7 @@ module ComposerCoreWrapper(
   output         auto_nonBonded_mem_out_d_ready,
   input          auto_nonBonded_mem_out_d_valid,
   input  [3:0]   auto_nonBonded_mem_out_d_bits_source,
+  input  [511:0] auto_nonBonded_mem_out_d_bits_data,
   input          auto_halfNonBonded_mem_out_a_ready,
   output         auto_halfNonBonded_mem_out_a_valid,
   output [2:0]   auto_halfNonBonded_mem_out_a_bits_size,
@@ -4118,6 +6289,7 @@ module ComposerCoreWrapper(
   output         auto_halfNonBonded_mem_out_d_ready,
   input          auto_halfNonBonded_mem_out_d_valid,
   input  [3:0]   auto_halfNonBonded_mem_out_d_bits_source,
+  input  [511:0] auto_halfNonBonded_mem_out_d_bits_data,
   input          auto_data_mem_out_a_ready,
   output         auto_data_mem_out_a_valid,
   output [2:0]   auto_data_mem_out_a_bits_size,
@@ -4127,7 +6299,6 @@ module ComposerCoreWrapper(
   output         auto_data_mem_out_d_ready,
   input          auto_data_mem_out_d_valid,
   input  [3:0]   auto_data_mem_out_d_bits_source,
-  input  [511:0] auto_data_mem_out_d_bits_data,
   input          auto_writers_out_a_ready,
   output         auto_writers_out_a_valid,
   output         auto_writers_out_a_bits_source,
@@ -4159,10 +6330,6 @@ module ComposerCoreWrapper(
   wire  data_auto_mem_out_d_ready; // @[ComposerCore.scala 76:32]
   wire  data_auto_mem_out_d_valid; // @[ComposerCore.scala 76:32]
   wire [3:0] data_auto_mem_out_d_bits_source; // @[ComposerCore.scala 76:32]
-  wire [511:0] data_auto_mem_out_d_bits_data; // @[ComposerCore.scala 76:32]
-  wire  data_access_readReq_valid; // @[ComposerCore.scala 76:32]
-  wire  data_access_readRes_valid; // @[ComposerCore.scala 76:32]
-  wire [127:0] data_access_readRes_bits; // @[ComposerCore.scala 76:32]
   wire  halfNonBonded_clock; // @[ComposerCore.scala 76:32]
   wire  halfNonBonded_reset; // @[ComposerCore.scala 76:32]
   wire  halfNonBonded_auto_mem_out_a_ready; // @[ComposerCore.scala 76:32]
@@ -4174,6 +6341,10 @@ module ComposerCoreWrapper(
   wire  halfNonBonded_auto_mem_out_d_ready; // @[ComposerCore.scala 76:32]
   wire  halfNonBonded_auto_mem_out_d_valid; // @[ComposerCore.scala 76:32]
   wire [3:0] halfNonBonded_auto_mem_out_d_bits_source; // @[ComposerCore.scala 76:32]
+  wire [511:0] halfNonBonded_auto_mem_out_d_bits_data; // @[ComposerCore.scala 76:32]
+  wire  halfNonBonded_access_readReq_valid; // @[ComposerCore.scala 76:32]
+  wire  halfNonBonded_access_readRes_valid; // @[ComposerCore.scala 76:32]
+  wire [255:0] halfNonBonded_access_readRes_bits; // @[ComposerCore.scala 76:32]
   wire  nonBonded_clock; // @[ComposerCore.scala 76:32]
   wire  nonBonded_reset; // @[ComposerCore.scala 76:32]
   wire  nonBonded_auto_mem_out_a_ready; // @[ComposerCore.scala 76:32]
@@ -4185,6 +6356,10 @@ module ComposerCoreWrapper(
   wire  nonBonded_auto_mem_out_d_ready; // @[ComposerCore.scala 76:32]
   wire  nonBonded_auto_mem_out_d_valid; // @[ComposerCore.scala 76:32]
   wire [3:0] nonBonded_auto_mem_out_d_bits_source; // @[ComposerCore.scala 76:32]
+  wire [511:0] nonBonded_auto_mem_out_d_bits_data; // @[ComposerCore.scala 76:32]
+  wire  nonBonded_access_readReq_valid; // @[ComposerCore.scala 76:32]
+  wire  nonBonded_access_readRes_valid; // @[ComposerCore.scala 76:32]
+  wire [255:0] nonBonded_access_readRes_bits; // @[ComposerCore.scala 76:32]
   wire  solvated_clock; // @[ComposerCore.scala 76:32]
   wire  solvated_reset; // @[ComposerCore.scala 76:32]
   wire  solvated_auto_mem_out_a_ready; // @[ComposerCore.scala 76:32]
@@ -4196,6 +6371,10 @@ module ComposerCoreWrapper(
   wire  solvated_auto_mem_out_d_ready; // @[ComposerCore.scala 76:32]
   wire  solvated_auto_mem_out_d_valid; // @[ComposerCore.scala 76:32]
   wire [3:0] solvated_auto_mem_out_d_bits_source; // @[ComposerCore.scala 76:32]
+  wire [511:0] solvated_auto_mem_out_d_bits_data; // @[ComposerCore.scala 76:32]
+  wire  solvated_access_readReq_valid; // @[ComposerCore.scala 76:32]
+  wire  solvated_access_readRes_valid; // @[ComposerCore.scala 76:32]
+  wire [255:0] solvated_access_readRes_bits; // @[ComposerCore.scala 76:32]
   wire  myWriters_WriteChannel_1_clock; // @[ComposerCore.scala 194:74]
   wire  myWriters_WriteChannel_1_reset; // @[ComposerCore.scala 194:74]
   wire  myWriters_WriteChannel_1_io_req_ready; // @[ComposerCore.scala 194:74]
@@ -4215,62 +6394,137 @@ module ComposerCoreWrapper(
   wire  myWriters_WriteChannel_1_tl_out_d_ready; // @[ComposerCore.scala 194:74]
   wire  myWriters_WriteChannel_1_tl_out_d_valid; // @[ComposerCore.scala 194:74]
   wire  myWriters_WriteChannel_1_tl_out_d_bits_source; // @[ComposerCore.scala 194:74]
-  reg [2:0] state; // @[EnergyCalcTop.scala 31:22]
-  reg [33:0] addr_data; // @[EnergyCalcTop.scala 32:52]
-  reg [33:0] addr_HNBT; // @[EnergyCalcTop.scala 32:52]
-  reg [31:0] sum; // @[EnergyCalcTop.scala 60:16]
-  reg [31:0] a; // @[EnergyCalcTop.scala 61:23]
-  reg [31:0] b; // @[EnergyCalcTop.scala 61:23]
-  reg [31:0] c; // @[EnergyCalcTop.scala 61:23]
-  reg [31:0] d; // @[EnergyCalcTop.scala 61:23]
-  wire  _io_req_ready_T = state == 3'h0; // @[EnergyCalcTop.scala 64:25]
+  wire  HNB_clock; // @[EnergyCalcTop.scala 197:21]
+  wire  HNB_reset; // @[EnergyCalcTop.scala 197:21]
+  wire [31:0] HNB_io_in_vdwE; // @[EnergyCalcTop.scala 197:21]
+  wire [31:0] HNB_io_in_esE; // @[EnergyCalcTop.scala 197:21]
+  wire [31:0] HNB_io_out_vdwE; // @[EnergyCalcTop.scala 197:21]
+  wire [31:0] HNB_io_out_esE; // @[EnergyCalcTop.scala 197:21]
+  wire  HNB_io_start; // @[EnergyCalcTop.scala 197:21]
+  wire  HNB_io_done; // @[EnergyCalcTop.scala 197:21]
+  wire  NB_clock; // @[EnergyCalcTop.scala 198:20]
+  wire  NB_reset; // @[EnergyCalcTop.scala 198:20]
+  wire [31:0] NB_io_in_vdwE; // @[EnergyCalcTop.scala 198:20]
+  wire [31:0] NB_io_in_esE; // @[EnergyCalcTop.scala 198:20]
+  wire [31:0] NB_io_out_vdwE; // @[EnergyCalcTop.scala 198:20]
+  wire [31:0] NB_io_out_esE; // @[EnergyCalcTop.scala 198:20]
+  wire  NB_io_start; // @[EnergyCalcTop.scala 198:20]
+  wire  NB_io_done; // @[EnergyCalcTop.scala 198:20]
+  wire  SOL_clock; // @[EnergyCalcTop.scala 199:21]
+  wire  SOL_reset; // @[EnergyCalcTop.scala 199:21]
+  wire [31:0] SOL_io_in_solvE; // @[EnergyCalcTop.scala 199:21]
+  wire [31:0] SOL_io_out_solvE; // @[EnergyCalcTop.scala 199:21]
+  wire  SOL_io_start; // @[EnergyCalcTop.scala 199:21]
+  wire  SOL_io_done; // @[EnergyCalcTop.scala 199:21]
+  reg [31:0] esEnergy; // @[EnergyCalcTop.scala 48:25]
+  reg [31:0] vdwEnergy; // @[EnergyCalcTop.scala 49:26]
+  reg [31:0] solvEnergy; // @[EnergyCalcTop.scala 50:27]
+  reg [2:0] state; // @[EnergyCalcTop.scala 62:22]
+  reg [33:0] addr_data; // @[EnergyCalcTop.scala 63:52]
+  reg [33:0] addr_HNBT; // @[EnergyCalcTop.scala 63:52]
+  reg [31:0] sum; // @[EnergyCalcTop.scala 91:16]
+  wire  _io_req_ready_T = state == 3'h0; // @[EnergyCalcTop.scala 97:25]
   wire  _T_1 = io_req_ready & io_req_valid; // @[Decoupled.scala 51:35]
-  wire  _T_3 = ~reset; // @[EnergyCalcTop.scala 72:13]
-  wire  _T_5 = io_req_bits_inst_rs1 == 5'h0; // @[EnergyCalcTop.scala 73:34]
-  wire  _T_11 = io_req_bits_inst_rs1 == 5'h1; // @[EnergyCalcTop.scala 80:39]
-  wire [2:0] _GEN_2 = io_req_bits_inst_rs1 == 5'h1 ? 3'h1 : state; // @[EnergyCalcTop.scala 80:83 84:15 31:22]
-  wire  _T_14 = state == 3'h1; // @[EnergyCalcTop.scala 89:20]
-  wire  _T_23 = state == 3'h2; // @[EnergyCalcTop.scala 113:20]
-  wire [31:0] _GEN_18 = data_access_readReq_valid ? data_access_readRes_bits[31:0] : a; // @[EnergyCalcTop.scala 119:38 121:9 61:23]
-  wire [31:0] _GEN_19 = data_access_readReq_valid ? data_access_readRes_bits[63:32] : b; // @[EnergyCalcTop.scala 119:38 122:9 61:23]
-  wire [31:0] _GEN_20 = data_access_readReq_valid ? data_access_readRes_bits[95:64] : c; // @[EnergyCalcTop.scala 119:38 123:9 61:23]
-  wire [31:0] _GEN_21 = data_access_readReq_valid ? data_access_readRes_bits[127:96] : d; // @[EnergyCalcTop.scala 119:38 124:9 61:23]
-  wire [31:0] _sum_T_1 = a + b; // @[EnergyCalcTop.scala 130:14]
-  wire [31:0] _sum_T_3 = _sum_T_1 + c; // @[EnergyCalcTop.scala 130:18]
-  wire [31:0] _sum_T_5 = _sum_T_3 + d; // @[EnergyCalcTop.scala 130:22]
-  wire  _T_30 = state == 3'h3; // @[EnergyCalcTop.scala 134:20]
-  wire  _T_33 = myWriters_WriteChannel_1_io_channel_data_ready & myWriters_WriteChannel_1_io_channel_data_valid; // @[Decoupled.scala 51:35]
-  wire [2:0] _GEN_22 = _T_33 ? 3'h4 : state; // @[EnergyCalcTop.scala 138:30 140:13 31:22]
-  wire  _T_36 = state == 3'h4; // @[EnergyCalcTop.scala 143:20]
-  wire [2:0] _GEN_27 = myWriters_WriteChannel_1_io_channel_channelIdle ? 3'h5 : state; // @[EnergyCalcTop.scala 160:32 161:17 31:22]
-  wire  _T_43 = state == 3'h5; // @[EnergyCalcTop.scala 164:20]
-  wire  _T_46 = io_resp_ready & io_resp_valid; // @[Decoupled.scala 51:35]
-  wire [2:0] _GEN_28 = _T_46 ? 3'h0 : state; // @[EnergyCalcTop.scala 167:24 168:15 31:22]
-  wire [2:0] _GEN_30 = state == 3'h5 ? _GEN_28 : state; // @[EnergyCalcTop.scala 164:34 31:22]
-  wire [31:0] _GEN_33 = state == 3'h4 ? _GEN_18 : a; // @[EnergyCalcTop.scala 143:34 61:23]
-  wire [31:0] _GEN_34 = state == 3'h4 ? _GEN_19 : b; // @[EnergyCalcTop.scala 143:34 61:23]
-  wire [31:0] _GEN_35 = state == 3'h4 ? _GEN_20 : c; // @[EnergyCalcTop.scala 143:34 61:23]
-  wire [31:0] _GEN_36 = state == 3'h4 ? _GEN_21 : d; // @[EnergyCalcTop.scala 143:34 61:23]
-  wire [2:0] _GEN_37 = state == 3'h4 ? _GEN_27 : _GEN_30; // @[EnergyCalcTop.scala 143:34]
-  wire  _GEN_38 = state == 3'h4 ? 1'h0 : _T_43; // @[EnergyCalcTop.scala 143:34 65:17]
-  wire [2:0] _GEN_40 = state == 3'h3 ? _GEN_22 : _GEN_37; // @[EnergyCalcTop.scala 134:33]
-  wire  _GEN_47 = state == 3'h3 ? 1'h0 : _GEN_38; // @[EnergyCalcTop.scala 134:33 65:17]
-  wire  _GEN_48 = state == 3'h2 ? state == 3'h2 : _T_36; // @[EnergyCalcTop.scala 113:37 115:31]
-  wire  _GEN_56 = state == 3'h2 ? 1'h0 : _T_30; // @[EnergyCalcTop.scala 113:37 62:23]
-  wire  _GEN_57 = state == 3'h2 ? 1'h0 : _GEN_47; // @[EnergyCalcTop.scala 113:37 65:17]
-  wire  _GEN_66 = state == 3'h1 ? 1'h0 : _GEN_56; // @[EnergyCalcTop.scala 62:23 89:32]
-  wire  _GEN_67 = state == 3'h1 ? 1'h0 : _GEN_57; // @[EnergyCalcTop.scala 65:17 89:32]
-  wire  _GEN_82 = _io_req_ready_T & _T_1; // @[EnergyCalcTop.scala 72:13]
-  wire  _GEN_84 = _GEN_82 & _T_5; // @[EnergyCalcTop.scala 77:15]
-  wire  _GEN_91 = ~_io_req_ready_T; // @[EnergyCalcTop.scala 90:11]
-  wire  _GEN_92 = ~_io_req_ready_T & _T_14; // @[EnergyCalcTop.scala 90:11]
-  wire  _GEN_97 = _GEN_92 & data_access_readRes_valid; // @[EnergyCalcTop.scala 101:13]
-  wire  _GEN_103 = _GEN_91 & ~_T_14; // @[EnergyCalcTop.scala 114:11]
-  wire  _GEN_104 = _GEN_91 & ~_T_14 & _T_23; // @[EnergyCalcTop.scala 114:11]
-  wire  _GEN_118 = _GEN_103 & ~_T_23; // @[EnergyCalcTop.scala 135:11]
-  wire  _GEN_119 = _GEN_103 & ~_T_23 & _T_30; // @[EnergyCalcTop.scala 135:11]
-  wire  _GEN_133 = _GEN_118 & ~_T_30; // @[EnergyCalcTop.scala 154:13]
-  wire  _GEN_134 = _GEN_118 & ~_T_30 & _T_36; // @[EnergyCalcTop.scala 154:13]
+  wire  _T_3 = ~reset; // @[EnergyCalcTop.scala 106:13]
+  wire  _T_5 = io_req_bits_inst_rs1 == 5'h0; // @[EnergyCalcTop.scala 107:34]
+  wire  _T_11 = io_req_bits_inst_rs1 == 5'h1; // @[EnergyCalcTop.scala 113:39]
+  wire [2:0] _GEN_2 = io_req_bits_inst_rs1 == 5'h1 ? 3'h1 : state; // @[EnergyCalcTop.scala 113:83 117:15 62:22]
+  wire  _T_14 = state == 3'h1; // @[EnergyCalcTop.scala 122:20]
+  wire  _T_23 = state == 3'h2; // @[EnergyCalcTop.scala 183:20]
+  reg [31:0] iteration; // @[EnergyCalcTop.scala 186:28]
+  reg [31:0] cal_state; // @[EnergyCalcTop.scala 187:28]
+  reg  start_now; // @[EnergyCalcTop.scala 188:28]
+  wire [31:0] _GEN_32 = _T_23 & start_now ? 32'h0 : iteration; // @[EnergyCalcTop.scala 190:47 191:17 186:28]
+  wire  _GEN_34 = _T_23 & start_now ? 1'h0 : start_now; // @[EnergyCalcTop.scala 190:47 193:17 188:28]
+  wire  _T_28 = iteration <= 32'h3e8; // @[EnergyCalcTop.scala 230:21]
+  wire [31:0] _cal_state_T_1 = _T_23 ? 32'h0 : cal_state; // @[EnergyCalcTop.scala 232:23]
+  wire  _T_31 = cal_state == 32'h0; // @[EnergyCalcTop.scala 234:23]
+  wire  _T_32 = cal_state == 32'h1; // @[EnergyCalcTop.scala 237:28]
+  wire [31:0] _esEnergy_T = HNB_io_done ? HNB_io_out_esE : esEnergy; // @[EnergyCalcTop.scala 239:24]
+  wire [31:0] _vdwEnergy_T = HNB_io_done ? HNB_io_out_vdwE : vdwEnergy; // @[EnergyCalcTop.scala 240:25]
+  wire [31:0] _cal_state_T_2 = HNB_io_done ? 32'h2 : cal_state; // @[EnergyCalcTop.scala 241:25]
+  wire  _T_35 = cal_state == 32'h2; // @[EnergyCalcTop.scala 243:28]
+  wire  _T_36 = cal_state == 32'h3; // @[EnergyCalcTop.scala 246:28]
+  wire [31:0] _esEnergy_T_1 = NB_io_done ? NB_io_out_esE : esEnergy; // @[EnergyCalcTop.scala 248:24]
+  wire [31:0] _vdwEnergy_T_1 = NB_io_done ? NB_io_out_vdwE : vdwEnergy; // @[EnergyCalcTop.scala 249:25]
+  wire [31:0] _cal_state_T_3 = NB_io_done ? 32'h4 : cal_state; // @[EnergyCalcTop.scala 250:25]
+  wire  _T_39 = cal_state == 32'h4; // @[EnergyCalcTop.scala 252:28]
+  wire  _T_40 = cal_state == 32'h5; // @[EnergyCalcTop.scala 255:28]
+  wire [31:0] _solvEnergy_T = SOL_io_done ? SOL_io_out_solvE : solvEnergy; // @[EnergyCalcTop.scala 257:26]
+  wire [31:0] _cal_state_T_4 = SOL_io_done ? 32'h6 : cal_state; // @[EnergyCalcTop.scala 258:25]
+  wire  _T_41 = cal_state == 32'h6; // @[EnergyCalcTop.scala 259:28]
+  wire [31:0] _iteration_T_1 = iteration + 32'h1; // @[EnergyCalcTop.scala 261:32]
+  wire [31:0] _GEN_35 = cal_state == 32'h6 ? esEnergy : sum; // @[EnergyCalcTop.scala 259:36 260:13 91:16]
+  wire [31:0] _GEN_36 = cal_state == 32'h6 ? _iteration_T_1 : _GEN_32; // @[EnergyCalcTop.scala 259:36 261:19]
+  wire [31:0] _GEN_38 = cal_state == 32'h5 ? _solvEnergy_T : 32'h0; // @[EnergyCalcTop.scala 255:36 257:20 53:14]
+  wire [31:0] _GEN_39 = cal_state == 32'h5 ? _cal_state_T_4 : _cal_state_T_1; // @[EnergyCalcTop.scala 232:17 255:36 258:19]
+  wire [31:0] _GEN_40 = cal_state == 32'h5 ? sum : _GEN_35; // @[EnergyCalcTop.scala 255:36 91:16]
+  wire [31:0] _GEN_41 = cal_state == 32'h5 ? _GEN_32 : _GEN_36; // @[EnergyCalcTop.scala 255:36]
+  wire [31:0] _GEN_43 = cal_state == 32'h4 ? 32'h5 : _GEN_39; // @[EnergyCalcTop.scala 252:36 254:19]
+  wire [31:0] _GEN_44 = cal_state == 32'h4 ? 32'h0 : _GEN_38; // @[EnergyCalcTop.scala 252:36 53:14]
+  wire [31:0] _GEN_45 = cal_state == 32'h4 ? sum : _GEN_40; // @[EnergyCalcTop.scala 252:36 91:16]
+  wire [31:0] _GEN_46 = cal_state == 32'h4 ? _GEN_32 : _GEN_41; // @[EnergyCalcTop.scala 252:36]
+  wire [31:0] _GEN_48 = cal_state == 32'h3 ? _esEnergy_T_1 : 32'h0; // @[EnergyCalcTop.scala 246:37 248:18 51:12]
+  wire [31:0] _GEN_49 = cal_state == 32'h3 ? _vdwEnergy_T_1 : 32'h0; // @[EnergyCalcTop.scala 246:37 249:19 52:13]
+  wire [31:0] _GEN_50 = cal_state == 32'h3 ? _cal_state_T_3 : _GEN_43; // @[EnergyCalcTop.scala 246:37 250:19]
+  wire  _GEN_51 = cal_state == 32'h3 ? 1'h0 : _T_39; // @[EnergyCalcTop.scala 223:18 246:37]
+  wire [31:0] _GEN_52 = cal_state == 32'h3 ? 32'h0 : _GEN_44; // @[EnergyCalcTop.scala 246:37 53:14]
+  wire [31:0] _GEN_53 = cal_state == 32'h3 ? sum : _GEN_45; // @[EnergyCalcTop.scala 246:37 91:16]
+  wire [31:0] _GEN_54 = cal_state == 32'h3 ? _GEN_32 : _GEN_46; // @[EnergyCalcTop.scala 246:37]
+  wire [31:0] _GEN_56 = cal_state == 32'h2 ? 32'h3 : _GEN_50; // @[EnergyCalcTop.scala 243:37 245:19]
+  wire [31:0] _GEN_57 = cal_state == 32'h2 ? 32'h0 : _GEN_48; // @[EnergyCalcTop.scala 243:37 51:12]
+  wire [31:0] _GEN_58 = cal_state == 32'h2 ? 32'h0 : _GEN_49; // @[EnergyCalcTop.scala 243:37 52:13]
+  wire  _GEN_59 = cal_state == 32'h2 ? 1'h0 : _GEN_51; // @[EnergyCalcTop.scala 223:18 243:37]
+  wire [31:0] _GEN_60 = cal_state == 32'h2 ? 32'h0 : _GEN_52; // @[EnergyCalcTop.scala 243:37 53:14]
+  wire [31:0] _GEN_61 = cal_state == 32'h2 ? sum : _GEN_53; // @[EnergyCalcTop.scala 243:37 91:16]
+  wire [31:0] _GEN_62 = cal_state == 32'h2 ? _GEN_32 : _GEN_54; // @[EnergyCalcTop.scala 243:37]
+  wire [31:0] _GEN_64 = cal_state == 32'h1 ? _esEnergy_T : _GEN_57; // @[EnergyCalcTop.scala 237:37 239:18]
+  wire [31:0] _GEN_65 = cal_state == 32'h1 ? _vdwEnergy_T : _GEN_58; // @[EnergyCalcTop.scala 237:37 240:19]
+  wire  _GEN_67 = cal_state == 32'h1 ? 1'h0 : _T_35; // @[EnergyCalcTop.scala 212:17 237:37]
+  wire  _GEN_68 = cal_state == 32'h1 ? 1'h0 : _GEN_59; // @[EnergyCalcTop.scala 223:18 237:37]
+  wire [31:0] _GEN_69 = cal_state == 32'h1 ? 32'h0 : _GEN_60; // @[EnergyCalcTop.scala 237:37 53:14]
+  wire [31:0] _GEN_70 = cal_state == 32'h1 ? sum : _GEN_61; // @[EnergyCalcTop.scala 237:37 91:16]
+  wire [31:0] _GEN_74 = cal_state == 32'h0 ? 32'h0 : _GEN_64; // @[EnergyCalcTop.scala 234:32 51:12]
+  wire [31:0] _GEN_75 = cal_state == 32'h0 ? 32'h0 : _GEN_65; // @[EnergyCalcTop.scala 234:32 52:13]
+  wire  _GEN_76 = cal_state == 32'h0 ? 1'h0 : _GEN_67; // @[EnergyCalcTop.scala 212:17 234:32]
+  wire  _GEN_77 = cal_state == 32'h0 ? 1'h0 : _GEN_68; // @[EnergyCalcTop.scala 223:18 234:32]
+  wire [31:0] _GEN_78 = cal_state == 32'h0 ? 32'h0 : _GEN_69; // @[EnergyCalcTop.scala 234:32 53:14]
+  wire [31:0] _GEN_79 = cal_state == 32'h0 ? sum : _GEN_70; // @[EnergyCalcTop.scala 234:32 91:16]
+  wire [2:0] _GEN_81 = iteration > 32'h3e8 ? 3'h3 : state; // @[EnergyCalcTop.scala 266:35 267:13 62:22]
+  wire [31:0] _GEN_84 = iteration <= 32'h3e8 ? _GEN_74 : 32'h0; // @[EnergyCalcTop.scala 230:32 51:12]
+  wire [31:0] _GEN_85 = iteration <= 32'h3e8 ? _GEN_75 : 32'h0; // @[EnergyCalcTop.scala 230:32 52:13]
+  wire [31:0] _GEN_88 = iteration <= 32'h3e8 ? _GEN_78 : 32'h0; // @[EnergyCalcTop.scala 230:32 53:14]
+  wire [2:0] _GEN_91 = iteration <= 32'h3e8 ? state : _GEN_81; // @[EnergyCalcTop.scala 230:32 62:22]
+  wire  _T_47 = state == 3'h3; // @[EnergyCalcTop.scala 278:20]
+  wire  _T_50 = myWriters_WriteChannel_1_io_channel_data_ready & myWriters_WriteChannel_1_io_channel_data_valid; // @[Decoupled.scala 51:35]
+  wire [2:0] _GEN_92 = _T_50 ? 3'h4 : state; // @[EnergyCalcTop.scala 282:30 284:13 62:22]
+  wire  _T_53 = state == 3'h4; // @[EnergyCalcTop.scala 287:20]
+  wire [2:0] _GEN_93 = myWriters_WriteChannel_1_io_channel_channelIdle ? 3'h5 : state; // @[EnergyCalcTop.scala 290:32 291:17 62:22]
+  wire  _T_56 = state == 3'h5; // @[EnergyCalcTop.scala 294:20]
+  wire  _T_59 = io_resp_ready & io_resp_valid; // @[Decoupled.scala 51:35]
+  wire [2:0] _GEN_94 = _T_59 ? 3'h0 : state; // @[EnergyCalcTop.scala 297:24 298:15 62:22]
+  wire [2:0] _GEN_96 = state == 3'h5 ? _GEN_94 : state; // @[EnergyCalcTop.scala 294:34 62:22]
+  wire [2:0] _GEN_97 = state == 3'h4 ? _GEN_93 : _GEN_96; // @[EnergyCalcTop.scala 287:34]
+  wire  _GEN_98 = state == 3'h4 ? 1'h0 : _T_56; // @[EnergyCalcTop.scala 287:34 98:17]
+  wire [2:0] _GEN_100 = state == 3'h3 ? _GEN_92 : _GEN_97; // @[EnergyCalcTop.scala 278:33]
+  wire  _GEN_101 = state == 3'h3 ? 1'h0 : _GEN_98; // @[EnergyCalcTop.scala 278:33 98:17]
+  wire  _GEN_107 = state == 3'h2 ? 1'h0 : _T_47; // @[EnergyCalcTop.scala 183:37 95:23]
+  wire  _GEN_108 = state == 3'h2 ? 1'h0 : _GEN_101; // @[EnergyCalcTop.scala 183:37 98:17]
+  wire  _GEN_118 = state == 3'h1 ? 1'h0 : _GEN_107; // @[EnergyCalcTop.scala 122:32 95:23]
+  wire  _GEN_119 = state == 3'h1 ? 1'h0 : _GEN_108; // @[EnergyCalcTop.scala 122:32 98:17]
+  wire  _GEN_135 = _io_req_ready_T & _T_1; // @[EnergyCalcTop.scala 106:13]
+  wire  _GEN_137 = _GEN_135 & _T_5; // @[EnergyCalcTop.scala 111:15]
+  wire  _GEN_144 = ~_io_req_ready_T; // @[EnergyCalcTop.scala 123:11]
+  wire  _GEN_145 = ~_io_req_ready_T & _T_14; // @[EnergyCalcTop.scala 123:11]
+  wire  _GEN_157 = _GEN_144 & ~_T_14; // @[EnergyCalcTop.scala 184:11]
+  wire  _GEN_158 = _GEN_144 & ~_T_14 & _T_23; // @[EnergyCalcTop.scala 184:11]
+  wire  _GEN_163 = _GEN_158 & _T_28; // @[EnergyCalcTop.scala 231:13]
+  wire  _GEN_170 = _GEN_163 & ~_T_31; // @[EnergyCalcTop.scala 242:15]
+  wire  _GEN_182 = _GEN_170 & ~_T_32 & ~_T_35; // @[EnergyCalcTop.scala 251:15]
+  wire  _GEN_200 = _GEN_182 & ~_T_36 & ~_T_39 & ~_T_40; // @[EnergyCalcTop.scala 262:15]
+  wire  _GEN_225 = _GEN_157 & ~_T_23; // @[EnergyCalcTop.scala 279:11]
+  wire  _GEN_226 = _GEN_157 & ~_T_23 & _T_47; // @[EnergyCalcTop.scala 279:11]
+  wire  _GEN_240 = _GEN_225 & ~_T_47; // @[EnergyCalcTop.scala 289:11]
   CScratchpad data ( // @[ComposerCore.scala 76:32]
     .clock(data_clock),
     .reset(data_reset),
@@ -4282,11 +6536,7 @@ module ComposerCoreWrapper(
     .auto_mem_out_a_bits_mask(data_auto_mem_out_a_bits_mask),
     .auto_mem_out_d_ready(data_auto_mem_out_d_ready),
     .auto_mem_out_d_valid(data_auto_mem_out_d_valid),
-    .auto_mem_out_d_bits_source(data_auto_mem_out_d_bits_source),
-    .auto_mem_out_d_bits_data(data_auto_mem_out_d_bits_data),
-    .access_readReq_valid(data_access_readReq_valid),
-    .access_readRes_valid(data_access_readRes_valid),
-    .access_readRes_bits(data_access_readRes_bits)
+    .auto_mem_out_d_bits_source(data_auto_mem_out_d_bits_source)
   );
   CScratchpad_1 halfNonBonded ( // @[ComposerCore.scala 76:32]
     .clock(halfNonBonded_clock),
@@ -4299,7 +6549,11 @@ module ComposerCoreWrapper(
     .auto_mem_out_a_bits_mask(halfNonBonded_auto_mem_out_a_bits_mask),
     .auto_mem_out_d_ready(halfNonBonded_auto_mem_out_d_ready),
     .auto_mem_out_d_valid(halfNonBonded_auto_mem_out_d_valid),
-    .auto_mem_out_d_bits_source(halfNonBonded_auto_mem_out_d_bits_source)
+    .auto_mem_out_d_bits_source(halfNonBonded_auto_mem_out_d_bits_source),
+    .auto_mem_out_d_bits_data(halfNonBonded_auto_mem_out_d_bits_data),
+    .access_readReq_valid(halfNonBonded_access_readReq_valid),
+    .access_readRes_valid(halfNonBonded_access_readRes_valid),
+    .access_readRes_bits(halfNonBonded_access_readRes_bits)
   );
   CScratchpad_2 nonBonded ( // @[ComposerCore.scala 76:32]
     .clock(nonBonded_clock),
@@ -4312,7 +6566,11 @@ module ComposerCoreWrapper(
     .auto_mem_out_a_bits_mask(nonBonded_auto_mem_out_a_bits_mask),
     .auto_mem_out_d_ready(nonBonded_auto_mem_out_d_ready),
     .auto_mem_out_d_valid(nonBonded_auto_mem_out_d_valid),
-    .auto_mem_out_d_bits_source(nonBonded_auto_mem_out_d_bits_source)
+    .auto_mem_out_d_bits_source(nonBonded_auto_mem_out_d_bits_source),
+    .auto_mem_out_d_bits_data(nonBonded_auto_mem_out_d_bits_data),
+    .access_readReq_valid(nonBonded_access_readReq_valid),
+    .access_readRes_valid(nonBonded_access_readRes_valid),
+    .access_readRes_bits(nonBonded_access_readRes_bits)
   );
   CScratchpad_3 solvated ( // @[ComposerCore.scala 76:32]
     .clock(solvated_clock),
@@ -4325,7 +6583,11 @@ module ComposerCoreWrapper(
     .auto_mem_out_a_bits_mask(solvated_auto_mem_out_a_bits_mask),
     .auto_mem_out_d_ready(solvated_auto_mem_out_d_ready),
     .auto_mem_out_d_valid(solvated_auto_mem_out_d_valid),
-    .auto_mem_out_d_bits_source(solvated_auto_mem_out_d_bits_source)
+    .auto_mem_out_d_bits_source(solvated_auto_mem_out_d_bits_source),
+    .auto_mem_out_d_bits_data(solvated_auto_mem_out_d_bits_data),
+    .access_readReq_valid(solvated_access_readReq_valid),
+    .access_readRes_valid(solvated_access_readRes_valid),
+    .access_readRes_bits(solvated_access_readRes_bits)
   );
   SequentialWriter myWriters_WriteChannel_1 ( // @[ComposerCore.scala 194:74]
     .clock(myWriters_WriteChannel_1_clock),
@@ -4347,6 +6609,34 @@ module ComposerCoreWrapper(
     .tl_out_d_ready(myWriters_WriteChannel_1_tl_out_d_ready),
     .tl_out_d_valid(myWriters_WriteChannel_1_tl_out_d_valid),
     .tl_out_d_bits_source(myWriters_WriteChannel_1_tl_out_d_bits_source)
+  );
+  HalfNonBonded HNB ( // @[EnergyCalcTop.scala 197:21]
+    .clock(HNB_clock),
+    .reset(HNB_reset),
+    .io_in_vdwE(HNB_io_in_vdwE),
+    .io_in_esE(HNB_io_in_esE),
+    .io_out_vdwE(HNB_io_out_vdwE),
+    .io_out_esE(HNB_io_out_esE),
+    .io_start(HNB_io_start),
+    .io_done(HNB_io_done)
+  );
+  NonBonded NB ( // @[EnergyCalcTop.scala 198:20]
+    .clock(NB_clock),
+    .reset(NB_reset),
+    .io_in_vdwE(NB_io_in_vdwE),
+    .io_in_esE(NB_io_in_esE),
+    .io_out_vdwE(NB_io_out_vdwE),
+    .io_out_esE(NB_io_out_esE),
+    .io_start(NB_io_start),
+    .io_done(NB_io_done)
+  );
+  Solvated SOL ( // @[EnergyCalcTop.scala 199:21]
+    .clock(SOL_clock),
+    .reset(SOL_reset),
+    .io_in_solvE(SOL_io_in_solvE),
+    .io_out_solvE(SOL_io_out_solvE),
+    .io_start(SOL_io_start),
+    .io_done(SOL_io_done)
   );
   assign auto_solvated_mem_out_a_valid = solvated_auto_mem_out_a_valid; // @[LazyModule.scala 368:12]
   assign auto_solvated_mem_out_a_bits_size = solvated_auto_mem_out_a_bits_size; // @[LazyModule.scala 368:12]
@@ -4378,137 +6668,165 @@ module ComposerCoreWrapper(
   assign auto_writers_out_a_bits_mask = myWriters_WriteChannel_1_tl_out_a_bits_mask; // @[Nodes.scala 1212:84 ComposerCore.scala 198:16]
   assign auto_writers_out_a_bits_data = myWriters_WriteChannel_1_tl_out_a_bits_data; // @[Nodes.scala 1212:84 ComposerCore.scala 198:16]
   assign auto_writers_out_d_ready = myWriters_WriteChannel_1_tl_out_d_ready; // @[Nodes.scala 1212:84 ComposerCore.scala 198:16]
-  assign io_req_ready = state == 3'h0; // @[EnergyCalcTop.scala 64:25]
-  assign io_resp_valid = _io_req_ready_T ? 1'h0 : _GEN_67; // @[EnergyCalcTop.scala 65:17 70:27]
+  assign io_req_ready = state == 3'h0; // @[EnergyCalcTop.scala 97:25]
+  assign io_resp_valid = _io_req_ready_T ? 1'h0 : _GEN_119; // @[EnergyCalcTop.scala 104:27 98:17]
   assign data_clock = clock;
   assign data_reset = reset;
   assign data_auto_mem_out_a_ready = auto_data_mem_out_a_ready; // @[LazyModule.scala 368:12]
   assign data_auto_mem_out_d_valid = auto_data_mem_out_d_valid; // @[LazyModule.scala 368:12]
   assign data_auto_mem_out_d_bits_source = auto_data_mem_out_d_bits_source; // @[LazyModule.scala 368:12]
-  assign data_auto_mem_out_d_bits_data = auto_data_mem_out_d_bits_data; // @[LazyModule.scala 368:12]
-  assign data_access_readReq_valid = state == 3'h1 ? state == 3'h1 : _GEN_48; // @[EnergyCalcTop.scala 89:32 91:31]
   assign halfNonBonded_clock = clock;
   assign halfNonBonded_reset = reset;
   assign halfNonBonded_auto_mem_out_a_ready = auto_halfNonBonded_mem_out_a_ready; // @[LazyModule.scala 368:12]
   assign halfNonBonded_auto_mem_out_d_valid = auto_halfNonBonded_mem_out_d_valid; // @[LazyModule.scala 368:12]
   assign halfNonBonded_auto_mem_out_d_bits_source = auto_halfNonBonded_mem_out_d_bits_source; // @[LazyModule.scala 368:12]
+  assign halfNonBonded_auto_mem_out_d_bits_data = auto_halfNonBonded_mem_out_d_bits_data; // @[LazyModule.scala 368:12]
+  assign halfNonBonded_access_readReq_valid = state == 3'h1; // @[EnergyCalcTop.scala 126:49]
   assign nonBonded_clock = clock;
   assign nonBonded_reset = reset;
   assign nonBonded_auto_mem_out_a_ready = auto_nonBonded_mem_out_a_ready; // @[LazyModule.scala 368:12]
   assign nonBonded_auto_mem_out_d_valid = auto_nonBonded_mem_out_d_valid; // @[LazyModule.scala 368:12]
   assign nonBonded_auto_mem_out_d_bits_source = auto_nonBonded_mem_out_d_bits_source; // @[LazyModule.scala 368:12]
+  assign nonBonded_auto_mem_out_d_bits_data = auto_nonBonded_mem_out_d_bits_data; // @[LazyModule.scala 368:12]
+  assign nonBonded_access_readReq_valid = state == 3'h1; // @[EnergyCalcTop.scala 127:45]
   assign solvated_clock = clock;
   assign solvated_reset = reset;
   assign solvated_auto_mem_out_a_ready = auto_solvated_mem_out_a_ready; // @[LazyModule.scala 368:12]
   assign solvated_auto_mem_out_d_valid = auto_solvated_mem_out_d_valid; // @[LazyModule.scala 368:12]
   assign solvated_auto_mem_out_d_bits_source = auto_solvated_mem_out_d_bits_source; // @[LazyModule.scala 368:12]
+  assign solvated_auto_mem_out_d_bits_data = auto_solvated_mem_out_d_bits_data; // @[LazyModule.scala 368:12]
+  assign solvated_access_readReq_valid = state == 3'h1; // @[EnergyCalcTop.scala 128:44]
   assign myWriters_WriteChannel_1_clock = clock;
   assign myWriters_WriteChannel_1_reset = reset;
   assign myWriters_WriteChannel_1_io_req_valid = myWriters_WriteChannel_valid; // @[ComposerCore.scala 202:15]
   assign myWriters_WriteChannel_1_io_req_bits_addr = myWriters_WriteChannel_bits_addr; // @[ComposerCore.scala 202:15]
   assign myWriters_WriteChannel_1_io_req_bits_len = myWriters_WriteChannel_bits_len; // @[ComposerCore.scala 202:15]
-  assign myWriters_WriteChannel_1_io_channel_data_valid = _io_req_ready_T ? 1'h0 : _GEN_66; // @[EnergyCalcTop.scala 62:23 70:27]
-  assign myWriters_WriteChannel_1_io_channel_data_bits = sum; // @[EnergyCalcTop.scala 63:22]
+  assign myWriters_WriteChannel_1_io_channel_data_valid = _io_req_ready_T ? 1'h0 : _GEN_118; // @[EnergyCalcTop.scala 104:27 95:23]
+  assign myWriters_WriteChannel_1_io_channel_data_bits = sum; // @[EnergyCalcTop.scala 96:22]
   assign myWriters_WriteChannel_1_tl_out_a_ready = auto_writers_out_a_ready; // @[Nodes.scala 1212:84 LazyModule.scala 368:12]
   assign myWriters_WriteChannel_1_tl_out_d_valid = auto_writers_out_d_valid; // @[Nodes.scala 1212:84 LazyModule.scala 368:12]
   assign myWriters_WriteChannel_1_tl_out_d_bits_source = auto_writers_out_d_bits_source; // @[Nodes.scala 1212:84 LazyModule.scala 368:12]
+  assign HNB_clock = clock;
+  assign HNB_reset = reset;
+  assign HNB_io_in_vdwE = vdwEnergy; // @[EnergyCalcTop.scala 210:20]
+  assign HNB_io_in_esE = esEnergy; // @[EnergyCalcTop.scala 209:19]
+  assign HNB_io_start = iteration <= 32'h3e8 & _T_31; // @[EnergyCalcTop.scala 201:18 230:32]
+  assign NB_clock = clock;
+  assign NB_reset = reset;
+  assign NB_io_in_vdwE = vdwEnergy; // @[EnergyCalcTop.scala 221:19]
+  assign NB_io_in_esE = esEnergy; // @[EnergyCalcTop.scala 220:18]
+  assign NB_io_start = iteration <= 32'h3e8 & _GEN_76; // @[EnergyCalcTop.scala 212:17 230:32]
+  assign SOL_clock = clock;
+  assign SOL_reset = reset;
+  assign SOL_io_in_solvE = solvEnergy; // @[EnergyCalcTop.scala 227:21]
+  assign SOL_io_start = iteration <= 32'h3e8 & _GEN_77; // @[EnergyCalcTop.scala 223:18 230:32]
   always @(posedge clock) begin
-    if (reset) begin // @[EnergyCalcTop.scala 31:22]
-      state <= 3'h0; // @[EnergyCalcTop.scala 31:22]
-    end else if (_io_req_ready_T) begin // @[EnergyCalcTop.scala 70:27]
-      if (_T_1) begin // @[EnergyCalcTop.scala 71:23]
-        if (!(io_req_bits_inst_rs1 == 5'h0)) begin // @[EnergyCalcTop.scala 73:81]
+    if (reset) begin // @[EnergyCalcTop.scala 48:25]
+      esEnergy <= 32'h0; // @[EnergyCalcTop.scala 48:25]
+    end else if (_io_req_ready_T) begin // @[EnergyCalcTop.scala 104:27]
+      esEnergy <= 32'h0; // @[EnergyCalcTop.scala 51:12]
+    end else if (state == 3'h1) begin // @[EnergyCalcTop.scala 122:32]
+      esEnergy <= 32'h0; // @[EnergyCalcTop.scala 51:12]
+    end else if (state == 3'h2) begin // @[EnergyCalcTop.scala 183:37]
+      esEnergy <= _GEN_84;
+    end else begin
+      esEnergy <= 32'h0; // @[EnergyCalcTop.scala 51:12]
+    end
+    if (reset) begin // @[EnergyCalcTop.scala 49:26]
+      vdwEnergy <= 32'h0; // @[EnergyCalcTop.scala 49:26]
+    end else if (_io_req_ready_T) begin // @[EnergyCalcTop.scala 104:27]
+      vdwEnergy <= 32'h0; // @[EnergyCalcTop.scala 52:13]
+    end else if (state == 3'h1) begin // @[EnergyCalcTop.scala 122:32]
+      vdwEnergy <= 32'h0; // @[EnergyCalcTop.scala 52:13]
+    end else if (state == 3'h2) begin // @[EnergyCalcTop.scala 183:37]
+      vdwEnergy <= _GEN_85;
+    end else begin
+      vdwEnergy <= 32'h0; // @[EnergyCalcTop.scala 52:13]
+    end
+    if (reset) begin // @[EnergyCalcTop.scala 50:27]
+      solvEnergy <= 32'h0; // @[EnergyCalcTop.scala 50:27]
+    end else if (_io_req_ready_T) begin // @[EnergyCalcTop.scala 104:27]
+      solvEnergy <= 32'h0; // @[EnergyCalcTop.scala 53:14]
+    end else if (state == 3'h1) begin // @[EnergyCalcTop.scala 122:32]
+      solvEnergy <= 32'h0; // @[EnergyCalcTop.scala 53:14]
+    end else if (state == 3'h2) begin // @[EnergyCalcTop.scala 183:37]
+      solvEnergy <= _GEN_88;
+    end else begin
+      solvEnergy <= 32'h0; // @[EnergyCalcTop.scala 53:14]
+    end
+    if (reset) begin // @[EnergyCalcTop.scala 62:22]
+      state <= 3'h0; // @[EnergyCalcTop.scala 62:22]
+    end else if (_io_req_ready_T) begin // @[EnergyCalcTop.scala 104:27]
+      if (_T_1) begin // @[EnergyCalcTop.scala 105:23]
+        if (!(io_req_bits_inst_rs1 == 5'h0)) begin // @[EnergyCalcTop.scala 107:81]
           state <= _GEN_2;
         end
       end
-    end else if (state == 3'h1) begin // @[EnergyCalcTop.scala 89:32]
-      if (data_access_readRes_valid) begin // @[EnergyCalcTop.scala 95:38]
-        state <= 3'h2; // @[EnergyCalcTop.scala 105:13]
+    end else if (state == 3'h1) begin // @[EnergyCalcTop.scala 122:32]
+      if (solvated_access_readRes_valid) begin // @[EnergyCalcTop.scala 167:42]
+        state <= 3'h2; // @[EnergyCalcTop.scala 179:13]
       end
-    end else if (state == 3'h2) begin // @[EnergyCalcTop.scala 113:37]
-      state <= 3'h3; // @[EnergyCalcTop.scala 132:11]
+    end else if (state == 3'h2) begin // @[EnergyCalcTop.scala 183:37]
+      state <= _GEN_91;
     end else begin
-      state <= _GEN_40;
+      state <= _GEN_100;
     end
-    if (_io_req_ready_T) begin // @[EnergyCalcTop.scala 70:27]
-      if (_T_1) begin // @[EnergyCalcTop.scala 71:23]
-        if (io_req_bits_inst_rs1 == 5'h0) begin // @[EnergyCalcTop.scala 73:81]
-          addr_data <= io_req_bits_payload1[33:0]; // @[EnergyCalcTop.scala 74:19]
+    if (_io_req_ready_T) begin // @[EnergyCalcTop.scala 104:27]
+      if (_T_1) begin // @[EnergyCalcTop.scala 105:23]
+        if (io_req_bits_inst_rs1 == 5'h0) begin // @[EnergyCalcTop.scala 107:81]
+          addr_data <= io_req_bits_payload1[33:0]; // @[EnergyCalcTop.scala 108:19]
         end
       end
     end
-    if (_io_req_ready_T) begin // @[EnergyCalcTop.scala 70:27]
-      if (_T_1) begin // @[EnergyCalcTop.scala 71:23]
-        if (io_req_bits_inst_rs1 == 5'h0) begin // @[EnergyCalcTop.scala 73:81]
-          addr_HNBT <= io_req_bits_payload2[33:0]; // @[EnergyCalcTop.scala 75:19]
+    if (_io_req_ready_T) begin // @[EnergyCalcTop.scala 104:27]
+      if (_T_1) begin // @[EnergyCalcTop.scala 105:23]
+        if (io_req_bits_inst_rs1 == 5'h0) begin // @[EnergyCalcTop.scala 107:81]
+          addr_HNBT <= io_req_bits_payload2[33:0]; // @[EnergyCalcTop.scala 109:19]
         end
       end
     end
-    if (!(_io_req_ready_T)) begin // @[EnergyCalcTop.scala 70:27]
-      if (!(state == 3'h1)) begin // @[EnergyCalcTop.scala 89:32]
-        if (state == 3'h2) begin // @[EnergyCalcTop.scala 113:37]
-          sum <= _sum_T_5; // @[EnergyCalcTop.scala 130:9]
+    if (!(_io_req_ready_T)) begin // @[EnergyCalcTop.scala 104:27]
+      if (!(state == 3'h1)) begin // @[EnergyCalcTop.scala 122:32]
+        if (state == 3'h2) begin // @[EnergyCalcTop.scala 183:37]
+          if (iteration <= 32'h3e8) begin // @[EnergyCalcTop.scala 230:32]
+            sum <= _GEN_79;
+          end
         end
       end
     end
-    if (!(_io_req_ready_T)) begin // @[EnergyCalcTop.scala 70:27]
-      if (state == 3'h1) begin // @[EnergyCalcTop.scala 89:32]
-        if (data_access_readRes_valid) begin // @[EnergyCalcTop.scala 95:38]
-          a <= data_access_readRes_bits[31:0]; // @[EnergyCalcTop.scala 97:9]
-        end
-      end else if (state == 3'h2) begin // @[EnergyCalcTop.scala 113:37]
-        if (data_access_readReq_valid) begin // @[EnergyCalcTop.scala 119:38]
-          a <= data_access_readRes_bits[31:0]; // @[EnergyCalcTop.scala 121:9]
-        end
-      end else if (!(state == 3'h3)) begin // @[EnergyCalcTop.scala 134:33]
-        a <= _GEN_33;
+    if (reset) begin // @[EnergyCalcTop.scala 186:28]
+      iteration <= 32'h0; // @[EnergyCalcTop.scala 186:28]
+    end else if (iteration <= 32'h3e8) begin // @[EnergyCalcTop.scala 230:32]
+      if (cal_state == 32'h0) begin // @[EnergyCalcTop.scala 234:32]
+        iteration <= _GEN_32;
+      end else if (cal_state == 32'h1) begin // @[EnergyCalcTop.scala 237:37]
+        iteration <= _GEN_32;
+      end else begin
+        iteration <= _GEN_62;
       end
+    end else begin
+      iteration <= _GEN_32;
     end
-    if (!(_io_req_ready_T)) begin // @[EnergyCalcTop.scala 70:27]
-      if (state == 3'h1) begin // @[EnergyCalcTop.scala 89:32]
-        if (data_access_readRes_valid) begin // @[EnergyCalcTop.scala 95:38]
-          b <= data_access_readRes_bits[63:32]; // @[EnergyCalcTop.scala 98:9]
-        end
-      end else if (state == 3'h2) begin // @[EnergyCalcTop.scala 113:37]
-        if (data_access_readReq_valid) begin // @[EnergyCalcTop.scala 119:38]
-          b <= data_access_readRes_bits[63:32]; // @[EnergyCalcTop.scala 122:9]
-        end
-      end else if (!(state == 3'h3)) begin // @[EnergyCalcTop.scala 134:33]
-        b <= _GEN_34;
+    if (reset) begin // @[EnergyCalcTop.scala 187:28]
+      cal_state <= 32'h7; // @[EnergyCalcTop.scala 187:28]
+    end else if (iteration <= 32'h3e8) begin // @[EnergyCalcTop.scala 230:32]
+      if (cal_state == 32'h0) begin // @[EnergyCalcTop.scala 234:32]
+        cal_state <= 32'h1; // @[EnergyCalcTop.scala 236:19]
+      end else if (cal_state == 32'h1) begin // @[EnergyCalcTop.scala 237:37]
+        cal_state <= _cal_state_T_2; // @[EnergyCalcTop.scala 241:19]
+      end else begin
+        cal_state <= _GEN_56;
       end
+    end else if (_T_23 & start_now) begin // @[EnergyCalcTop.scala 190:47]
+      cal_state <= 32'h0; // @[EnergyCalcTop.scala 192:17]
     end
-    if (!(_io_req_ready_T)) begin // @[EnergyCalcTop.scala 70:27]
-      if (state == 3'h1) begin // @[EnergyCalcTop.scala 89:32]
-        if (data_access_readRes_valid) begin // @[EnergyCalcTop.scala 95:38]
-          c <= data_access_readRes_bits[95:64]; // @[EnergyCalcTop.scala 99:9]
-        end
-      end else if (state == 3'h2) begin // @[EnergyCalcTop.scala 113:37]
-        if (data_access_readReq_valid) begin // @[EnergyCalcTop.scala 119:38]
-          c <= data_access_readRes_bits[95:64]; // @[EnergyCalcTop.scala 123:9]
-        end
-      end else if (!(state == 3'h3)) begin // @[EnergyCalcTop.scala 134:33]
-        c <= _GEN_35;
-      end
-    end
-    if (!(_io_req_ready_T)) begin // @[EnergyCalcTop.scala 70:27]
-      if (state == 3'h1) begin // @[EnergyCalcTop.scala 89:32]
-        if (data_access_readRes_valid) begin // @[EnergyCalcTop.scala 95:38]
-          d <= data_access_readRes_bits[127:96]; // @[EnergyCalcTop.scala 100:9]
-        end
-      end else if (state == 3'h2) begin // @[EnergyCalcTop.scala 113:37]
-        if (data_access_readReq_valid) begin // @[EnergyCalcTop.scala 119:38]
-          d <= data_access_readRes_bits[127:96]; // @[EnergyCalcTop.scala 124:9]
-        end
-      end else if (!(state == 3'h3)) begin // @[EnergyCalcTop.scala 134:33]
-        d <= _GEN_36;
-      end
-    end
+    start_now <= reset | _GEN_34; // @[EnergyCalcTop.scala 188:{28,28}]
     `ifndef SYNTHESIS
     `ifdef PRINTF_COND
       if (`PRINTF_COND) begin
     `endif
         if (_io_req_ready_T & _T_1 & ~reset) begin
-          $fwrite(32'h80000002,"input fired\n"); // @[EnergyCalcTop.scala 72:13]
+          $fwrite(32'h80000002,"input fired\n"); // @[EnergyCalcTop.scala 106:13]
         end
     `ifdef PRINTF_COND
       end
@@ -4518,8 +6836,8 @@ module ComposerCoreWrapper(
     `ifdef PRINTF_COND
       if (`PRINTF_COND) begin
     `endif
-        if (_GEN_82 & _T_5 & _T_3) begin
-          $fwrite(32'h80000002,"input 1 data address %b\n",addr_data); // @[EnergyCalcTop.scala 77:15]
+        if (_GEN_135 & _T_5 & _T_3) begin
+          $fwrite(32'h80000002,"input 1 data address %b\n",addr_data); // @[EnergyCalcTop.scala 111:15]
         end
     `ifdef PRINTF_COND
       end
@@ -4529,8 +6847,8 @@ module ComposerCoreWrapper(
     `ifdef PRINTF_COND
       if (`PRINTF_COND) begin
     `endif
-        if (_GEN_84 & _T_3) begin
-          $fwrite(32'h80000002,"input 1 HNBT address %d\n",addr_HNBT); // @[EnergyCalcTop.scala 78:15]
+        if (_GEN_137 & _T_3) begin
+          $fwrite(32'h80000002,"input 1 HNBT address %d\n",addr_HNBT); // @[EnergyCalcTop.scala 112:15]
         end
     `ifdef PRINTF_COND
       end
@@ -4540,8 +6858,8 @@ module ComposerCoreWrapper(
     `ifdef PRINTF_COND
       if (`PRINTF_COND) begin
     `endif
-        if (_GEN_82 & ~_T_5 & _T_11 & _T_3) begin
-          $fwrite(32'h80000002,"input 2\n"); // @[EnergyCalcTop.scala 83:15]
+        if (_GEN_135 & ~_T_5 & _T_11 & _T_3) begin
+          $fwrite(32'h80000002,"input 2\n"); // @[EnergyCalcTop.scala 116:15]
         end
     `ifdef PRINTF_COND
       end
@@ -4552,7 +6870,7 @@ module ComposerCoreWrapper(
       if (`PRINTF_COND) begin
     `endif
         if (~_io_req_ready_T & _T_14 & _T_3) begin
-          $fwrite(32'h80000002,"read\n"); // @[EnergyCalcTop.scala 90:11]
+          $fwrite(32'h80000002,"read\n"); // @[EnergyCalcTop.scala 123:11]
         end
     `ifdef PRINTF_COND
       end
@@ -4562,8 +6880,8 @@ module ComposerCoreWrapper(
     `ifdef PRINTF_COND
       if (`PRINTF_COND) begin
     `endif
-        if (_GEN_92 & _T_3) begin
-          $fwrite(32'h80000002,"input 1 data address %b\n",addr_HNBT); // @[EnergyCalcTop.scala 94:11]
+        if (_GEN_145 & halfNonBonded_access_readRes_valid & _T_3) begin
+          $fwrite(32'h80000002,"halfnonbonded %b\n",halfNonBonded_access_readRes_bits); // @[EnergyCalcTop.scala 152:13]
         end
     `ifdef PRINTF_COND
       end
@@ -4573,8 +6891,8 @@ module ComposerCoreWrapper(
     `ifdef PRINTF_COND
       if (`PRINTF_COND) begin
     `endif
-        if (_GEN_92 & data_access_readRes_valid & _T_3) begin
-          $fwrite(32'h80000002,"%b\n",data_access_readRes_bits); // @[EnergyCalcTop.scala 101:13]
+        if (_GEN_145 & nonBonded_access_readRes_valid & _T_3) begin
+          $fwrite(32'h80000002,"nonbonded %b\n",nonBonded_access_readRes_bits); // @[EnergyCalcTop.scala 163:13]
         end
     `ifdef PRINTF_COND
       end
@@ -4584,8 +6902,8 @@ module ComposerCoreWrapper(
     `ifdef PRINTF_COND
       if (`PRINTF_COND) begin
     `endif
-        if (_GEN_97 & _T_3) begin
-          $fwrite(32'h80000002,"a%d b%d c%d d%d\n",a,b,c,d); // @[EnergyCalcTop.scala 103:13]
+        if (_GEN_145 & solvated_access_readRes_valid & _T_3) begin
+          $fwrite(32'h80000002,"solvated %b\n",solvated_access_readRes_bits); // @[EnergyCalcTop.scala 177:13]
         end
     `ifdef PRINTF_COND
       end
@@ -4595,8 +6913,8 @@ module ComposerCoreWrapper(
     `ifdef PRINTF_COND
       if (`PRINTF_COND) begin
     `endif
-        if (_GEN_91 & ~_T_14 & _T_23 & _T_3) begin
-          $fwrite(32'h80000002,"calculate\n"); // @[EnergyCalcTop.scala 114:11]
+        if (_GEN_144 & ~_T_14 & _T_23 & _T_3) begin
+          $fwrite(32'h80000002,"calculate\n"); // @[EnergyCalcTop.scala 184:11]
         end
     `ifdef PRINTF_COND
       end
@@ -4606,8 +6924,8 @@ module ComposerCoreWrapper(
     `ifdef PRINTF_COND
       if (`PRINTF_COND) begin
     `endif
-        if (_GEN_104 & data_access_readReq_valid & _T_3) begin
-          $fwrite(32'h80000002,"%b\n",data_access_readRes_bits); // @[EnergyCalcTop.scala 125:13]
+        if (_GEN_158 & _T_28 & _T_3) begin
+          $fwrite(32'h80000002,"iteration number: %b\n",iteration); // @[EnergyCalcTop.scala 231:13]
         end
     `ifdef PRINTF_COND
       end
@@ -4617,8 +6935,8 @@ module ComposerCoreWrapper(
     `ifdef PRINTF_COND
       if (`PRINTF_COND) begin
     `endif
-        if (_GEN_104 & _T_3) begin
-          $fwrite(32'h80000002,"a%d b%d c%d d%d\n",a,b,c,d); // @[EnergyCalcTop.scala 128:11]
+        if (_GEN_163 & ~_T_31 & _T_32 & _T_3) begin
+          $fwrite(32'h80000002,"halfnonbonded loop done, esEnergy %b\n",esEnergy); // @[EnergyCalcTop.scala 242:15]
         end
     `ifdef PRINTF_COND
       end
@@ -4628,8 +6946,8 @@ module ComposerCoreWrapper(
     `ifdef PRINTF_COND
       if (`PRINTF_COND) begin
     `endif
-        if (_GEN_103 & ~_T_23 & _T_30 & _T_3) begin
-          $fwrite(32'h80000002,"store\n"); // @[EnergyCalcTop.scala 135:11]
+        if (_GEN_170 & ~_T_32 & ~_T_35 & _T_36 & _T_3) begin
+          $fwrite(32'h80000002,"nonbonded loop done, esEnergy %b\n",esEnergy); // @[EnergyCalcTop.scala 251:15]
         end
     `ifdef PRINTF_COND
       end
@@ -4639,8 +6957,8 @@ module ComposerCoreWrapper(
     `ifdef PRINTF_COND
       if (`PRINTF_COND) begin
     `endif
-        if (_GEN_119 & _T_33 & _T_3) begin
-          $fwrite(32'h80000002,"output sum - %d\n",sum); // @[EnergyCalcTop.scala 139:13]
+        if (_GEN_182 & ~_T_36 & ~_T_39 & ~_T_40 & _T_41 & _T_3) begin
+          $fwrite(32'h80000002,"all completed, iteration plus one\n"); // @[EnergyCalcTop.scala 262:15]
         end
     `ifdef PRINTF_COND
       end
@@ -4650,8 +6968,8 @@ module ComposerCoreWrapper(
     `ifdef PRINTF_COND
       if (`PRINTF_COND) begin
     `endif
-        if (_GEN_118 & ~_T_30 & _T_36 & data_access_readReq_valid & _T_3) begin
-          $fwrite(32'h80000002,"%b\n",data_access_readRes_bits); // @[EnergyCalcTop.scala 154:13]
+        if (_GEN_200 & ~_T_41 & _T_3) begin
+          $fwrite(32'h80000002,"Not more calculation\n"); // @[EnergyCalcTop.scala 264:15]
         end
     `ifdef PRINTF_COND
       end
@@ -4661,8 +6979,8 @@ module ComposerCoreWrapper(
     `ifdef PRINTF_COND
       if (`PRINTF_COND) begin
     `endif
-        if (_GEN_134 & _T_3) begin
-          $fwrite(32'h80000002,"a%d b%d c%d d%d\n",a,b,c,d); // @[EnergyCalcTop.scala 157:11]
+        if (_GEN_157 & ~_T_23 & _T_47 & _T_3) begin
+          $fwrite(32'h80000002,"store\n"); // @[EnergyCalcTop.scala 279:11]
         end
     `ifdef PRINTF_COND
       end
@@ -4672,8 +6990,8 @@ module ComposerCoreWrapper(
     `ifdef PRINTF_COND
       if (`PRINTF_COND) begin
     `endif
-        if (_GEN_134 & _T_3) begin
-          $fwrite(32'h80000002,"commit\n"); // @[EnergyCalcTop.scala 159:11]
+        if (_GEN_226 & _T_50 & _T_3) begin
+          $fwrite(32'h80000002,"output sum - %d\n",sum); // @[EnergyCalcTop.scala 283:13]
         end
     `ifdef PRINTF_COND
       end
@@ -4683,8 +7001,19 @@ module ComposerCoreWrapper(
     `ifdef PRINTF_COND
       if (`PRINTF_COND) begin
     `endif
-        if (_GEN_133 & ~_T_36 & _T_43 & _T_3) begin
-          $fwrite(32'h80000002,"finish\n"); // @[EnergyCalcTop.scala 165:11]
+        if (_GEN_225 & ~_T_47 & _T_53 & _T_3) begin
+          $fwrite(32'h80000002,"commit\n"); // @[EnergyCalcTop.scala 289:11]
+        end
+    `ifdef PRINTF_COND
+      end
+    `endif
+    `endif // SYNTHESIS
+    `ifndef SYNTHESIS
+    `ifdef PRINTF_COND
+      if (`PRINTF_COND) begin
+    `endif
+        if (_GEN_240 & ~_T_53 & _T_56 & _T_3) begin
+          $fwrite(32'h80000002,"finish\n"); // @[EnergyCalcTop.scala 295:11]
         end
     `ifdef PRINTF_COND
       end
@@ -5134,6 +7463,7 @@ module ComposerSystem(
   output         auto_memory_endpoint_identity_out_4_d_ready,
   input          auto_memory_endpoint_identity_out_4_d_valid,
   input  [3:0]   auto_memory_endpoint_identity_out_4_d_bits_source,
+  input  [511:0] auto_memory_endpoint_identity_out_4_d_bits_data,
   input          auto_memory_endpoint_identity_out_3_a_ready,
   output         auto_memory_endpoint_identity_out_3_a_valid,
   output [2:0]   auto_memory_endpoint_identity_out_3_a_bits_size,
@@ -5143,6 +7473,7 @@ module ComposerSystem(
   output         auto_memory_endpoint_identity_out_3_d_ready,
   input          auto_memory_endpoint_identity_out_3_d_valid,
   input  [3:0]   auto_memory_endpoint_identity_out_3_d_bits_source,
+  input  [511:0] auto_memory_endpoint_identity_out_3_d_bits_data,
   input          auto_memory_endpoint_identity_out_2_a_ready,
   output         auto_memory_endpoint_identity_out_2_a_valid,
   output [2:0]   auto_memory_endpoint_identity_out_2_a_bits_size,
@@ -5152,6 +7483,7 @@ module ComposerSystem(
   output         auto_memory_endpoint_identity_out_2_d_ready,
   input          auto_memory_endpoint_identity_out_2_d_valid,
   input  [3:0]   auto_memory_endpoint_identity_out_2_d_bits_source,
+  input  [511:0] auto_memory_endpoint_identity_out_2_d_bits_data,
   input          auto_memory_endpoint_identity_out_1_a_ready,
   output         auto_memory_endpoint_identity_out_1_a_valid,
   output [2:0]   auto_memory_endpoint_identity_out_1_a_bits_size,
@@ -5161,7 +7493,6 @@ module ComposerSystem(
   output         auto_memory_endpoint_identity_out_1_d_ready,
   input          auto_memory_endpoint_identity_out_1_d_valid,
   input  [3:0]   auto_memory_endpoint_identity_out_1_d_bits_source,
-  input  [511:0] auto_memory_endpoint_identity_out_1_d_bits_data,
   input          auto_memory_endpoint_identity_out_0_a_ready,
   output         auto_memory_endpoint_identity_out_0_a_valid,
   output         auto_memory_endpoint_identity_out_0_a_bits_source,
@@ -5197,6 +7528,7 @@ module ComposerSystem(
   wire  cores_auto_solvated_mem_out_d_ready; // @[ComposerSystem.scala 22:15]
   wire  cores_auto_solvated_mem_out_d_valid; // @[ComposerSystem.scala 22:15]
   wire [3:0] cores_auto_solvated_mem_out_d_bits_source; // @[ComposerSystem.scala 22:15]
+  wire [511:0] cores_auto_solvated_mem_out_d_bits_data; // @[ComposerSystem.scala 22:15]
   wire  cores_auto_nonBonded_mem_out_a_ready; // @[ComposerSystem.scala 22:15]
   wire  cores_auto_nonBonded_mem_out_a_valid; // @[ComposerSystem.scala 22:15]
   wire [2:0] cores_auto_nonBonded_mem_out_a_bits_size; // @[ComposerSystem.scala 22:15]
@@ -5206,6 +7538,7 @@ module ComposerSystem(
   wire  cores_auto_nonBonded_mem_out_d_ready; // @[ComposerSystem.scala 22:15]
   wire  cores_auto_nonBonded_mem_out_d_valid; // @[ComposerSystem.scala 22:15]
   wire [3:0] cores_auto_nonBonded_mem_out_d_bits_source; // @[ComposerSystem.scala 22:15]
+  wire [511:0] cores_auto_nonBonded_mem_out_d_bits_data; // @[ComposerSystem.scala 22:15]
   wire  cores_auto_halfNonBonded_mem_out_a_ready; // @[ComposerSystem.scala 22:15]
   wire  cores_auto_halfNonBonded_mem_out_a_valid; // @[ComposerSystem.scala 22:15]
   wire [2:0] cores_auto_halfNonBonded_mem_out_a_bits_size; // @[ComposerSystem.scala 22:15]
@@ -5215,6 +7548,7 @@ module ComposerSystem(
   wire  cores_auto_halfNonBonded_mem_out_d_ready; // @[ComposerSystem.scala 22:15]
   wire  cores_auto_halfNonBonded_mem_out_d_valid; // @[ComposerSystem.scala 22:15]
   wire [3:0] cores_auto_halfNonBonded_mem_out_d_bits_source; // @[ComposerSystem.scala 22:15]
+  wire [511:0] cores_auto_halfNonBonded_mem_out_d_bits_data; // @[ComposerSystem.scala 22:15]
   wire  cores_auto_data_mem_out_a_ready; // @[ComposerSystem.scala 22:15]
   wire  cores_auto_data_mem_out_a_valid; // @[ComposerSystem.scala 22:15]
   wire [2:0] cores_auto_data_mem_out_a_bits_size; // @[ComposerSystem.scala 22:15]
@@ -5224,7 +7558,6 @@ module ComposerSystem(
   wire  cores_auto_data_mem_out_d_ready; // @[ComposerSystem.scala 22:15]
   wire  cores_auto_data_mem_out_d_valid; // @[ComposerSystem.scala 22:15]
   wire [3:0] cores_auto_data_mem_out_d_bits_source; // @[ComposerSystem.scala 22:15]
-  wire [511:0] cores_auto_data_mem_out_d_bits_data; // @[ComposerSystem.scala 22:15]
   wire  cores_auto_writers_out_a_ready; // @[ComposerSystem.scala 22:15]
   wire  cores_auto_writers_out_a_valid; // @[ComposerSystem.scala 22:15]
   wire  cores_auto_writers_out_a_bits_source; // @[ComposerSystem.scala 22:15]
@@ -5348,6 +7681,7 @@ module ComposerSystem(
     .auto_solvated_mem_out_d_ready(cores_auto_solvated_mem_out_d_ready),
     .auto_solvated_mem_out_d_valid(cores_auto_solvated_mem_out_d_valid),
     .auto_solvated_mem_out_d_bits_source(cores_auto_solvated_mem_out_d_bits_source),
+    .auto_solvated_mem_out_d_bits_data(cores_auto_solvated_mem_out_d_bits_data),
     .auto_nonBonded_mem_out_a_ready(cores_auto_nonBonded_mem_out_a_ready),
     .auto_nonBonded_mem_out_a_valid(cores_auto_nonBonded_mem_out_a_valid),
     .auto_nonBonded_mem_out_a_bits_size(cores_auto_nonBonded_mem_out_a_bits_size),
@@ -5357,6 +7691,7 @@ module ComposerSystem(
     .auto_nonBonded_mem_out_d_ready(cores_auto_nonBonded_mem_out_d_ready),
     .auto_nonBonded_mem_out_d_valid(cores_auto_nonBonded_mem_out_d_valid),
     .auto_nonBonded_mem_out_d_bits_source(cores_auto_nonBonded_mem_out_d_bits_source),
+    .auto_nonBonded_mem_out_d_bits_data(cores_auto_nonBonded_mem_out_d_bits_data),
     .auto_halfNonBonded_mem_out_a_ready(cores_auto_halfNonBonded_mem_out_a_ready),
     .auto_halfNonBonded_mem_out_a_valid(cores_auto_halfNonBonded_mem_out_a_valid),
     .auto_halfNonBonded_mem_out_a_bits_size(cores_auto_halfNonBonded_mem_out_a_bits_size),
@@ -5366,6 +7701,7 @@ module ComposerSystem(
     .auto_halfNonBonded_mem_out_d_ready(cores_auto_halfNonBonded_mem_out_d_ready),
     .auto_halfNonBonded_mem_out_d_valid(cores_auto_halfNonBonded_mem_out_d_valid),
     .auto_halfNonBonded_mem_out_d_bits_source(cores_auto_halfNonBonded_mem_out_d_bits_source),
+    .auto_halfNonBonded_mem_out_d_bits_data(cores_auto_halfNonBonded_mem_out_d_bits_data),
     .auto_data_mem_out_a_ready(cores_auto_data_mem_out_a_ready),
     .auto_data_mem_out_a_valid(cores_auto_data_mem_out_a_valid),
     .auto_data_mem_out_a_bits_size(cores_auto_data_mem_out_a_bits_size),
@@ -5375,7 +7711,6 @@ module ComposerSystem(
     .auto_data_mem_out_d_ready(cores_auto_data_mem_out_d_ready),
     .auto_data_mem_out_d_valid(cores_auto_data_mem_out_d_valid),
     .auto_data_mem_out_d_bits_source(cores_auto_data_mem_out_d_bits_source),
-    .auto_data_mem_out_d_bits_data(cores_auto_data_mem_out_d_bits_data),
     .auto_writers_out_a_ready(cores_auto_writers_out_a_ready),
     .auto_writers_out_a_valid(cores_auto_writers_out_a_valid),
     .auto_writers_out_a_bits_source(cores_auto_writers_out_a_bits_source),
@@ -5509,16 +7844,18 @@ module ComposerSystem(
   assign cores_auto_solvated_mem_out_a_ready = auto_memory_endpoint_identity_out_4_a_ready; // @[Nodes.scala 1212:84 LazyModule.scala 368:12]
   assign cores_auto_solvated_mem_out_d_valid = auto_memory_endpoint_identity_out_4_d_valid; // @[Nodes.scala 1212:84 LazyModule.scala 368:12]
   assign cores_auto_solvated_mem_out_d_bits_source = auto_memory_endpoint_identity_out_4_d_bits_source; // @[Nodes.scala 1212:84 LazyModule.scala 368:12]
+  assign cores_auto_solvated_mem_out_d_bits_data = auto_memory_endpoint_identity_out_4_d_bits_data; // @[Nodes.scala 1212:84 LazyModule.scala 368:12]
   assign cores_auto_nonBonded_mem_out_a_ready = auto_memory_endpoint_identity_out_3_a_ready; // @[Nodes.scala 1212:84 LazyModule.scala 368:12]
   assign cores_auto_nonBonded_mem_out_d_valid = auto_memory_endpoint_identity_out_3_d_valid; // @[Nodes.scala 1212:84 LazyModule.scala 368:12]
   assign cores_auto_nonBonded_mem_out_d_bits_source = auto_memory_endpoint_identity_out_3_d_bits_source; // @[Nodes.scala 1212:84 LazyModule.scala 368:12]
+  assign cores_auto_nonBonded_mem_out_d_bits_data = auto_memory_endpoint_identity_out_3_d_bits_data; // @[Nodes.scala 1212:84 LazyModule.scala 368:12]
   assign cores_auto_halfNonBonded_mem_out_a_ready = auto_memory_endpoint_identity_out_2_a_ready; // @[Nodes.scala 1212:84 LazyModule.scala 368:12]
   assign cores_auto_halfNonBonded_mem_out_d_valid = auto_memory_endpoint_identity_out_2_d_valid; // @[Nodes.scala 1212:84 LazyModule.scala 368:12]
   assign cores_auto_halfNonBonded_mem_out_d_bits_source = auto_memory_endpoint_identity_out_2_d_bits_source; // @[Nodes.scala 1212:84 LazyModule.scala 368:12]
+  assign cores_auto_halfNonBonded_mem_out_d_bits_data = auto_memory_endpoint_identity_out_2_d_bits_data; // @[Nodes.scala 1212:84 LazyModule.scala 368:12]
   assign cores_auto_data_mem_out_a_ready = auto_memory_endpoint_identity_out_1_a_ready; // @[Nodes.scala 1212:84 LazyModule.scala 368:12]
   assign cores_auto_data_mem_out_d_valid = auto_memory_endpoint_identity_out_1_d_valid; // @[Nodes.scala 1212:84 LazyModule.scala 368:12]
   assign cores_auto_data_mem_out_d_bits_source = auto_memory_endpoint_identity_out_1_d_bits_source; // @[Nodes.scala 1212:84 LazyModule.scala 368:12]
-  assign cores_auto_data_mem_out_d_bits_data = auto_memory_endpoint_identity_out_1_d_bits_data; // @[Nodes.scala 1212:84 LazyModule.scala 368:12]
   assign cores_auto_writers_out_a_ready = auto_memory_endpoint_identity_out_0_a_ready; // @[Nodes.scala 1212:84 LazyModule.scala 368:12]
   assign cores_auto_writers_out_d_valid = auto_memory_endpoint_identity_out_0_d_valid; // @[Nodes.scala 1212:84 LazyModule.scala 368:12]
   assign cores_auto_writers_out_d_bits_source = auto_memory_endpoint_identity_out_0_d_bits_source; // @[Nodes.scala 1212:84 LazyModule.scala 368:12]
@@ -5960,6 +8297,7 @@ module ComposerAcc(
   output         auto_EnergyCalc_memory_endpoint_identity_out_4_d_ready,
   input          auto_EnergyCalc_memory_endpoint_identity_out_4_d_valid,
   input  [3:0]   auto_EnergyCalc_memory_endpoint_identity_out_4_d_bits_source,
+  input  [511:0] auto_EnergyCalc_memory_endpoint_identity_out_4_d_bits_data,
   input          auto_EnergyCalc_memory_endpoint_identity_out_3_a_ready,
   output         auto_EnergyCalc_memory_endpoint_identity_out_3_a_valid,
   output [2:0]   auto_EnergyCalc_memory_endpoint_identity_out_3_a_bits_size,
@@ -5969,6 +8307,7 @@ module ComposerAcc(
   output         auto_EnergyCalc_memory_endpoint_identity_out_3_d_ready,
   input          auto_EnergyCalc_memory_endpoint_identity_out_3_d_valid,
   input  [3:0]   auto_EnergyCalc_memory_endpoint_identity_out_3_d_bits_source,
+  input  [511:0] auto_EnergyCalc_memory_endpoint_identity_out_3_d_bits_data,
   input          auto_EnergyCalc_memory_endpoint_identity_out_2_a_ready,
   output         auto_EnergyCalc_memory_endpoint_identity_out_2_a_valid,
   output [2:0]   auto_EnergyCalc_memory_endpoint_identity_out_2_a_bits_size,
@@ -5978,6 +8317,7 @@ module ComposerAcc(
   output         auto_EnergyCalc_memory_endpoint_identity_out_2_d_ready,
   input          auto_EnergyCalc_memory_endpoint_identity_out_2_d_valid,
   input  [3:0]   auto_EnergyCalc_memory_endpoint_identity_out_2_d_bits_source,
+  input  [511:0] auto_EnergyCalc_memory_endpoint_identity_out_2_d_bits_data,
   input          auto_EnergyCalc_memory_endpoint_identity_out_1_a_ready,
   output         auto_EnergyCalc_memory_endpoint_identity_out_1_a_valid,
   output [2:0]   auto_EnergyCalc_memory_endpoint_identity_out_1_a_bits_size,
@@ -5987,7 +8327,6 @@ module ComposerAcc(
   output         auto_EnergyCalc_memory_endpoint_identity_out_1_d_ready,
   input          auto_EnergyCalc_memory_endpoint_identity_out_1_d_valid,
   input  [3:0]   auto_EnergyCalc_memory_endpoint_identity_out_1_d_bits_source,
-  input  [511:0] auto_EnergyCalc_memory_endpoint_identity_out_1_d_bits_data,
   input          auto_EnergyCalc_memory_endpoint_identity_out_0_a_ready,
   output         auto_EnergyCalc_memory_endpoint_identity_out_0_a_valid,
   output         auto_EnergyCalc_memory_endpoint_identity_out_0_a_bits_source,
@@ -6021,6 +8360,7 @@ module ComposerAcc(
   wire  EnergyCalc_auto_memory_endpoint_identity_out_4_d_ready; // @[Accelerator.scala 33:16]
   wire  EnergyCalc_auto_memory_endpoint_identity_out_4_d_valid; // @[Accelerator.scala 33:16]
   wire [3:0] EnergyCalc_auto_memory_endpoint_identity_out_4_d_bits_source; // @[Accelerator.scala 33:16]
+  wire [511:0] EnergyCalc_auto_memory_endpoint_identity_out_4_d_bits_data; // @[Accelerator.scala 33:16]
   wire  EnergyCalc_auto_memory_endpoint_identity_out_3_a_ready; // @[Accelerator.scala 33:16]
   wire  EnergyCalc_auto_memory_endpoint_identity_out_3_a_valid; // @[Accelerator.scala 33:16]
   wire [2:0] EnergyCalc_auto_memory_endpoint_identity_out_3_a_bits_size; // @[Accelerator.scala 33:16]
@@ -6030,6 +8370,7 @@ module ComposerAcc(
   wire  EnergyCalc_auto_memory_endpoint_identity_out_3_d_ready; // @[Accelerator.scala 33:16]
   wire  EnergyCalc_auto_memory_endpoint_identity_out_3_d_valid; // @[Accelerator.scala 33:16]
   wire [3:0] EnergyCalc_auto_memory_endpoint_identity_out_3_d_bits_source; // @[Accelerator.scala 33:16]
+  wire [511:0] EnergyCalc_auto_memory_endpoint_identity_out_3_d_bits_data; // @[Accelerator.scala 33:16]
   wire  EnergyCalc_auto_memory_endpoint_identity_out_2_a_ready; // @[Accelerator.scala 33:16]
   wire  EnergyCalc_auto_memory_endpoint_identity_out_2_a_valid; // @[Accelerator.scala 33:16]
   wire [2:0] EnergyCalc_auto_memory_endpoint_identity_out_2_a_bits_size; // @[Accelerator.scala 33:16]
@@ -6039,6 +8380,7 @@ module ComposerAcc(
   wire  EnergyCalc_auto_memory_endpoint_identity_out_2_d_ready; // @[Accelerator.scala 33:16]
   wire  EnergyCalc_auto_memory_endpoint_identity_out_2_d_valid; // @[Accelerator.scala 33:16]
   wire [3:0] EnergyCalc_auto_memory_endpoint_identity_out_2_d_bits_source; // @[Accelerator.scala 33:16]
+  wire [511:0] EnergyCalc_auto_memory_endpoint_identity_out_2_d_bits_data; // @[Accelerator.scala 33:16]
   wire  EnergyCalc_auto_memory_endpoint_identity_out_1_a_ready; // @[Accelerator.scala 33:16]
   wire  EnergyCalc_auto_memory_endpoint_identity_out_1_a_valid; // @[Accelerator.scala 33:16]
   wire [2:0] EnergyCalc_auto_memory_endpoint_identity_out_1_a_bits_size; // @[Accelerator.scala 33:16]
@@ -6048,7 +8390,6 @@ module ComposerAcc(
   wire  EnergyCalc_auto_memory_endpoint_identity_out_1_d_ready; // @[Accelerator.scala 33:16]
   wire  EnergyCalc_auto_memory_endpoint_identity_out_1_d_valid; // @[Accelerator.scala 33:16]
   wire [3:0] EnergyCalc_auto_memory_endpoint_identity_out_1_d_bits_source; // @[Accelerator.scala 33:16]
-  wire [511:0] EnergyCalc_auto_memory_endpoint_identity_out_1_d_bits_data; // @[Accelerator.scala 33:16]
   wire  EnergyCalc_auto_memory_endpoint_identity_out_0_a_ready; // @[Accelerator.scala 33:16]
   wire  EnergyCalc_auto_memory_endpoint_identity_out_0_a_valid; // @[Accelerator.scala 33:16]
   wire  EnergyCalc_auto_memory_endpoint_identity_out_0_a_bits_source; // @[Accelerator.scala 33:16]
@@ -6126,58 +8467,58 @@ module ComposerAcc(
   wire [63:0] cmdRouter_io_out_1_bits_rs1; // @[Accelerator.scala 69:25]
   wire [63:0] cmdRouter_io_out_1_bits_rs2; // @[Accelerator.scala 69:25]
   wire
-    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_clock
+    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_clock
     ; // @[Accelerator.scala 100:27]
   wire
-    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_reset
+    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_reset
     ; // @[Accelerator.scala 100:27]
   wire
-    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_ready
+    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_ready
     ; // @[Accelerator.scala 100:27]
   wire
-    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_valid
+    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_valid
     ; // @[Accelerator.scala 100:27]
   wire [4:0]
-    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_bits_inst_rs1
+    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_bits_inst_rs1
     ; // @[Accelerator.scala 100:27]
   wire [4:0]
-    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_bits_inst_rs2
+    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_bits_inst_rs2
     ; // @[Accelerator.scala 100:27]
   wire [2:0]
-    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_bits_inst_funct
+    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_bits_inst_funct
     ; // @[Accelerator.scala 100:27]
   wire [7:0]
-    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_bits_core_id
+    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_bits_core_id
     ; // @[Accelerator.scala 100:27]
   wire [55:0]
-    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_bits_payload1
+    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_bits_payload1
     ; // @[Accelerator.scala 100:27]
   wire [63:0]
-    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_bits_payload2
+    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_bits_payload2
     ; // @[Accelerator.scala 100:27]
   wire
-    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_ready
+    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_ready
     ; // @[Accelerator.scala 100:27]
   wire
-    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_valid
+    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_valid
     ; // @[Accelerator.scala 100:27]
   wire [4:0]
-    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_bits_inst_rs1
+    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_bits_inst_rs1
     ; // @[Accelerator.scala 100:27]
   wire [4:0]
-    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_bits_inst_rs2
+    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_bits_inst_rs2
     ; // @[Accelerator.scala 100:27]
   wire [2:0]
-    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_bits_inst_funct
+    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_bits_inst_funct
     ; // @[Accelerator.scala 100:27]
   wire [7:0]
-    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_bits_core_id
+    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_bits_core_id
     ; // @[Accelerator.scala 100:27]
   wire [55:0]
-    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_bits_payload1
+    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_bits_payload1
     ; // @[Accelerator.scala 100:27]
   wire [63:0]
-    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_bits_payload2
+    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_bits_payload2
     ; // @[Accelerator.scala 100:27]
   wire  respArbiter_io_in_0_ready; // @[Accelerator.scala 127:29]
   wire  respArbiter_io_in_0_valid; // @[Accelerator.scala 127:29]
@@ -6207,6 +8548,7 @@ module ComposerAcc(
     .auto_memory_endpoint_identity_out_4_d_ready(EnergyCalc_auto_memory_endpoint_identity_out_4_d_ready),
     .auto_memory_endpoint_identity_out_4_d_valid(EnergyCalc_auto_memory_endpoint_identity_out_4_d_valid),
     .auto_memory_endpoint_identity_out_4_d_bits_source(EnergyCalc_auto_memory_endpoint_identity_out_4_d_bits_source),
+    .auto_memory_endpoint_identity_out_4_d_bits_data(EnergyCalc_auto_memory_endpoint_identity_out_4_d_bits_data),
     .auto_memory_endpoint_identity_out_3_a_ready(EnergyCalc_auto_memory_endpoint_identity_out_3_a_ready),
     .auto_memory_endpoint_identity_out_3_a_valid(EnergyCalc_auto_memory_endpoint_identity_out_3_a_valid),
     .auto_memory_endpoint_identity_out_3_a_bits_size(EnergyCalc_auto_memory_endpoint_identity_out_3_a_bits_size),
@@ -6216,6 +8558,7 @@ module ComposerAcc(
     .auto_memory_endpoint_identity_out_3_d_ready(EnergyCalc_auto_memory_endpoint_identity_out_3_d_ready),
     .auto_memory_endpoint_identity_out_3_d_valid(EnergyCalc_auto_memory_endpoint_identity_out_3_d_valid),
     .auto_memory_endpoint_identity_out_3_d_bits_source(EnergyCalc_auto_memory_endpoint_identity_out_3_d_bits_source),
+    .auto_memory_endpoint_identity_out_3_d_bits_data(EnergyCalc_auto_memory_endpoint_identity_out_3_d_bits_data),
     .auto_memory_endpoint_identity_out_2_a_ready(EnergyCalc_auto_memory_endpoint_identity_out_2_a_ready),
     .auto_memory_endpoint_identity_out_2_a_valid(EnergyCalc_auto_memory_endpoint_identity_out_2_a_valid),
     .auto_memory_endpoint_identity_out_2_a_bits_size(EnergyCalc_auto_memory_endpoint_identity_out_2_a_bits_size),
@@ -6225,6 +8568,7 @@ module ComposerAcc(
     .auto_memory_endpoint_identity_out_2_d_ready(EnergyCalc_auto_memory_endpoint_identity_out_2_d_ready),
     .auto_memory_endpoint_identity_out_2_d_valid(EnergyCalc_auto_memory_endpoint_identity_out_2_d_valid),
     .auto_memory_endpoint_identity_out_2_d_bits_source(EnergyCalc_auto_memory_endpoint_identity_out_2_d_bits_source),
+    .auto_memory_endpoint_identity_out_2_d_bits_data(EnergyCalc_auto_memory_endpoint_identity_out_2_d_bits_data),
     .auto_memory_endpoint_identity_out_1_a_ready(EnergyCalc_auto_memory_endpoint_identity_out_1_a_ready),
     .auto_memory_endpoint_identity_out_1_a_valid(EnergyCalc_auto_memory_endpoint_identity_out_1_a_valid),
     .auto_memory_endpoint_identity_out_1_a_bits_size(EnergyCalc_auto_memory_endpoint_identity_out_1_a_bits_size),
@@ -6234,7 +8578,6 @@ module ComposerAcc(
     .auto_memory_endpoint_identity_out_1_d_ready(EnergyCalc_auto_memory_endpoint_identity_out_1_d_ready),
     .auto_memory_endpoint_identity_out_1_d_valid(EnergyCalc_auto_memory_endpoint_identity_out_1_d_valid),
     .auto_memory_endpoint_identity_out_1_d_bits_source(EnergyCalc_auto_memory_endpoint_identity_out_1_d_bits_source),
-    .auto_memory_endpoint_identity_out_1_d_bits_data(EnergyCalc_auto_memory_endpoint_identity_out_1_d_bits_data),
     .auto_memory_endpoint_identity_out_0_a_ready(EnergyCalc_auto_memory_endpoint_identity_out_0_a_ready),
     .auto_memory_endpoint_identity_out_0_a_valid(EnergyCalc_auto_memory_endpoint_identity_out_0_a_valid),
     .auto_memory_endpoint_identity_out_0_a_bits_source(EnergyCalc_auto_memory_endpoint_identity_out_0_a_bits_source),
@@ -6319,61 +8662,61 @@ module ComposerAcc(
     .io_out_1_bits_rs2(cmdRouter_io_out_1_bits_rs2)
   );
   Queue
-    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue
+    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue
      ( // @[Accelerator.scala 100:27]
     .clock(
-      systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_clock
+      systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_clock
       ),
     .reset(
-      systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_reset
+      systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_reset
       ),
     .io_enq_ready(
-      systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_ready
+      systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_ready
       ),
     .io_enq_valid(
-      systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_valid
+      systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_valid
       ),
     .io_enq_bits_inst_rs1(
-      systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_bits_inst_rs1
+      systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_bits_inst_rs1
       ),
     .io_enq_bits_inst_rs2(
-      systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_bits_inst_rs2
+      systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_bits_inst_rs2
       ),
     .io_enq_bits_inst_funct(
-      systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_bits_inst_funct
+      systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_bits_inst_funct
       ),
     .io_enq_bits_core_id(
-      systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_bits_core_id
+      systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_bits_core_id
       ),
     .io_enq_bits_payload1(
-      systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_bits_payload1
+      systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_bits_payload1
       ),
     .io_enq_bits_payload2(
-      systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_bits_payload2
+      systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_bits_payload2
       ),
     .io_deq_ready(
-      systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_ready
+      systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_ready
       ),
     .io_deq_valid(
-      systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_valid
+      systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_valid
       ),
     .io_deq_bits_inst_rs1(
-      systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_bits_inst_rs1
+      systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_bits_inst_rs1
       ),
     .io_deq_bits_inst_rs2(
-      systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_bits_inst_rs2
+      systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_bits_inst_rs2
       ),
     .io_deq_bits_inst_funct(
-      systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_bits_inst_funct
+      systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_bits_inst_funct
       ),
     .io_deq_bits_core_id(
-      systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_bits_core_id
+      systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_bits_core_id
       ),
     .io_deq_bits_payload1(
-      systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_bits_payload1
+      systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_bits_payload1
       ),
     .io_deq_bits_payload2(
-      systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_bits_payload2
+      systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_bits_payload2
       )
   );
   RRArbiter_2 respArbiter ( // @[Accelerator.scala 127:29]
@@ -6458,26 +8801,30 @@ module ComposerAcc(
     ; // @[LazyModule.scala 368:12]
   assign EnergyCalc_auto_memory_endpoint_identity_out_4_d_bits_source =
     auto_EnergyCalc_memory_endpoint_identity_out_4_d_bits_source; // @[LazyModule.scala 368:12]
+  assign EnergyCalc_auto_memory_endpoint_identity_out_4_d_bits_data =
+    auto_EnergyCalc_memory_endpoint_identity_out_4_d_bits_data; // @[LazyModule.scala 368:12]
   assign EnergyCalc_auto_memory_endpoint_identity_out_3_a_ready = auto_EnergyCalc_memory_endpoint_identity_out_3_a_ready
     ; // @[LazyModule.scala 368:12]
   assign EnergyCalc_auto_memory_endpoint_identity_out_3_d_valid = auto_EnergyCalc_memory_endpoint_identity_out_3_d_valid
     ; // @[LazyModule.scala 368:12]
   assign EnergyCalc_auto_memory_endpoint_identity_out_3_d_bits_source =
     auto_EnergyCalc_memory_endpoint_identity_out_3_d_bits_source; // @[LazyModule.scala 368:12]
+  assign EnergyCalc_auto_memory_endpoint_identity_out_3_d_bits_data =
+    auto_EnergyCalc_memory_endpoint_identity_out_3_d_bits_data; // @[LazyModule.scala 368:12]
   assign EnergyCalc_auto_memory_endpoint_identity_out_2_a_ready = auto_EnergyCalc_memory_endpoint_identity_out_2_a_ready
     ; // @[LazyModule.scala 368:12]
   assign EnergyCalc_auto_memory_endpoint_identity_out_2_d_valid = auto_EnergyCalc_memory_endpoint_identity_out_2_d_valid
     ; // @[LazyModule.scala 368:12]
   assign EnergyCalc_auto_memory_endpoint_identity_out_2_d_bits_source =
     auto_EnergyCalc_memory_endpoint_identity_out_2_d_bits_source; // @[LazyModule.scala 368:12]
+  assign EnergyCalc_auto_memory_endpoint_identity_out_2_d_bits_data =
+    auto_EnergyCalc_memory_endpoint_identity_out_2_d_bits_data; // @[LazyModule.scala 368:12]
   assign EnergyCalc_auto_memory_endpoint_identity_out_1_a_ready = auto_EnergyCalc_memory_endpoint_identity_out_1_a_ready
     ; // @[LazyModule.scala 368:12]
   assign EnergyCalc_auto_memory_endpoint_identity_out_1_d_valid = auto_EnergyCalc_memory_endpoint_identity_out_1_d_valid
     ; // @[LazyModule.scala 368:12]
   assign EnergyCalc_auto_memory_endpoint_identity_out_1_d_bits_source =
     auto_EnergyCalc_memory_endpoint_identity_out_1_d_bits_source; // @[LazyModule.scala 368:12]
-  assign EnergyCalc_auto_memory_endpoint_identity_out_1_d_bits_data =
-    auto_EnergyCalc_memory_endpoint_identity_out_1_d_bits_data; // @[LazyModule.scala 368:12]
   assign EnergyCalc_auto_memory_endpoint_identity_out_0_a_ready = auto_EnergyCalc_memory_endpoint_identity_out_0_a_ready
     ; // @[LazyModule.scala 368:12]
   assign EnergyCalc_auto_memory_endpoint_identity_out_0_d_valid = auto_EnergyCalc_memory_endpoint_identity_out_0_d_valid
@@ -6485,25 +8832,25 @@ module ComposerAcc(
   assign EnergyCalc_auto_memory_endpoint_identity_out_0_d_bits_source =
     auto_EnergyCalc_memory_endpoint_identity_out_0_d_bits_source; // @[LazyModule.scala 368:12]
   assign EnergyCalc_sw_io_cmd_valid = waitingToFlush ? 1'h0 :
-    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_valid
+    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_valid
     ; // @[Accelerator.scala 116:26 113:37 118:45]
   assign EnergyCalc_sw_io_cmd_bits_inst_rs1 =
-    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_bits_inst_rs1
+    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_bits_inst_rs1
     ; // @[Accelerator.scala 113:37]
   assign EnergyCalc_sw_io_cmd_bits_inst_rs2 =
-    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_bits_inst_rs2
+    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_bits_inst_rs2
     ; // @[Accelerator.scala 113:37]
   assign EnergyCalc_sw_io_cmd_bits_inst_funct =
-    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_bits_inst_funct
+    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_bits_inst_funct
     ; // @[Accelerator.scala 113:37]
   assign EnergyCalc_sw_io_cmd_bits_core_id =
-    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_bits_core_id
+    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_bits_core_id
     ; // @[Accelerator.scala 113:37]
   assign EnergyCalc_sw_io_cmd_bits_payload1 =
-    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_bits_payload1
+    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_bits_payload1
     ; // @[Accelerator.scala 113:37]
   assign EnergyCalc_sw_io_cmd_bits_payload2 =
-    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_bits_payload2
+    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_bits_payload2
     ; // @[Accelerator.scala 113:37]
   assign EnergyCalc_sw_io_resp_ready = respArbiter_io_in_0_ready; // @[Accelerator.scala 132:19]
   assign cmd_clock = clock;
@@ -6535,37 +8882,37 @@ module ComposerAcc(
   assign cmdRouter_io_in_bits_rs2 = cmdArb_io_out_bits_rs2; // @[Accelerator.scala 70:19]
   assign cmdRouter_io_out_0_ready = ~waitingToFlush; // @[Accelerator.scala 94:32]
   assign cmdRouter_io_out_1_ready = accCmd_bits_inst_system_id == 4'h0 &
-    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_ready
+    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_ready
     ; // @[Accelerator.scala 108:36 109:20 91:16]
   assign
-    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_clock
+    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_clock
      = clock;
   assign
-    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_reset
+    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_reset
      = reset;
   assign
-    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_valid
+    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_valid
      = accCmd_valid & 4'h0 == accCmd_bits_inst_system_id; // @[Accelerator.scala 106:44]
   assign
-    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_bits_inst_rs1
+    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_bits_inst_rs1
      = cmdRouter_io_out_1_bits_inst_rs1; // @[Accelerator.scala 72:20 75:24]
   assign
-    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_bits_inst_rs2
+    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_bits_inst_rs2
      = cmdRouter_io_out_1_bits_inst_rs2; // @[Accelerator.scala 72:20 76:24]
   assign
-    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_bits_inst_funct
+    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_bits_inst_funct
      = cmdRouter_io_out_1_bits_inst_funct[2:0]; // @[Accelerator.scala 83:64]
   assign
-    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_bits_core_id
+    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_bits_core_id
      = cmdRouter_io_out_1_bits_rs1[63:56]; // @[Accelerator.scala 86:54]
   assign
-    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_bits_payload1
+    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_bits_payload1
      = cmdRouter_io_out_1_bits_rs1[55:0]; // @[Accelerator.scala 87:55]
   assign
-    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_bits_payload2
+    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_enq_bits_payload2
      = cmdRouter_io_out_1_bits_rs2; // @[Accelerator.scala 72:20 88:24]
   assign
-    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda60810x0000000802076e905299be2bComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_ready
+    systemSoftwareResps_ComposerSystemParams1EnergyCalcdesignenergyCalcwithEnergyCalcanonfunlessinitgreater1anonfunapply1Lambda59860x00000008020632e069a0b493ComposerCoreParamsListCChannelParamsWriteChannel1WriteChannelCChannelParamsdata1ScratchpadCChannelParamshalfNonBonded1ScratchpadCChannelParamsnonBonded1ScratchpadCChannelParamssolvated1Scratchpad00132truefalse_command_queue_io_deq_ready
      = waitingToFlush ? 1'h0 : EnergyCalc_sw_io_cmd_ready; // @[Accelerator.scala 116:26 117:30 113:37]
   assign respArbiter_io_in_0_valid = EnergyCalc_sw_io_resp_valid; // @[Accelerator.scala 131:19]
   assign respArbiter_io_in_0_bits_rd = EnergyCalc_sw_io_resp_bits_rd; // @[Accelerator.scala 130:21]
@@ -6591,6 +8938,7 @@ module TLXbar(
   input          auto_in_4_d_ready,
   output         auto_in_4_d_valid,
   output [3:0]   auto_in_4_d_bits_source,
+  output [511:0] auto_in_4_d_bits_data,
   output         auto_in_3_a_ready,
   input          auto_in_3_a_valid,
   input  [2:0]   auto_in_3_a_bits_size,
@@ -6600,6 +8948,7 @@ module TLXbar(
   input          auto_in_3_d_ready,
   output         auto_in_3_d_valid,
   output [3:0]   auto_in_3_d_bits_source,
+  output [511:0] auto_in_3_d_bits_data,
   output         auto_in_2_a_ready,
   input          auto_in_2_a_valid,
   input  [2:0]   auto_in_2_a_bits_size,
@@ -6609,6 +8958,7 @@ module TLXbar(
   input          auto_in_2_d_ready,
   output         auto_in_2_d_valid,
   output [3:0]   auto_in_2_d_bits_source,
+  output [511:0] auto_in_2_d_bits_data,
   output         auto_in_1_a_ready,
   input          auto_in_1_a_valid,
   input  [2:0]   auto_in_1_a_bits_size,
@@ -6618,7 +8968,6 @@ module TLXbar(
   input          auto_in_1_d_ready,
   output         auto_in_1_d_valid,
   output [3:0]   auto_in_1_d_bits_source,
-  output [511:0] auto_in_1_d_bits_data,
   output         auto_in_0_a_ready,
   input          auto_in_0_a_valid,
   input          auto_in_0_a_bits_source,
@@ -6764,16 +9113,18 @@ module TLXbar(
   assign auto_in_4_a_ready = auto_out_a_ready & allowed_4; // @[Arbiter.scala 124:31]
   assign auto_in_4_d_valid = auto_out_d_valid & requestDOI_0_4; // @[Xbar.scala 182:40]
   assign auto_in_4_d_bits_source = auto_out_d_bits_source[3:0]; // @[Xbar.scala 231:69]
+  assign auto_in_4_d_bits_data = auto_out_d_bits_data; // @[Nodes.scala 1212:84 LazyModule.scala 368:12]
   assign auto_in_3_a_ready = auto_out_a_ready & allowed_3; // @[Arbiter.scala 124:31]
   assign auto_in_3_d_valid = auto_out_d_valid & requestDOI_0_3; // @[Xbar.scala 182:40]
   assign auto_in_3_d_bits_source = auto_out_d_bits_source[3:0]; // @[Xbar.scala 231:69]
+  assign auto_in_3_d_bits_data = auto_out_d_bits_data; // @[Nodes.scala 1212:84 LazyModule.scala 368:12]
   assign auto_in_2_a_ready = auto_out_a_ready & allowed_2; // @[Arbiter.scala 124:31]
   assign auto_in_2_d_valid = auto_out_d_valid & requestDOI_0_2; // @[Xbar.scala 182:40]
   assign auto_in_2_d_bits_source = auto_out_d_bits_source[3:0]; // @[Xbar.scala 231:69]
+  assign auto_in_2_d_bits_data = auto_out_d_bits_data; // @[Nodes.scala 1212:84 LazyModule.scala 368:12]
   assign auto_in_1_a_ready = auto_out_a_ready & allowed_1; // @[Arbiter.scala 124:31]
   assign auto_in_1_d_valid = auto_out_d_valid & requestDOI_0_1; // @[Xbar.scala 182:40]
   assign auto_in_1_d_bits_source = auto_out_d_bits_source[3:0]; // @[Xbar.scala 231:69]
-  assign auto_in_1_d_bits_data = auto_out_d_bits_data; // @[Nodes.scala 1212:84 LazyModule.scala 368:12]
   assign auto_in_0_a_ready = auto_out_a_ready & allowed_0; // @[Arbiter.scala 124:31]
   assign auto_in_0_d_valid = auto_out_d_valid & requestDOI_0_0; // @[Xbar.scala 182:40]
   assign auto_in_0_d_bits_source = auto_out_d_bits_source[0]; // @[Xbar.scala 231:69]
@@ -6941,6 +9292,7 @@ module ComposerAccSystem(
   wire  acc_auto_EnergyCalc_memory_endpoint_identity_out_4_d_ready; // @[Accelerator.scala 145:23]
   wire  acc_auto_EnergyCalc_memory_endpoint_identity_out_4_d_valid; // @[Accelerator.scala 145:23]
   wire [3:0] acc_auto_EnergyCalc_memory_endpoint_identity_out_4_d_bits_source; // @[Accelerator.scala 145:23]
+  wire [511:0] acc_auto_EnergyCalc_memory_endpoint_identity_out_4_d_bits_data; // @[Accelerator.scala 145:23]
   wire  acc_auto_EnergyCalc_memory_endpoint_identity_out_3_a_ready; // @[Accelerator.scala 145:23]
   wire  acc_auto_EnergyCalc_memory_endpoint_identity_out_3_a_valid; // @[Accelerator.scala 145:23]
   wire [2:0] acc_auto_EnergyCalc_memory_endpoint_identity_out_3_a_bits_size; // @[Accelerator.scala 145:23]
@@ -6950,6 +9302,7 @@ module ComposerAccSystem(
   wire  acc_auto_EnergyCalc_memory_endpoint_identity_out_3_d_ready; // @[Accelerator.scala 145:23]
   wire  acc_auto_EnergyCalc_memory_endpoint_identity_out_3_d_valid; // @[Accelerator.scala 145:23]
   wire [3:0] acc_auto_EnergyCalc_memory_endpoint_identity_out_3_d_bits_source; // @[Accelerator.scala 145:23]
+  wire [511:0] acc_auto_EnergyCalc_memory_endpoint_identity_out_3_d_bits_data; // @[Accelerator.scala 145:23]
   wire  acc_auto_EnergyCalc_memory_endpoint_identity_out_2_a_ready; // @[Accelerator.scala 145:23]
   wire  acc_auto_EnergyCalc_memory_endpoint_identity_out_2_a_valid; // @[Accelerator.scala 145:23]
   wire [2:0] acc_auto_EnergyCalc_memory_endpoint_identity_out_2_a_bits_size; // @[Accelerator.scala 145:23]
@@ -6959,6 +9312,7 @@ module ComposerAccSystem(
   wire  acc_auto_EnergyCalc_memory_endpoint_identity_out_2_d_ready; // @[Accelerator.scala 145:23]
   wire  acc_auto_EnergyCalc_memory_endpoint_identity_out_2_d_valid; // @[Accelerator.scala 145:23]
   wire [3:0] acc_auto_EnergyCalc_memory_endpoint_identity_out_2_d_bits_source; // @[Accelerator.scala 145:23]
+  wire [511:0] acc_auto_EnergyCalc_memory_endpoint_identity_out_2_d_bits_data; // @[Accelerator.scala 145:23]
   wire  acc_auto_EnergyCalc_memory_endpoint_identity_out_1_a_ready; // @[Accelerator.scala 145:23]
   wire  acc_auto_EnergyCalc_memory_endpoint_identity_out_1_a_valid; // @[Accelerator.scala 145:23]
   wire [2:0] acc_auto_EnergyCalc_memory_endpoint_identity_out_1_a_bits_size; // @[Accelerator.scala 145:23]
@@ -6968,7 +9322,6 @@ module ComposerAccSystem(
   wire  acc_auto_EnergyCalc_memory_endpoint_identity_out_1_d_ready; // @[Accelerator.scala 145:23]
   wire  acc_auto_EnergyCalc_memory_endpoint_identity_out_1_d_valid; // @[Accelerator.scala 145:23]
   wire [3:0] acc_auto_EnergyCalc_memory_endpoint_identity_out_1_d_bits_source; // @[Accelerator.scala 145:23]
-  wire [511:0] acc_auto_EnergyCalc_memory_endpoint_identity_out_1_d_bits_data; // @[Accelerator.scala 145:23]
   wire  acc_auto_EnergyCalc_memory_endpoint_identity_out_0_a_ready; // @[Accelerator.scala 145:23]
   wire  acc_auto_EnergyCalc_memory_endpoint_identity_out_0_a_valid; // @[Accelerator.scala 145:23]
   wire  acc_auto_EnergyCalc_memory_endpoint_identity_out_0_a_bits_source; // @[Accelerator.scala 145:23]
@@ -7001,6 +9354,7 @@ module ComposerAccSystem(
   wire  crossbarModule_auto_in_4_d_ready; // @[Accelerator.scala 147:34]
   wire  crossbarModule_auto_in_4_d_valid; // @[Accelerator.scala 147:34]
   wire [3:0] crossbarModule_auto_in_4_d_bits_source; // @[Accelerator.scala 147:34]
+  wire [511:0] crossbarModule_auto_in_4_d_bits_data; // @[Accelerator.scala 147:34]
   wire  crossbarModule_auto_in_3_a_ready; // @[Accelerator.scala 147:34]
   wire  crossbarModule_auto_in_3_a_valid; // @[Accelerator.scala 147:34]
   wire [2:0] crossbarModule_auto_in_3_a_bits_size; // @[Accelerator.scala 147:34]
@@ -7010,6 +9364,7 @@ module ComposerAccSystem(
   wire  crossbarModule_auto_in_3_d_ready; // @[Accelerator.scala 147:34]
   wire  crossbarModule_auto_in_3_d_valid; // @[Accelerator.scala 147:34]
   wire [3:0] crossbarModule_auto_in_3_d_bits_source; // @[Accelerator.scala 147:34]
+  wire [511:0] crossbarModule_auto_in_3_d_bits_data; // @[Accelerator.scala 147:34]
   wire  crossbarModule_auto_in_2_a_ready; // @[Accelerator.scala 147:34]
   wire  crossbarModule_auto_in_2_a_valid; // @[Accelerator.scala 147:34]
   wire [2:0] crossbarModule_auto_in_2_a_bits_size; // @[Accelerator.scala 147:34]
@@ -7019,6 +9374,7 @@ module ComposerAccSystem(
   wire  crossbarModule_auto_in_2_d_ready; // @[Accelerator.scala 147:34]
   wire  crossbarModule_auto_in_2_d_valid; // @[Accelerator.scala 147:34]
   wire [3:0] crossbarModule_auto_in_2_d_bits_source; // @[Accelerator.scala 147:34]
+  wire [511:0] crossbarModule_auto_in_2_d_bits_data; // @[Accelerator.scala 147:34]
   wire  crossbarModule_auto_in_1_a_ready; // @[Accelerator.scala 147:34]
   wire  crossbarModule_auto_in_1_a_valid; // @[Accelerator.scala 147:34]
   wire [2:0] crossbarModule_auto_in_1_a_bits_size; // @[Accelerator.scala 147:34]
@@ -7028,7 +9384,6 @@ module ComposerAccSystem(
   wire  crossbarModule_auto_in_1_d_ready; // @[Accelerator.scala 147:34]
   wire  crossbarModule_auto_in_1_d_valid; // @[Accelerator.scala 147:34]
   wire [3:0] crossbarModule_auto_in_1_d_bits_source; // @[Accelerator.scala 147:34]
-  wire [511:0] crossbarModule_auto_in_1_d_bits_data; // @[Accelerator.scala 147:34]
   wire  crossbarModule_auto_in_0_a_ready; // @[Accelerator.scala 147:34]
   wire  crossbarModule_auto_in_0_a_valid; // @[Accelerator.scala 147:34]
   wire  crossbarModule_auto_in_0_a_bits_source; // @[Accelerator.scala 147:34]
@@ -7067,6 +9422,8 @@ module ComposerAccSystem(
     .auto_EnergyCalc_memory_endpoint_identity_out_4_d_valid(acc_auto_EnergyCalc_memory_endpoint_identity_out_4_d_valid),
     .auto_EnergyCalc_memory_endpoint_identity_out_4_d_bits_source(
       acc_auto_EnergyCalc_memory_endpoint_identity_out_4_d_bits_source),
+    .auto_EnergyCalc_memory_endpoint_identity_out_4_d_bits_data(
+      acc_auto_EnergyCalc_memory_endpoint_identity_out_4_d_bits_data),
     .auto_EnergyCalc_memory_endpoint_identity_out_3_a_ready(acc_auto_EnergyCalc_memory_endpoint_identity_out_3_a_ready),
     .auto_EnergyCalc_memory_endpoint_identity_out_3_a_valid(acc_auto_EnergyCalc_memory_endpoint_identity_out_3_a_valid),
     .auto_EnergyCalc_memory_endpoint_identity_out_3_a_bits_size(
@@ -7081,6 +9438,8 @@ module ComposerAccSystem(
     .auto_EnergyCalc_memory_endpoint_identity_out_3_d_valid(acc_auto_EnergyCalc_memory_endpoint_identity_out_3_d_valid),
     .auto_EnergyCalc_memory_endpoint_identity_out_3_d_bits_source(
       acc_auto_EnergyCalc_memory_endpoint_identity_out_3_d_bits_source),
+    .auto_EnergyCalc_memory_endpoint_identity_out_3_d_bits_data(
+      acc_auto_EnergyCalc_memory_endpoint_identity_out_3_d_bits_data),
     .auto_EnergyCalc_memory_endpoint_identity_out_2_a_ready(acc_auto_EnergyCalc_memory_endpoint_identity_out_2_a_ready),
     .auto_EnergyCalc_memory_endpoint_identity_out_2_a_valid(acc_auto_EnergyCalc_memory_endpoint_identity_out_2_a_valid),
     .auto_EnergyCalc_memory_endpoint_identity_out_2_a_bits_size(
@@ -7095,6 +9454,8 @@ module ComposerAccSystem(
     .auto_EnergyCalc_memory_endpoint_identity_out_2_d_valid(acc_auto_EnergyCalc_memory_endpoint_identity_out_2_d_valid),
     .auto_EnergyCalc_memory_endpoint_identity_out_2_d_bits_source(
       acc_auto_EnergyCalc_memory_endpoint_identity_out_2_d_bits_source),
+    .auto_EnergyCalc_memory_endpoint_identity_out_2_d_bits_data(
+      acc_auto_EnergyCalc_memory_endpoint_identity_out_2_d_bits_data),
     .auto_EnergyCalc_memory_endpoint_identity_out_1_a_ready(acc_auto_EnergyCalc_memory_endpoint_identity_out_1_a_ready),
     .auto_EnergyCalc_memory_endpoint_identity_out_1_a_valid(acc_auto_EnergyCalc_memory_endpoint_identity_out_1_a_valid),
     .auto_EnergyCalc_memory_endpoint_identity_out_1_a_bits_size(
@@ -7109,8 +9470,6 @@ module ComposerAccSystem(
     .auto_EnergyCalc_memory_endpoint_identity_out_1_d_valid(acc_auto_EnergyCalc_memory_endpoint_identity_out_1_d_valid),
     .auto_EnergyCalc_memory_endpoint_identity_out_1_d_bits_source(
       acc_auto_EnergyCalc_memory_endpoint_identity_out_1_d_bits_source),
-    .auto_EnergyCalc_memory_endpoint_identity_out_1_d_bits_data(
-      acc_auto_EnergyCalc_memory_endpoint_identity_out_1_d_bits_data),
     .auto_EnergyCalc_memory_endpoint_identity_out_0_a_ready(acc_auto_EnergyCalc_memory_endpoint_identity_out_0_a_ready),
     .auto_EnergyCalc_memory_endpoint_identity_out_0_a_valid(acc_auto_EnergyCalc_memory_endpoint_identity_out_0_a_valid),
     .auto_EnergyCalc_memory_endpoint_identity_out_0_a_bits_source(
@@ -7150,6 +9509,7 @@ module ComposerAccSystem(
     .auto_in_4_d_ready(crossbarModule_auto_in_4_d_ready),
     .auto_in_4_d_valid(crossbarModule_auto_in_4_d_valid),
     .auto_in_4_d_bits_source(crossbarModule_auto_in_4_d_bits_source),
+    .auto_in_4_d_bits_data(crossbarModule_auto_in_4_d_bits_data),
     .auto_in_3_a_ready(crossbarModule_auto_in_3_a_ready),
     .auto_in_3_a_valid(crossbarModule_auto_in_3_a_valid),
     .auto_in_3_a_bits_size(crossbarModule_auto_in_3_a_bits_size),
@@ -7159,6 +9519,7 @@ module ComposerAccSystem(
     .auto_in_3_d_ready(crossbarModule_auto_in_3_d_ready),
     .auto_in_3_d_valid(crossbarModule_auto_in_3_d_valid),
     .auto_in_3_d_bits_source(crossbarModule_auto_in_3_d_bits_source),
+    .auto_in_3_d_bits_data(crossbarModule_auto_in_3_d_bits_data),
     .auto_in_2_a_ready(crossbarModule_auto_in_2_a_ready),
     .auto_in_2_a_valid(crossbarModule_auto_in_2_a_valid),
     .auto_in_2_a_bits_size(crossbarModule_auto_in_2_a_bits_size),
@@ -7168,6 +9529,7 @@ module ComposerAccSystem(
     .auto_in_2_d_ready(crossbarModule_auto_in_2_d_ready),
     .auto_in_2_d_valid(crossbarModule_auto_in_2_d_valid),
     .auto_in_2_d_bits_source(crossbarModule_auto_in_2_d_bits_source),
+    .auto_in_2_d_bits_data(crossbarModule_auto_in_2_d_bits_data),
     .auto_in_1_a_ready(crossbarModule_auto_in_1_a_ready),
     .auto_in_1_a_valid(crossbarModule_auto_in_1_a_valid),
     .auto_in_1_a_bits_size(crossbarModule_auto_in_1_a_bits_size),
@@ -7177,7 +9539,6 @@ module ComposerAccSystem(
     .auto_in_1_d_ready(crossbarModule_auto_in_1_d_ready),
     .auto_in_1_d_valid(crossbarModule_auto_in_1_d_valid),
     .auto_in_1_d_bits_source(crossbarModule_auto_in_1_d_bits_source),
-    .auto_in_1_d_bits_data(crossbarModule_auto_in_1_d_bits_data),
     .auto_in_0_a_ready(crossbarModule_auto_in_0_a_ready),
     .auto_in_0_a_valid(crossbarModule_auto_in_0_a_valid),
     .auto_in_0_a_bits_source(crossbarModule_auto_in_0_a_bits_source),
@@ -7217,16 +9578,18 @@ module ComposerAccSystem(
   assign acc_auto_EnergyCalc_memory_endpoint_identity_out_4_a_ready = crossbarModule_auto_in_4_a_ready; // @[LazyModule.scala 355:16]
   assign acc_auto_EnergyCalc_memory_endpoint_identity_out_4_d_valid = crossbarModule_auto_in_4_d_valid; // @[LazyModule.scala 355:16]
   assign acc_auto_EnergyCalc_memory_endpoint_identity_out_4_d_bits_source = crossbarModule_auto_in_4_d_bits_source; // @[LazyModule.scala 355:16]
+  assign acc_auto_EnergyCalc_memory_endpoint_identity_out_4_d_bits_data = crossbarModule_auto_in_4_d_bits_data; // @[LazyModule.scala 355:16]
   assign acc_auto_EnergyCalc_memory_endpoint_identity_out_3_a_ready = crossbarModule_auto_in_3_a_ready; // @[LazyModule.scala 355:16]
   assign acc_auto_EnergyCalc_memory_endpoint_identity_out_3_d_valid = crossbarModule_auto_in_3_d_valid; // @[LazyModule.scala 355:16]
   assign acc_auto_EnergyCalc_memory_endpoint_identity_out_3_d_bits_source = crossbarModule_auto_in_3_d_bits_source; // @[LazyModule.scala 355:16]
+  assign acc_auto_EnergyCalc_memory_endpoint_identity_out_3_d_bits_data = crossbarModule_auto_in_3_d_bits_data; // @[LazyModule.scala 355:16]
   assign acc_auto_EnergyCalc_memory_endpoint_identity_out_2_a_ready = crossbarModule_auto_in_2_a_ready; // @[LazyModule.scala 355:16]
   assign acc_auto_EnergyCalc_memory_endpoint_identity_out_2_d_valid = crossbarModule_auto_in_2_d_valid; // @[LazyModule.scala 355:16]
   assign acc_auto_EnergyCalc_memory_endpoint_identity_out_2_d_bits_source = crossbarModule_auto_in_2_d_bits_source; // @[LazyModule.scala 355:16]
+  assign acc_auto_EnergyCalc_memory_endpoint_identity_out_2_d_bits_data = crossbarModule_auto_in_2_d_bits_data; // @[LazyModule.scala 355:16]
   assign acc_auto_EnergyCalc_memory_endpoint_identity_out_1_a_ready = crossbarModule_auto_in_1_a_ready; // @[LazyModule.scala 355:16]
   assign acc_auto_EnergyCalc_memory_endpoint_identity_out_1_d_valid = crossbarModule_auto_in_1_d_valid; // @[LazyModule.scala 355:16]
   assign acc_auto_EnergyCalc_memory_endpoint_identity_out_1_d_bits_source = crossbarModule_auto_in_1_d_bits_source; // @[LazyModule.scala 355:16]
-  assign acc_auto_EnergyCalc_memory_endpoint_identity_out_1_d_bits_data = crossbarModule_auto_in_1_d_bits_data; // @[LazyModule.scala 355:16]
   assign acc_auto_EnergyCalc_memory_endpoint_identity_out_0_a_ready = crossbarModule_auto_in_0_a_ready; // @[LazyModule.scala 355:16]
   assign acc_auto_EnergyCalc_memory_endpoint_identity_out_0_d_valid = crossbarModule_auto_in_0_d_valid; // @[LazyModule.scala 355:16]
   assign acc_auto_EnergyCalc_memory_endpoint_identity_out_0_d_bits_source = crossbarModule_auto_in_0_d_bits_source; // @[LazyModule.scala 355:16]

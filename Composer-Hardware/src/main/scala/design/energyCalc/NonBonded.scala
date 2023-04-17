@@ -29,13 +29,14 @@ class NonBonded(data: CScratchpadAccessBundle) extends Module {
 
 
   // Configure Done
-  val done_cal = RegInit(Bool())
-  val done_skippped = RegInit(Bool())
+  val done_cal = RegInit(false.B)
+  val done_skippped = RegInit(false.B)
   done_cal := Mux(io.start, false.B, done_cal)
   done_skippped := Mux(io.start, false.B, done_skippped)
   io.done := done_skippped || done_cal
 
-  val wait_for_data = RegInit(true.B)
+  val wait_for_data = RegInit(false.B)
+  wait_for_data := true.B
   val counter = RegInit(0.U(32.W))
   val counter_1H = Wire(Vec(32, Bool()))
   wait_for_data := Mux(io.start, true.B, wait_for_data)
@@ -47,20 +48,22 @@ class NonBonded(data: CScratchpadAccessBundle) extends Module {
   when ( (io.nonBondedTerms(2) === 1.U(32.W)) && (!io.useHydrogenEs && !io.useHydrogenVdw) ) {  //(useHydrogenNeither && isHydrogen)
     done_skippped := true.B
     done_cal := false.B
+    io.out_vdwE := io.in_vdwE
+    io.out_esE := io.in_esE
   }.otherwise {
     done_skippped := false.B
 
-    val accessState = RegInit(0.U(2.W))
+    val accessState = RegInit(3.U(32.W))
     val data_index1 = VecInit(Seq.fill(4)(0.U(32.W)))
     val data_index2 = VecInit(Seq.fill(4)(0.U(32.W)))
     accessState := Mux(io.start, 0.U, accessState)
 
 
     // read table parts
-    val Aij = Wire(0.U(32.W))
-    val Bij = Wire(0.U(32.W))
-    val chargei = Wire(0.U(32.W))
-    val chargej = Wire(0.U(32.W))
+    val Aij = Wire(UInt(32.W))
+    val Bij = Wire(UInt(32.W))
+    val chargei = Wire(UInt(32.W))
+    val chargej = Wire(UInt(32.W))
     val index1 = io.res1Start + io.nonBondedTerms(0) * 4.U(32.W) //included atomix and atomix4
     val index2 = io.res2Start + io.nonBondedTerms(1) * 4.U(32.W) //included atomjx and atomjx4
     Aij := io.nonBondedTerms(3)
@@ -71,31 +74,32 @@ class NonBonded(data: CScratchpadAccessBundle) extends Module {
 
 
     when(accessState === 0.U) {
+      accessState := 2.U
       //first access, index1
-      data.readReq.valid := true.B
-      data.readReq.bits := index1
-      when (data.readRes.valid) {
-        val resp1 = data.readRes.bits
-        data_index1(0) := resp1(31, 0)
-        data_index1(1) := resp1(63, 32)
-        data_index1(2) := resp1(95, 64)
-        data_index1(3) := resp1(127, 96)
-        accessState := 1.U
-      }
+//      data.readReq.valid := true.B
+//      data.readReq.bits := index1
+//      when (data.readRes.valid) {
+//        val resp1 = data.readRes.bits
+//        data_index1(0) := resp1(31, 0)
+//        data_index1(1) := resp1(63, 32)
+//        data_index1(2) := resp1(95, 64)
+//        data_index1(3) := resp1(127, 96)
+//        accessState := 1.U
+//      }
     }.elsewhen(accessState === 1.U) {
       //second access, index2
-      data.readReq.valid := true.B
-      data.readReq.bits := index2
-      when (data.readRes.valid) {
-        val resp2 = data.readRes.bits
-        data_index2(0) := resp2(31, 0)
-        data_index2(1) := resp2(63, 32)
-        data_index2(2) := resp2(95, 64)
-        data_index2(3) := resp2(127, 96)
-        accessState := 2.U
-      }
+//      data.readReq.valid := true.B
+//      data.readReq.bits := index2
+//      when (data.readRes.valid) {
+//        val resp2 = data.readRes.bits
+//        data_index2(0) := resp2(31, 0)
+//        data_index2(1) := resp2(63, 32)
+//        data_index2(2) := resp2(95, 64)
+//        data_index2(3) := resp2(127, 96)
+//        accessState := 2.U
+//      }
     }.elsewhen(accessState === 2.U) {
-      data.readReq.valid := false.B
+//      data.readReq.valid := false.B
       wait_for_data := false.B
     }
 
@@ -130,6 +134,8 @@ class NonBonded(data: CScratchpadAccessBundle) extends Module {
     val Aij_rij12 = RegInit(0.U(32.W))
     val Bij_rij6 = RegInit(0.U(32.W))
     val partialSumVDW = RegInit(0.U(32.W))
+    val outES = RegInit(0.U(32.W))
+    val outVDW = RegInit(0.U(32.W))
 
 
     // FPU ADD calculations
@@ -137,6 +143,7 @@ class NonBonded(data: CScratchpadAccessBundle) extends Module {
     fpuAdd.io.req.valid := true.B
     fpuAdd.io.req.bits := DontCare
     fpuAdd.io.resp.ready := true.B
+    fpuAdd.io.flush := false.B
     fpuAdd.io.req.bits.roundingMode := FPRoundingMode.RNE
 
     val fpuAM_oper = Seq(0.U, 1.U                  , 0.U,   0.U,    0.U, 0.U, 0.U, 0.U, 0.U,       1.U, 0.U)
@@ -165,10 +172,12 @@ class NonBonded(data: CScratchpadAccessBundle) extends Module {
       rijx_y := Mux(counter_1H(2), fpuAdd.io.resp.bits.result(0), rijx_y)
       rij2 := Mux(counter_1H(4), fpuAdd.io.resp.bits.result(0), rij2)
       partialSumVDW := Mux(counter_1H(9), fpuAdd.io.resp.bits.result(0), partialSumVDW)
-      io.out_esE := Mux(counter_1H(10) && (!(io.nonBondedTerms(2) === 1.U(32.W)) || io.useHydrogenEs), fpuAdd.io.resp.bits.result(0), io.in_esE)
-      io.out_vdwE := Mux(counter_1H(10) && (!(io.nonBondedTerms(2) === 1.U(32.W)) || io.useHydrogenVdw), fpuAdd.io.resp.bits.result(1), io.in_vdwE)
+      outVDW := Mux(counter_1H(10) && (!(io.nonBondedTerms(2) === 1.U(32.W)) || io.useHydrogenEs), fpuAdd.io.resp.bits.result(0), outES)
+      outES := Mux(counter_1H(10) && (!(io.nonBondedTerms(2) === 1.U(32.W)) || io.useHydrogenVdw), fpuAdd.io.resp.bits.result(1), outVDW)
       done_cal := Mux(counter_1H(10), true.B, done_cal)
     }
+    io.out_esE := outVDW
+    io.out_vdwE := outES
 
 
     // FPU Multiplication
@@ -178,6 +187,7 @@ class NonBonded(data: CScratchpadAccessBundle) extends Module {
     fpuMul.io.resp.ready := true.B
     fpuMul.io.req.bits.roundingMode := FPRoundingMode.RNE
     fpuMul.io.req.bits.opModifier := 0.U
+    fpuMul.io.flush := false.B
 
     val fpuM_in10 = Seq(0.U, 0.U, rijx, chargei, 0.U,     rij2        , rij4, rij6, 0.U, 0.U, 0.U)
     val fpuM_in11 = Seq(0.U, 0.U, rijx, chargej, 0.U,     rij2        , rij2, rij6, 0.U, 0.U, 0.U)
@@ -214,6 +224,7 @@ class NonBonded(data: CScratchpadAccessBundle) extends Module {
     fpuDiv.io.resp.ready := true.B
     fpuDiv.io.req.bits.opModifier := 0.U
     fpuDiv.io.req.bits.roundingMode := FPRoundingMode.RNE
+    fpuDiv.io.flush := false.B
 
     val rijORrij2 = Mux(io.distDepDielect, rij2, rij)
     val fpuD_in0 = Seq(0.U, 0.U, 0.U, 0.U, 0.U, 0.U, chargeijC, Bij ,   Aij, 0.U, 0.U)
@@ -232,6 +243,7 @@ class NonBonded(data: CScratchpadAccessBundle) extends Module {
     fpuSqrt.io.req.valid := true.B
     fpuSqrt.io.req.bits := DontCare
     fpuSqrt.io.resp.ready := true.B
+    fpuSqrt.io.flush := false.B
     fpuSqrt.io.req.bits.opModifier := 0.U
     fpuSqrt.io.req.bits.roundingMode := FPRoundingMode.RNE
     fpuSqrt.io.req.bits.op := FPOperation.SQRT

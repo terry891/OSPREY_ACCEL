@@ -23,20 +23,22 @@ class Solvated(data: CScratchpadAccessBundle) extends Module {
   })
 
   def doubleToIEEE(in: Double): UInt = {
-    val floatBits = java.lang.Float.floatToIntBits(d.toFloat)
-    val sign = floatBits >> 31
-    val exponent = (floatBits >> 23) & 0xff
-    val significand = floatBits & 0x7fffff
-    Cat(sign.U(1.W), exponent.U(8.W), significand.U(23.W))
+    val floatBits = java.lang.Float.floatToIntBits(in.toFloat)
+//    val sign = floatBits >> 31
+//    val exponent = (floatBits >> 23) & 0xff
+//    val significand = floatBits & 0x7fffff
+//    Cat(sign.U(1.W), exponent.U(8.W), significand.U(23.W))
+    0.U(32.W)
   }
 
 
   // Configure Done
-  val done_cal = RegInit(Bool())
+  val done_cal = RegInit(false.B)
   done_cal := Mux(io.start, false.B, done_cal)
   io.done := done_cal
 
-  val wait_for_data = RegInit(true.B)
+  val wait_for_data = RegInit(false.B)
+  wait_for_data := true.B
   val counter = RegInit(0.U(32.W))
   val counter_1H = Wire(Vec(32, Bool()))
   wait_for_data := Mux(io.start, true.B, wait_for_data)
@@ -69,13 +71,15 @@ class Solvated(data: CScratchpadAccessBundle) extends Module {
   val aXijXji = RegInit(0.U(32.W))
   val partialSumSOLV = RegInit(0.U(32.W))
   val doSolveEnergy = Wire(Bool())
+  doSolveEnergy := false.B
+  val output = RegInit(0.U(32.W))
 
-  val lambda_i = Wire(0.U(32.W))
-  val vdWr_i = Wire(0.U(32.W))
-  val alpha_i = Wire(0.U(32.W))
-  val lambda_j = Wire(0.U(32.W))
-  val vdWr_j = Wire(0.U(32.W))
-  val alpha_j = Wire(0.U(32.W))
+  val lambda_i = Wire(UInt(32.W))
+  val vdWr_i = Wire(UInt(32.W))
+  val alpha_i = Wire(UInt(32.W))
+  val lambda_j = Wire(UInt(32.W))
+  val vdWr_j = Wire(UInt(32.W))
+  val alpha_j = Wire(UInt(32.W))
   lambda_i := io.solvationTerms(1)
   vdWr_i := io.solvationTerms(2)
   alpha_i := io.solvationTerms(3)
@@ -83,38 +87,39 @@ class Solvated(data: CScratchpadAccessBundle) extends Module {
   vdWr_j := io.solvationTerms(6)
   alpha_j := io.solvationTerms(7)
 
-  val accessState = RegInit(0.U(2.W))
+  val accessState = RegInit(2.U(32.W))
   val data_index1 = VecInit(Seq.fill(4)(0.U(32.W)))
   val data_index2 = VecInit(Seq.fill(4)(0.U(32.W)))
   accessState := Mux(io.start, 0.U, accessState)
 
 
   when(accessState === 0.U) {
+    accessState := 2.U
     //first access, index1
-    data.readReq.valid := true.B
-    data.readReq.bits := index1
-    when(data.readRes.valid) {
-      val resp1 = data.readRes.bits
-      data_index1(0) := resp1(31, 0)
-      data_index1(1) := resp1(63, 32)
-      data_index1(2) := resp1(95, 64)
-      data_index1(3) := resp1(127, 96)
-      accessState := 1.U
-    }
+//    data.readReq.valid := true.B
+//    data.readReq.bits := index1
+//    when(data.readRes.valid) {
+//      val resp1 = data.readRes.bits
+//      data_index1(0) := resp1(31, 0)
+//      data_index1(1) := resp1(63, 32)
+//      data_index1(2) := resp1(95, 64)
+//      data_index1(3) := resp1(127, 96)
+//      accessState := 1.U
+//    }
   }.elsewhen(accessState === 1.U) {
     //second access, index2
-    data.readReq.valid := true.B
-    data.readReq.bits := index2
-    when(data.readRes.valid) {
-      val resp2 = data.readRes.bits
-      data_index2(0) := resp2(31, 0)
-      data_index2(1) := resp2(63, 32)
-      data_index2(2) := resp2(95, 64)
-      data_index2(3) := resp2(127, 96)
-      accessState := 2.U
-    }
+//    data.readReq.valid := true.B
+//    data.readReq.bits := index2
+//    when(data.readRes.valid) {
+//      val resp2 = data.readRes.bits
+//      data_index2(0) := resp2(31, 0)
+//      data_index2(1) := resp2(63, 32)
+//      data_index2(2) := resp2(95, 64)
+//      data_index2(3) := resp2(127, 96)
+//      accessState := 2.U
+//    }
   }.elsewhen(accessState === 2.U) {
-    data.readReq.valid := false.B
+//    data.readReq.valid := false.B
     wait_for_data := false.B
   }
 
@@ -124,6 +129,7 @@ class Solvated(data: CScratchpadAccessBundle) extends Module {
   fpuAdd.io.req.valid := true.B
   fpuAdd.io.req.bits := DontCare
   fpuAdd.io.resp.ready := true.B
+  fpuAdd.io.flush := false.B
   fpuAdd.io.req.bits.roundingMode := FPRoundingMode.RNE
 
   val fpuAM_oper = Seq(0.U, 1.U             , 0.U,   0.U,    0.U, 0.U,    1.U, 0.U, 0.U,                   1.U, 0.U, 1.U, 0.U, 1.U)
@@ -156,9 +162,11 @@ class Solvated(data: CScratchpadAccessBundle) extends Module {
     Xij_21 := Mux(counter_1H(9), fpuAdd.io.resp.bits.result(0), Xij_21)
     Xji_21 := Mux(counter_1H(9), fpuAdd.io.resp.bits.result(1), Xji_21)
     aXijXji := Mux(counter_1H(11), fpuAdd.io.resp.bits.result(0), aXijXji)
-    io.out_solvE := Mux(counter_1H(13) && doSolveEnergy, fpuAdd.io.resp.bits.result(0), io.in_solvE)
+    output := Mux(counter_1H(13) && doSolveEnergy, fpuAdd.io.resp.bits.result(0), io.in_solvE)
     done_cal := Mux(counter_1H(13), true.B, done_cal)
   }
+  output := io.in_solvE
+  io.out_solvE := output
 
   // FPU Multiplication
   val fpuMul = Module(new FPUNew(FPFloatFormat.Fp32, lanes = 3, stages = 1, supportedOps = Seq(FPNewOpClass.ADDMUL), tagWidth = 1))
@@ -167,6 +175,8 @@ class Solvated(data: CScratchpadAccessBundle) extends Module {
   fpuMul.io.resp.ready := true.B
   fpuMul.io.req.bits.roundingMode := FPRoundingMode.RNE
   fpuMul.io.req.bits.opModifier := 0.U
+  fpuMul.io.flush := false.B
+
 
   val fpuM_in10 = Seq(0.U, 0.U, rijx, 0.U, 0.U, 0.U, 0.U, 0.U, 0.U, 0.U, Xij_21, 0.U, 0.U, 0.U)
   val fpuM_in11 = Seq(0.U, 0.U, rijx, 0.U, 0.U, 0.U, 0.U, 0.U, 0.U, 0.U, alpha_i, 0.U, 0.U, 0.U)
@@ -200,6 +210,7 @@ class Solvated(data: CScratchpadAccessBundle) extends Module {
   fpuDiv.io.resp.ready := true.B
   fpuDiv.io.req.bits.opModifier := 0.U
   fpuDiv.io.req.bits.roundingMode := FPRoundingMode.RNE
+  fpuDiv.io.flush := false.B
 
   //Math.exp(-Xij *Xij) approximation with 1-x/2 for x < 2, 0 otherwise
   val fpuD_in10 = Seq(0.U, 0.U, 0.U, 0.U, 0.U, 0.U, 0.U, rij_vdWri, Xij                  , 0.U, 0.U, 0.U, aXijXji, 0.U)
@@ -224,6 +235,7 @@ class Solvated(data: CScratchpadAccessBundle) extends Module {
   // FPU Square Root
   val fpuSqrt = Module(new FPUNew(FPFloatFormat.Fp32, lanes = 1, stages = 1, supportedOps = Seq(FPNewOpClass.DIVSQRT), tagWidth = 1))
   fpuSqrt.io.req.valid := true.B
+  fpuSqrt.io.flush := false.B
   fpuSqrt.io.req.bits := DontCare
   fpuSqrt.io.resp.ready := true.B
   fpuSqrt.io.req.bits.opModifier := 0.U
@@ -240,6 +252,7 @@ class Solvated(data: CScratchpadAccessBundle) extends Module {
   val fpuComp = Module(new FPUNew(FPFloatFormat.Fp32, lanes = 1, stages = 1, supportedOps = Seq(FPNewOpClass.NONCOMP), tagWidth = 1))
   fpuComp.io.req.valid := true.B
   fpuComp.io.req.bits := DontCare
+  fpuComp.io.flush := false.B
   fpuComp.io.resp.ready := true.B
   fpuComp.io.req.bits.opModifier := 0.U
   fpuComp.io.req.bits.roundingMode := FPRoundingMode.RTZ //(https://github.com/openhwgroup/cvfpu/tree/develop/docs)
