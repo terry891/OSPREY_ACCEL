@@ -256,12 +256,13 @@ class EnergyCalcTop(composerConstructor: ComposerConstructor)(implicit p: Parame
         SOL.io.start := false.B
         solvEnergy := Mux(SOL.io.done, SOL.io.out_solvE, solvEnergy)
         cal_state := Mux(SOL.io.done, 6.U, cal_state)
+        printf(cf"solvation loop completed\n")
       }.elsewhen(cal_state === 6.U){
         sum := esEnergy
         iteration := iteration + 1.U
         printf(cf"all completed, iteration plus one\n")
       }.otherwise{
-        printf(cf"Not more calculation\n")
+        printf(cf"No more calculation\n")
       }
     }.elsewhen(iteration > 1000.U){
       state := s_store

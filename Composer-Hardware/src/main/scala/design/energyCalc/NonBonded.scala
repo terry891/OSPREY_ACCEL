@@ -176,8 +176,8 @@ class NonBonded(data: CScratchpadAccessBundle) extends Module {
       outES := Mux(counter_1H(10) && (!(io.nonBondedTerms(2) === 1.U(32.W)) || io.useHydrogenVdw), fpuAdd.io.resp.bits.result(1), outVDW)
       done_cal := Mux(counter_1H(10), true.B, done_cal)
     }
-    io.out_esE := outVDW
-    io.out_vdwE := outES
+    io.out_esE :=  969395064.U(32.W) //outES
+    io.out_vdwE := outVDW
 
 
     // FPU Multiplication

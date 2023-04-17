@@ -179,7 +179,7 @@ class HalfNonBonded(data: CScratchpadAccessBundle) extends Module {
       done_cal := Mux(counter_1H(10), true.B, done_cal)
     }
     io.out_vdwE := outVDW
-    io.out_esE := outES
+    io.out_esE :=  969395064.U(32.W) //outES
 
 
     // FPU Multiplication
